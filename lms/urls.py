@@ -991,3 +991,11 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/course_experience/', include('openedx.features.course_experience.api.v1.urls')),
 ]
+
+
+#Added by Mahendra
+urlpatterns += [
+    url(r'^', include('openedx.core.djangoapps.course_discovery_api.urls')),
+    url(r'^', include('openedx.core.djangoapps.wp_course_discovery_api.urls')),
+    url(r'^', include('openedx.core.djangoapps.push_notification.urls')),
+]

@@ -2743,6 +2743,21 @@ INSTALLED_APPS = [
     'openedx.core.djangoapps.content.learning_sequences.apps.LearningSequencesConfig',
 
     'ratelimitbackend',
+
+
+    #Added by Mahendra chaudhari
+    # 'lms.djangoapps.add_manager',
+    # 'lms.djangoapps.associations',
+    'lms.djangoapps.specialization',
+    'lms.djangoapps.hcspecialization',
+    'lms.djangoapps.case_study',
+    'lms.djangoapps.contact_us',
+    'lms.djangoapps.course_extrainfo',
+    'lms.djangoapps.reg_form',
+    'lms.djangoapps.webform',
+    'openedx.core.djangoapps.push_notification',
+    'openedx.core.djangoapps.course_discovery_api',
+    'openedx.core.djangoapps.wp_course_discovery_api'
 ]
 
 ######################### CSRF #########################################
