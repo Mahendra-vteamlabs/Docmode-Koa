@@ -425,7 +425,7 @@ FEATURES = {
     # .. toggle_target_removal_date: None
     # .. toggle_warnings: None
     # .. toggle_tickets: https://openedx.atlassian.net/browse/OSPR-1320
-    'ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER': False,
+    'ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER': True,
 
     # Enable organizational email opt-in
     'ENABLE_MKTG_EMAIL_OPT_IN': False,
@@ -2468,6 +2468,8 @@ INSTALLED_APPS = [
 
     # History tables
     'simple_history',
+
+    'common.djangoapps.organizations',
 
     # Database-backed configuration
     'config_models',

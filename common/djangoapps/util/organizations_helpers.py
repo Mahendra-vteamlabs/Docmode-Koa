@@ -5,6 +5,8 @@ Utility library for working with the edx-organizations app
 
 from django.conf import settings
 from django.db.utils import DatabaseError
+from common.djangoapps.organizations import api as organizations_api
+from common.djangoapps.organizations.exceptions import InvalidOrganizationException
 
 
 def add_organization(organization_data):
@@ -13,7 +15,6 @@ def add_organization(organization_data):
     """
     if not organizations_enabled():
         return None
-    from organizations import api as organizations_api
     return organizations_api.add_organization(organization_data=organization_data)
 
 
@@ -23,7 +24,6 @@ def add_organization_course(organization_data, course_id):
     """
     if not organizations_enabled():
         return None
-    from organizations import api as organizations_api
     return organizations_api.add_organization_course(organization_data=organization_data, course_key=course_id)
 
 
@@ -33,7 +33,6 @@ def get_organization(organization_id):
     """
     if not organizations_enabled():
         return []
-    from organizations import api as organizations_api
     return organizations_api.get_organization(organization_id)
 
 
@@ -43,8 +42,6 @@ def get_organization_by_short_name(organization_short_name):
     """
     if not organizations_enabled():
         return None
-    from organizations import api as organizations_api
-    from organizations.exceptions import InvalidOrganizationException
     try:
         return organizations_api.get_organization_by_short_name(organization_short_name)
     except InvalidOrganizationException:
@@ -57,7 +54,6 @@ def get_organizations():
     """
     if not organizations_enabled():
         return []
-    from organizations import api as organizations_api
     # Due to the way unit tests run for edx-platform, models are not yet available at the time
     # of Django admin form instantiation.  This unfortunately results in an invocation of the following
     # workflow, because the test configuration is (correctly) configured to exercise the application
@@ -75,7 +71,6 @@ def get_organization_courses(organization_id):
     """
     if not organizations_enabled():
         return []
-    from organizations import api as organizations_api
     return organizations_api.get_organization_courses(organization_id)
 
 
@@ -85,7 +80,6 @@ def get_course_organizations(course_id):
     """
     if not organizations_enabled():
         return []
-    from organizations import api as organizations_api
     return organizations_api.get_course_organizations(course_id)
 
 

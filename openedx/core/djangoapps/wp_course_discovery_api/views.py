@@ -40,7 +40,7 @@ from lms.djangoapps.course_extrainfo.views import (
 from lms.djangoapps.course_extrainfo.models import course_extrainfo
 from xmodule.modulestore.django import modulestore
 from edxmako.shortcuts import render_to_response
-from organizations.models import OrganizationCourse, Organization
+from common.djangoapps.organizations.models import OrganizationCourse, Organization
 
 
 @view_auth_classes(is_authenticated=False)

@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import TestCase
 from opaque_keys.edx.keys import CourseKey
-from organizations.tests.factories import OrganizationFactory
+from common.djangoapps.organizations.tests.factories import OrganizationFactory
 from social_django.models import UserSocialAuth
 
 from common.djangoapps.course_modes.models import CourseMode

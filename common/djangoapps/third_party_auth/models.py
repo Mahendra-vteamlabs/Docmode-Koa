@@ -16,7 +16,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 from social_core.backends.base import BaseAuth
 from social_core.backends.oauth import OAuthAuth
 from social_core.backends.saml import SAMLAuth

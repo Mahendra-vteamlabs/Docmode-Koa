@@ -11,7 +11,7 @@ from openedx.core.djangoapps.content_libraries.constants import (
     LIBRARY_TYPES, COMPLEX, LICENSE_OPTIONS,
     ALL_RIGHTS_RESERVED,
 )
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 import six
 
 User = get_user_model()

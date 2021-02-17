@@ -2,7 +2,7 @@ from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from organizations.models import SponsoringCompany, Organization
+from common.djangoapps.organizations.models import SponsoringCompany, Organization
 
 USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "auth.User")
 

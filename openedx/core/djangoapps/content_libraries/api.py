@@ -50,7 +50,7 @@ from elasticsearch.exceptions import ConnectionError as ElasticConnectionError
 from lxml import etree
 from opaque_keys.edx.keys import LearningContextKey
 from opaque_keys.edx.locator import BundleDefinitionLocator, LibraryLocatorV2, LibraryUsageLocatorV2
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 import six
 from xblock.core import XBlock
 from xblock.exceptions import XBlockNotFoundError

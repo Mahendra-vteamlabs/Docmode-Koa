@@ -154,7 +154,7 @@ urlpatterns = [
     url(r'^api/credit/', include('openedx.core.djangoapps.credit.urls')),
     url(r'^api/toggles/', include('openedx.core.djangoapps.waffle_utils.urls')),
     url(r'^rss_proxy/', include('lms.djangoapps.rss_proxy.urls')),
-    url(r'^api/organizations/', include('organizations.urls', namespace='organizations')),
+    url(r'^api/organizations/', include('common.djangoapps.organizations.urls', namespace='organizations')),
 
     url(r'^catalog/', include(('openedx.core.djangoapps.catalog.urls', 'openedx.core.djangoapps.catalog'),
                               namespace='catalog')),

@@ -1,0 +1,13 @@
+
+
+<%! from django.utils.translation import ugettext as _ %>
+${_("Hello learners")}
+
+
+${_("We are excited for {course_name}, offered by {organization_name} through DocMode. Event begins on {course_utc_day}, {course_dates} at {course_utc_time} UTC which is {course_ist_time} local time zone).").format(course_name=course_name,organization_namee=organization_name,course_ist_time=course_ist_time,course_dates=course_dates,course_utc_day=course_utc_day,course_utc_time=course_utc_time)}
+
+
+${_("We hope to see you in the event,")}
+
+${_("The DocMode Staff,")}
+

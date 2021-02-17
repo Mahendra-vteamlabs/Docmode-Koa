@@ -75,14 +75,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_oauth.authentication import OAuth2Authentication
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.throttling import UserRateThrottle
-from organizations.models import (
+from common.djangoapps.organizations.models import (
     Organization,
     OrganizationMembers,
     SponsoringCompany,
     OrganizationSlider,
 )
 
-# from organizations import serializers
+# from common.djangoapps.organizations.import serializers
 
 from lms.djangoapps.reg_form.models import extrafields
 from lms.djangoapps.specialization.views import specializationName
@@ -142,7 +142,7 @@ template_imports = {"urllib": urllib}
 
 
 def index(request):
-    from organizations.api import get_organizations
+    from common.djangoapps.organizations.api import get_organizations
 
     # org_list = []
 
@@ -252,14 +252,6 @@ def association_about(request, organization_id):
         new_url = main_url + organization_id
         return redirect(new_url)
     user = request.user
-    from organizations.models import (
-        Organization,
-        OrganizationCourse,
-        OrganizationSlider,
-        OrganizationMembers,
-    )
-
-    # from courseware.courses import get_course
 
     try:
         data = Organization.objects.get(short_name=organization_id)
@@ -514,13 +506,6 @@ def speczName(speczId):
 
 
 def orgName(orgId):
-    from organizations.models import (
-        Organization,
-        OrganizationCourse,
-        OrganizationSlider,
-        OrganizationMembers,
-    )
-
     orgname = ""
     try:
         getDetails = Organization.objects.get(id=orgId)
@@ -553,15 +538,6 @@ def organization_analytics(request, organization_id):
     """
 
     user = request.user
-    from organizations.models import (
-        Organization,
-        OrganizationCourse,
-        OrganizationSlider,
-        OrganizationMembers,
-    )
-
-    # from courseware.courses import get_course
-
     data = Organization.objects.get(id=organization_id)
 
     speczs = extrafields.objects.values("specialization").annotate(
@@ -1203,9 +1179,6 @@ def custom_analytics_viewership(request):
 @ensure_csrf_cookie
 @require_http_methods(["GET"])
 def association_dashboard(request, org_sname):
-
-    from organizations.models import OrganizationCourse, OrganizationMembers
-
     gusr = request.user.id
     data = Organization.objects.get(short_name=org_sname)
     try:
@@ -1293,9 +1266,6 @@ def organizationName(orgId):
 @ensure_csrf_cookie
 @require_http_methods(["GET"])
 def association_course_analytics(request, course_id):
-
-    from organizations.models import OrganizationCourse, OrganizationMembers
-
     gusr = request.user.id
     org_course = OrganizationCourse.objects.get(course_id=course_id)
     try:
@@ -1718,10 +1688,6 @@ export_csv.short_description = u"Export CSV"
 
 
 def autojoin_org(userid, course_id, email):
-
-    from organizations.models import OrganizationMembers
-    from organizations.models import OrganizationCourse
-
     org_id = OrganizationCourse.objects.get(course_id=course_id)
 
     gmember = OrganizationMembers(
@@ -1731,8 +1697,6 @@ def autojoin_org(userid, course_id, email):
 
 
 def assoc_join(userid, org_id, email):
-    from organizations.models import OrganizationMembers
-
     data = Organization.objects.get(short_name=org_id)
     gmember = OrganizationMembers(
         user_id=userid, organization_id=data.id, user_email=email
@@ -1741,8 +1705,6 @@ def assoc_join(userid, org_id, email):
 
 
 def check_domain_in_usermail(sponsoring_companyname="lupin"):
-    from organizations.models import SponsoringCompany
-
     try:
         sname = SponsoringCompany.objects.filter(name=sponsoring_companyname)
         found = 1

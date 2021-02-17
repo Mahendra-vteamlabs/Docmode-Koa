@@ -174,6 +174,7 @@ FEATURES['ENABLE_DASHBOARD_SEARCH'] = False
 ########################## Certificates Web/HTML View #######################
 FEATURES['CERTIFICATES_HTML_VIEW'] = True
 
+FEATURES['ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER'] = True
 
 ########################## Course Discovery #######################
 LANGUAGE_MAP = {'terms': {lang: display for lang, display in ALL_LANGUAGES}, 'name': 'Language'}

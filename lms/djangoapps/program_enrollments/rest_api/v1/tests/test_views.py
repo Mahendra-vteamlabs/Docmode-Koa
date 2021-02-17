@@ -17,7 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
 from opaque_keys.edx.keys import CourseKey
-from organizations.tests.factories import OrganizationFactory as LMSOrganizationFactory
+from common.djangoapps.organizations.tests.factories import OrganizationFactory as LMSOrganizationFactory
 from rest_framework import status
 from rest_framework.test import APITestCase
 from six import text_type

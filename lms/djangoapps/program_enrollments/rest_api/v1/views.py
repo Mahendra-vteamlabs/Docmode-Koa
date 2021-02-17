@@ -10,7 +10,7 @@ from edx_api_doc_tools import path_parameter, query_parameter, schema
 from edx_rest_framework_extensions import permissions
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from edx_rest_framework_extensions.auth.session.authentication import SessionAuthenticationAllowInactiveUser
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import RetrieveAPIView

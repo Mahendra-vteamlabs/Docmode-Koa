@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 import edx_api_doc_tools as apidocs
 from opaque_keys.edx.locator import LibraryLocatorV2, LibraryUsageLocatorV2
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 from rest_framework import status
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.pagination import PageNumberPagination

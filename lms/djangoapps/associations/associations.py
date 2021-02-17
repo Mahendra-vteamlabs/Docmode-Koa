@@ -3,7 +3,7 @@ from django.conf import settings
 from edxmako.shortcuts import render_to_string
 from microsite_configuration import microsite
 
-from organizations import data, serializers
+from common.djangoapps.organizations.import data, serializers
 
 # from . import associations
 

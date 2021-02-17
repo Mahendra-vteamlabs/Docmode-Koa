@@ -12,8 +12,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.test.utils import override_settings
 from opaque_keys.edx.locator import CourseLocator
-from organizations.models import OrganizationCourse
-from organizations.tests.factories import OrganizationFactory
+from common.djangoapps.organizations.models import OrganizationCourse
+from common.djangoapps.organizations.tests.factories import OrganizationFactory
 from user_tasks.models import UserTaskArtifact, UserTaskStatus
 
 from cms.djangoapps.contentstore.tasks import export_olx, rerun_course

@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from openedx.core.djangolib.js_utils import dump_js_escaped_json
 from django.shortcuts import render
 from lms.djangoapps.specialization.models import specializations
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 from django.core.exceptions import ObjectDoesNotExist
 
 

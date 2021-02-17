@@ -1,0 +1,981 @@
+<%page expression_filter="h"/>
+<%inherit file="theme-main.html" />
+<%namespace name='static' file='static_content.html'/>
+<%!
+from django.utils.translation import ugettext as _
+from django.urls import reverse
+from six import text_type
+from lms.djangoapps.course_extrainfo.views import category_courses_count,category_lectures_count,category_casestudies_count
+from openedx.core.djangolib.markup import HTML, Text
+from courseware.courses import get_course_about_section
+from common.djangoapps.organizations.models import Organization
+from lms.djangoapps.course_extrainfo.views import course_ctype_number
+%>
+<%
+    check_loggedin = request.user.id
+%>
+<div class="content-wrapper homepage homepage-content" id="content">
+        <section class="doctor-tab-wrap">           
+            <div class="container-fluid">
+                <div class="tab-list-wrap">
+                    <div class="tab-content" id="home-doctorContent">
+
+                      <div class="firstimg-tab tab-pane active" id="imgBanner" role="tabpanel" aria-labelledby="imgBanner-tab">
+                            <div class="row">
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div class="first-tab-bg">
+                                        <p><h2>Global Medical Learning Platform </br>Your Knowledge Marketing Partner</h2></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-sm-12 col-xs-12 tab-person-div">
+                                    <p>I am....</p>
+                                </div>
+                            </div>
+                      </div>
+
+                      <div class="doc-tabs tab-pane" id="doctor" role="tabpanel" aria-labelledby="doctor-tab">                   
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                    <span class="tab-close"><i class="fa fa-times"></i></span>
+                                </div>
+                                <div class="col-md-6 col-sm-6 col-xs-12"></div>
+                                <div class="col-md-6 col-sm-6 col-xs-12">                               
+                                    <div class="tab-quick-links">
+                                        <h2>Quick links for Doctors</h2>
+                                        <ul class="quick-links-list">
+                                            %if not check_loggedin:
+                                                <li><a href="/register">Sign Up</a></li>
+                                                <li><a href="/login">Login</a></li>
+                                            %endif
+                                            <!-- <li><a href="#">Discuss</a></li> -->
+                                            <li><a href="/courses">Browse Courses</a></li>
+                                        </ul>
+                                    </div>                             
+                                </div>
+                                <div class="col-md-12 col-sm-12 col-xs-12 tab-person-div">
+                                    <!--<p>I am....</p>-->
+                                </div>
+                            </div>
+                      </div>
+                      <div class="doc-tabs tab-pane" id="nurse" role="tabpanel" aria-labelledby="nurse-tab">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                    <span class="tab-close"><i class="fa fa-times"></i></span>
+                                </div>
+                                <div class="col-md-6 col-sm-6 col-xs-12"></div>
+                                <div class="col-md-6 col-sm-6 col-xs-12">                               
+                                    <div class="tab-quick-links">
+                                        <h2>Quick links for Nurse</h2>
+                                        <ul class="quick-links-list">
+                                            %if not check_loggedin:
+                                                <li><a href="/register">Sign Up</a></li>
+                                                <li><a href="/login">Login</a></li>
+                                            %endif
+                                            <!-- <li><a href="#">Find a Doctor</a></li> -->
+                                            <li><a href="/lectures">Browse Lectures</a></li>
+                                            <li><a href="/subjects/">Browse Topics</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-sm-12 col-xs-12 tab-person-div">
+                                    <!--<p>I am....</p>-->
+                                </div>
+                            </div>
+                      </div>
+                      <div class="doc-tabs tab-pane" id="researcher" role="tabpanel" aria-labelledby="researcher-tab">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                    <span class="tab-close"><i class="fa fa-times"></i></span>
+                                </div>
+                                <div class="col-md-6 col-sm-6 col-xs-12"></div>
+                                <div class="col-md-6 col-sm-6 col-xs-12">                           
+                                    <div class="tab-quick-links">
+                                        <h2>Quick links for Researchers</h2>
+                                        <ul class="quick-links-list">
+                                            %if not check_loggedin:
+                                                <li><a href="/register">Sign Up</a></li>
+                                                <li><a href="/login">Login</a></li>
+                                            %endif
+                                            <li><a href="/case_studies/">Submit Case Study</a></li>
+                                            <li><a href="/research/">Browse Research</a></li> 
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-sm-12 col-xs-12 tab-person-div">
+                                    <!--<p>I am....</p>-->
+                                </div>
+                            </div>
+
+                      </div>
+                      <div class="doc-tabs tab-pane" id="student" role="tabpanel" aria-labelledby="student-tab">
+                        <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                    <span class="tab-close"><i class="fa fa-times"></i></span>
+                                </div>
+                                <div class="col-md-6 col-sm-6 col-xs-12"></div>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div class="tab-quick-links">
+                                        <h2>Quick links for Students</h2>
+                                        <ul class="quick-links-list">
+                                            %if not check_loggedin:
+                                                <li><a href="/register">Sign Up</a></li>
+                                                <li><a href="/login">Login</a></li>
+                                            %endif
+                                            <li><a href="/courses">Browse Courses</a></li>
+                                            <li><a href="/lectures">Browse Lectures</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-sm-12 col-xs-12 tab-person-div">
+                                    <!--<p>I am....</p>-->
+                                </div>
+                            </div>
+                      </div>
+                      <div class="doc-tabs tab-pane" id="others" role="tabpanel" aria-labelledby="others-tab">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                    <span class="tab-close"><i class="fa fa-times"></i></span>
+                                </div>
+                                <div class="col-md-6 col-sm-6 col-xs-12"></div>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div class="tab-quick-links">
+                                        <h2>Quick links for Users</h2>
+                                        <ul class="quick-links-list">
+                                            <li><a href="/about">What is DocMode</a></li>
+                                            <li><a href="/assoc">Partner</a></li>
+                                            <!-- <li><a href="#">Support</a></li> --><!-- 
+                                            <li><a href="/contact">Contact</a></li> -->
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-sm-12 col-xs-12 tab-person-div">
+                                    <!--<p>I am....</p>-->
+                                </div>
+                            </div>
+                      </div>
+                    </div>
+                  <div class="tab-ul-wrap">
+                    <ul class="nav nav-tabs all-tabs-ul" id="home-doctor-tabs" role="tablist">
+                          <li class="nav-item">
+                            <a class="nav-link active" id="imgBanner" data-toggle="tab" href="#imgBanner" role="tab" aria-controls="imgBanner" aria-selected="true"></a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="doctor-tab" data-toggle="tab" href="#doctor" role="tab" aria-controls="doctor" aria-selected="true">                           
+                                <div class="img-overlay">
+                                    <img class="tab-img" src="${static.url('images/weq-images/doctor-img.png')}" alt="">    
+                                </div>                       
+                                <p>Doctor</p>
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="nurse-tab" data-toggle="tab" href="#nurse" role="tab" aria-controls="nurse" aria-selected="false">
+                                <div class="img-overlay">
+                                    <img class="tab-img" src="${static.url('images/weq-images/nurse-img.png')}" alt="">
+                                </div>
+                                <p>Nurse</p>
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="researcher-tab" data-toggle="tab" href="#researcher" role="tab" aria-controls="researcher" aria-selected="false">
+                                <div class="img-overlay">
+                                    <img class="tab-img" src="${static.url('images/weq-images/research-img.png')}" alt="">
+                                </div>
+                                <p>Researcher</p>
+                           </a>
+                          </li>
+                          <li class="nav-item">
+                              <a class="nav-link" id="student-tab" data-toggle="tab" href="#student" role="tab" aria-controls="student" aria-selected="false">
+                                <div class="img-overlay">
+                                    <img class="tab-img" src="${static.url('images/weq-images/student-img.png')}" alt="">
+                                </div>
+                                <p>Student</p>
+                              </a>
+                          </li>
+                          <li class="nav-item">
+                              <a class="nav-link" id="others-tab" data-toggle="tab" href="#others" role="tab" aria-controls="others" aria-selected="false">
+                                <div class="img-overlay">
+                                    <img class="tab-img" src="${static.url('images/weq-images/others-img.png')}" alt="">
+                                </div>
+                                <p>Allied Health</p>
+                             </a>
+                          </li>
+                    </ul>
+                  </div>
+                </div>
+            </div>           
+        </section>
+
+
+        <!--first section end--->
+
+        <div class="partner-wrapper logo-wrapper">           
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-2 col-sm-2 col-xs-12">
+                        <p class="slider-network">In Network with</p>
+                    </div>
+
+                    <div class="col-md-8 col-sm-8 col-xs-12">
+                        <div id="logo-slider" class="owl-carousel owl-theme">
+                              <div class="item">
+                                <a href="https://docmode.org/fogsi/">
+                                    <img class="partner-logo img-responsive wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="1200ms" src="${static.url('images/weq-images/fogsi.png')}"></a>
+                              </div>
+                              <div class="item">
+                                <a href="https://docmode.org/api/"><img class="partner-logo img-responsive wow fadeInDown " data-wow-duration="1000ms" data-wow-delay="300ms" src="${static.url('images/weq-images/api.png')}"></a>
+                              </div>
+                              <div class="item">
+                                <a href="https://docmode.org/ICO/"><img class="partner-logo img-responsive wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="1500ms" src="${static.url('images/weq-images/ico.png')}"></a>
+                              </div>
+                              <div class="item">
+                                <a href="https://docmode.org/cleveland-clinic/"><img class="partner-logo img-responsive wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="1200ms" src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/assoc_imgs/Cleveland-Clinic_logo.png"></a>
+                              </div>
+                              <div class="item">
+                               <a href="https://docmode.org/aapi/"><img class="partner-logo img-responsive wow fadeInDown " data-wow-duration="1000ms" data-wow-delay="1500ms" src="${static.url('images/weq-images/aapi-1.png')}"></a>
+                              </div>                          
+                              <div class="item">
+                                <a href="https://docmode.org/IDACNE/"><img class="partner-logo img-responsive wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="600ms" src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/assoc_imgs/Indian-Dietetic-Association_logo.png"></a>
+                              </div>
+                        </div>                    
+                    </div>
+                </div>
+            </div>
+    </div>
+
+        <section id="mobile-topics" class="topic-wrapper topic_wrap">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12 col-sm-12">
+                        <h2>Explore by Topic</h2>
+                    </div>
+                    <div class="col-xs-12">
+                        <ul class="topic-card clearfix row">
+                          <div id="allTopics-slider" class="owl-carousel owl-theme">
+                            % for categories in categories_list:
+                                <% 
+                                    course_count = category_courses_count(categories['id'])
+                                    lectures_count = category_lectures_count(categories['id'])
+                                    case_study_count = category_casestudies_count(categories['id'])
+                                %>
+                            <div class="col-md-12 col-sm-12 col-xs-12">                              
+                                  <!----added by nisha start static card--->
+                                  <a href="subjects/${categories['topic_short_name']}">
+                                      <li class="white_card_wrap">                                        
+                                            <p>${categories['topic_name']}</p>
+                                            %if course_count :
+                                              <span> ${course_count[0]['ccount']} Courses</span>
+                                            %endif
+                                            %if lectures_count :
+                                                <span> 
+                                                %if course_count:
+                                                    , 
+                                                %endif
+                                              ${lectures_count[0]['ccount']} Lectures,</span>
+                                            %endif
+                                            %if case_study_count :
+                                              <span> ${case_study_count[0]['ccount']} Case Studies</span>
+                                            %endif                                              
+                                      </li>
+                                  </a>
+
+                                  <!----added by nisha end--->
+                            </div>
+                            %endfor
+                          </div>
+                        </ul>
+                    </div> 
+                    <div class="col-xs-12 col-md-12 col-sm-12">
+                        <div class="link-all text-right all-topic-link">
+                            <a href="https://docmode.org/subjects/" 
+                            class="view-all link link-arrow">All topics</a>
+                        </div>
+                    </div>                   
+                </div>
+            </div>
+        </section>
+
+        <section id="desktop-topics" class="topic-wrapper topic_wrap">          
+          <div class="container">
+                <div class="row">
+                    <div class="col-xs-12 col-md-6 col-sm-6">
+                        <h2>Explore by Topic</h2>
+                    </div>
+                     <div class="col-xs-12 col-md-6 col-sm-6">
+                        <div class="link-all text-right all-topic-link">
+                            <a href="https://docmode.org/subjects/" 
+                            class="view-all link link-arrow">All topics</a>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <ul class="topic-card clearfix row">
+                            % for categories in categories_list:
+                                <% 
+                                    course_count = category_courses_count(categories['id'])
+                                    lectures_count = category_lectures_count(categories['id'])
+                                    case_study_count = category_casestudies_count(categories['id'])
+                                %>
+                              <div class="col-md-3 col-sm-3 col-xs-12">
+
+                                  <!----added by nisha start static card--->
+
+                                  <li class="white_card_wrap">
+                                      <a href="subjects/${categories['topic_short_name']}">
+                                        <p>${categories['topic_name']}</p>
+                                        %if course_count :
+                                          <span> ${course_count[0]['ccount']} Courses</span>
+                                        %endif
+                                        %if lectures_count :
+                                          <span>
+                                            %if course_count:
+                                                , 
+                                            %endif
+                                          ${lectures_count[0]['ccount']} Lectures</span>
+                                        %endif
+                                        %if case_study_count :
+                                          <span>, ${case_study_count[0]['ccount']} Case Studies</span>
+                                        %endif
+                                      </a>
+                                  </li>
+
+                                  <!----added by nisha end--->
+                              </div>
+                            %endfor
+                        </ul>
+                    </div>                    
+                </div>
+            </div>
+        </section>
+        
+        <section class="learn-from-us creating-value-wrap">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <h2>Creating value across the global healthcare ecosystem</h2>
+                    </div>
+                    <div class="col-md-4 col-xs-12">
+                        <div class="creating-value-text clearfix">
+                            <div class="creating-value-img">
+                                <img src="${static.url('images/weq-images/certificate.svg')}" alt="">
+                            </div>
+                            <h3>Validated Insights </h3>
+                            <p>Certified continuing medical & professional development courses from various leading Global Medical Institutions.</p>
+                        </div>
+                    </div> 
+                    <div class="col-md-4 col-xs-12">
+                        <div class="creating-value-text clearfix">
+                            <div class="creating-value-img">
+                                <img src="${static.url('images/weq-images/hourglass.svg')}" alt="">
+                            </div>
+                            <h3>Spend less time to learn</h3>
+                            <p>Self-paced and outcome based learning at your own convenience.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-xs-12">
+                        <div class="creating-value-text clearfix">
+                            <div class="creating-value-img">
+                                <img src="${static.url('images/weq-images/contract.svg')}" alt="">
+                            </div>
+                            <h3>Benefits of the network</h3>
+                            <p>Access to therapy specific learning assessment tools.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section_tab">
+            <div class="section_tab_title">
+                <h2>Explore DocMode Content</h2>
+            </div>
+            <div class="container tabs_wrap">
+              <!-- Nav tabs -->
+              <div class="course_wrap">
+                  <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active">
+                        <a href="#all" aria-controls="all" role="tab" data-toggle="tab">All</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#ongoing-courses" aria-controls="ongoing-courses" role="tab" data-toggle="tab">Ongoing Courses</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#upcoming-lectures" aria-controls="messages" role="tab" data-toggle="tab">Upcoming Lectures</a>
+                    </li>
+                  </ul>
+              </div>
+
+              <!-- Tab panes -->
+              <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="all">
+                    % if index_all :
+                        <section class="upcoming-courses course_wrap_sec">
+                            <div class="container">
+                                
+                                <div id="allcourse-slider" class="row owl-theme owl-carousel">
+                                % for course in index_all:   
+                                    <%
+                                        if course.start is not None:
+                                            course_date_string = course.start.strftime("%Y-%m-%dT%H:%M:%S%z")
+                                        else:
+                                            course_date_string = ""
+
+                                        try:
+                                            association_name = Organization.objects.get(short_name=course.display_org_with_default)
+                                            data = association_name.name
+                                            info = (data[:10] + "..") if len(data) > 10 else data
+                                        except Exception as e:
+                                            data = info = ""
+
+                                        course_name = (
+                                            (course.display_name_with_default[:40] + "..")
+                                            if len(course.display_name_with_default) > 50
+                                            else course.display_name_with_default
+                                        )
+                                        ctype_numb = course_ctype_number(course.id)
+                                        if ctype_numb == "1":
+                                            ctype = "Course"
+                                        elif ctype_numb == "2":
+                                            ctype = "Lecture"
+                                        else:
+                                            ctype = "Case Study"
+                                    %>    
+                                    <div class="col-md-12 col-sm-12 col-xs-12">
+                                        <a href="${reverse('about_course', args=[text_type(course.id)])}">
+                                        <div class="card">
+                                            <div class="card-img">
+                                                <img src="${course.course_image_url}" alt="${course.display_name_with_default}">
+                                            </div> 
+                                            <div class="card-text">
+                                                <!--added by nisha start-->
+                                                <span class="course-author" data-toggle="tooltip" data-placement="bottom" title="${data}"><i class="fa fa-user-o" aria-hidden="true"></i>
+                                                ${info}</span>
+                                                <span class="course-time"><i class="fa fa-clock-o" aria-hidden="true"></i> <time class="localized_datetime" itemprop="startDate" data-format="shortDate" data-datetime="${course_date_string}"></span>
+                                                <!--added by nisha end-->
+                                                <h4>${course_name}</h4>
+                                                
+                                                <!--added by nisha start-->
+                                                <button type="button" class="btn btn-default enroll_btn">View</button>
+                                                <a href="" class="book_tag">${ctype}</a>
+                                                <!-- <a href="" class="book_tag"><i class="fa fa-bookmark-o"></i> Favourite</a> -->
+                                                <!--added by nisha end-->
+                                            </div>
+                                        </div>
+                                        </a>
+                                    </div>
+                                %endfor
+                                </div>
+                            </div>
+                        </section>
+                    %endif
+                </div>
+                <div role="tabpanel" class="tab-pane" id="ongoing-courses">
+                    % if index_ongoing_courses :
+                        <section class="upcoming-courses course_wrap_sec">
+                            <div class="container">
+                                
+                                <div id="upcomingcourse-slider" class="row owl-theme owl-carousel">
+                                % for course in index_ongoing_courses[:settings.HOMEPAGE_COURSE_MAX]:   
+                                    <%
+                                        if course.start is not None:
+                                            course_date_string = course.start.strftime('%Y-%m-%dT%H:%M:%S%z')
+                                        else:
+                                            course_date_string = ''
+                                        try:
+                                            association_name = Organization.objects.get(short_name=course.display_org_with_default)
+                                            data = association_name.name
+                                            info = (data[:10] + "..") if len(data) > 10 else data
+                                        except Exception as e:
+                                            data = info = ""
+
+                                        course_name = (course.display_name_with_default[:40] + '..') if len(course.display_name_with_default) > 50 else course.display_name_with_default
+                                        ctype_numb = course_ctype_number(course.id)
+                                        if ctype_numb == '1':
+                                            ctype = 'Course'
+                                        elif ctype_numb == '2':
+                                            ctype = 'Lecture'
+                                        else:
+                                            ctype = 'Case Study'
+
+                                    %>    
+                                    <div class="col-md-12 col-sm-12 col-xs-12">
+                                        <a href="${reverse('about_course', args=[text_type(course.id)])}">
+                                        <div class="card">
+                                            <div class="card-img">
+                                                <img src="${course.course_image_url}" alt="${course.display_name_with_default}">
+                                            </div>
+                                            <div class="card-text">
+                                                <!--added by nisha start-->
+                                                <span class="course-author" data-toggle="tooltip" data-placement="bottom" title="${data}"><i class="fa fa-user-o" aria-hidden="true"></i> ${info}</span>
+                                                <span class="course-time"><i class="fa fa-clock-o" aria-hidden="true"></i> <time class="localized_datetime" itemprop="startDate" data-format="shortDate" data-datetime="${course_date_string}"></span>
+                                                <!--added by nisha end-->
+                                                <h4>${course_name}</h4>
+                                                
+                                                <!--added by nisha start-->
+                                                <button type="button" class="btn btn-default enroll_btn">View</button>
+                                                <a href="" class="book_tag">${ctype}</a>
+                                                <!-- <a href="" class="book_tag"><i class="fa fa-bookmark-o"></i> Favourite</a> -->
+                                                <!--added by nisha end-->
+                                            </div>
+                                        </div>
+                                        </a>
+                                    </div>
+                                %endfor
+                                </div>
+                                
+                            </div>
+                        </section>
+                    %endif
+                </div>
+                <div role="tabpanel" class="tab-pane" id="upcoming-lectures">
+                    % if clectures :
+                        <section class="upcoming-courses course_wrap_sec">
+                            <div class="container">
+                                <div id="upcominglect-slider" class="row owl-theme owl-carousel">
+                                % for lecture in clectures[:settings.HOMEPAGE_COURSE_MAX]:   
+                                    <%
+                                        if lecture.start is not None:
+                                            course_date_string = lecture.start.strftime('%Y-%m-%dT%H:%M:%S%z')
+                                        else:
+                                            course_date_string = ''
+                                        try:
+                                            association_name = Organization.objects.get(short_name=course.display_org_with_default)
+                                            data = association_name.name
+                                            info = (data[:10] + "..") if len(data) > 10 else data
+                                        except Exception as e:
+                                            data = info = ""
+                                        course_name = (lecture.display_name_with_default[:40] + '..') if len(lecture.display_name_with_default) > 50 else lecture.display_name_with_default
+                                        ctype_numb = course_ctype_number(lecture.id)
+                                        if ctype_numb == '1':
+                                            ctype = 'Course'
+                                        elif ctype_numb == '2':
+                                            ctype = 'Lecture'
+                                        else:
+                                            ctype = 'Case Study'
+                                    %>    
+                                    <div class="col-md-12 col-sm-12 col-xs-12">
+                                        <a href="${reverse('about_course', args=[text_type(course.id)])}">
+                                        <div class="card">
+                                            <div class="card-img">
+                                                <img src="${lecture.course_image_url}" alt="${lecture.display_name_with_default}">
+                                            </div>
+                                            <div class="card-text">
+                                                <!--added by nisha start-->
+                                                <span class="course-author" data-toggle="tooltip" data-placement="bottom" title="${data}"><i class="fa fa-user-o" aria-hidden="true"></i> ${info}</span>
+                                                <span class="course-time"><i class="fa fa-clock-o" aria-hidden="true"></i><time class="localized_datetime" itemprop="startDate" data-format="shortDate" data-datetime="${course_date_string}"></span>
+                                                <!--added by nisha end-->
+                                                <h4>${course_name}</h4>
+                                                
+                                                <!--added by nisha start-->
+                                                <button type="button" class="btn btn-default enroll_btn">View</button>
+                                                <a href="" class="book_tag">${ctype}</a>
+                                                <!-- <a href="" class="book_tag"><i class="fa fa-bookmark-o"></i> Favourite</a> -->
+                                                <!--added by nisha end-->
+                                            </div>
+                                        </div>
+                                        </a>
+                                    </div>
+                                %endfor
+                                </div>
+                            </div>
+                        </section>
+                    %endif
+                </div>
+              </div>
+
+            </div>
+
+            <!----added by nisha start---->
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <div class="explore_btn courses_btn">
+                        <a href="${marketing_link('COURSES')}"><button type="button" class="btn btn-default">Explore Courses</button></a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <div class="explore_btn lectures_btn">
+                        <a href="/lectures"><button type="button" class="btn btn-default">Explore Lectures</button></a>
+                    </div>
+                </div>
+            </div>
+
+            <!----added by nisha end---->
+
+        </section>
+       
+        <!-- <section id="user-stories-sec">
+            <div class="container"> 
+                <div class="user_story_wrap" id="bgimage1">               
+                    <div class="row">                  
+                        <div class="col-md-7 col-sm-10 col-xs-12">
+                            <h2>User Stories</h2>
+                            <div class="user-stories-wrap">
+                                <div id="user-stories-slider" class="owl-carousel owl-theme users-story">
+                                    <div class="item" >
+                                        <p class="story-text" id="image1">It was a great experience as the courses and lectures from leading Global Medical Institutions were self-paced, unbiased and cost-effective.</p>
+                                        <p class="doctor-name">Dr. Edwin</p>
+                                        <p class="doc-profession">Brain Surgeon</p>
+                                    </div>
+                                    <div class="item">
+                                        <p class="story-text" id="image2">The outcome oriented learning provided measurable assessments to ensure my practice had been upgraded as a healthcare professional.</p>
+                                        <p class="doctor-name">Dr. Albin</p>
+                                        <p class="doc-profession">Brain Surgeon</p>
+                                    </div>
+                                    <div class="item">
+                                        <p class="story-text" id="image3">It was a great experience as the courses and lectures from leading Global Medical Institutions were self-paced, unbiased and cost-effective.</p>
+                                        <p class="doctor-name">Dr. Edwin</p>
+                                        <p class="doc-profession">Brain Surgeon</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                      <div class="col-md-5 col-sm-2 col-xs-12"> 
+                         <div class="user-image">
+                            <img src="${static.url('images/weq-images/user_story.png')}" alt="">
+                        </div>
+                      </div>
+                  </div>
+
+                </div>
+            </div>
+        </section> --> 
+
+        <section class="case_and_papers">
+            <div class="container-fluid">
+                <div class="latest_content">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-5 col-sm-5 col-xs-12">
+                                <div class="case_studies_wrap">
+                                    <h2>Case Study & Research</h2>
+                                    <p>Come join our "Learn as you Teach" initiative to democratise healthcare learning by submitting your unique & interesting Case-Studies which will be reviewed by our global medical fraternity as well as an opportunity to be published in leading research journals.</p>
+                                    <a href="/research/new/" class="explore_btn">
+                                        <button type="button" class="btn btn-default">Submit Paper</button>
+                                    </a>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-sm-1 col-xs-12"></div>
+                            <!-- <div class="col-md-5 col-sm-6 col-xs-12">
+                                <div class="latest_paper_wrap">
+                                    <h2>Latest Papers</h2>
+                                    <ul class="papers_list">
+                                        <li>
+                                            <a href="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/Abstract+2+Final+Ruchi.docx" target="_blank">
+                                                <img src="${static.url('images/weq-images/pdf.svg')}" alt="">
+                                                <span>PREVALENCE OF SUICIDE IDEATION AND ITS PATTERN AMONG COLLEGE
+STUDENTS OF A CITY IN TRIBAL REGION OF MAHARASHTRA</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/Abstract+poisoning.docx" target="_blank">
+                                                <img src="${static.url('images/weq-images/pdf.svg')}" alt="">
+                                                <span>A Retrospective study of Poisoning cases admitted in a tertiary care teaching institute in a Tribal area of Central India.</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                            </div> -->
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="join_docmode">
+            <div class="container">
+                <div class="row">
+
+                    <!---added by nisha start-->
+                    <div class="col-md-6 col-sm-6 col-xs-12 waiting">
+                        <div class="text-right">
+                            <h4>What are you waiting for</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-6 col-xs-12 join_now">  
+                    %if not check_loggedin:                          
+                        <a href="/register" class="explore_btn">
+                            <button type="button" class="btn btn-default">Join DocMode</button>
+                        </a>
+                    %else:
+                        <a href="/courses" class="explore_btn">
+                            <button type="button" class="btn btn-default">Explore Courses</button>
+                        </a>
+                    %endif
+                    </div>
+
+                    <!----added by nisha end--->
+                </div>
+            </div>
+        </section>
+</div>
+<%block name="js_extra">
+   <script type="text/javascript">
+      $(window).load(function() {
+         if(getParameterByName('next')) {
+              $('#login').trigger("click");
+         }
+      })
+   </script>
+</%block>
+
+% if show_signup_immediately is not UNDEFINED:
+  ## NOTE: This won't work in production, because anonymous views are cached, so it will
+  ## show either with or without this extra js for 3 minutes at a time.
+<script type="text/javascript">
+  $(window).load(function() {$('#signup_action').trigger("click");});
+</script>
+% endif
+
+<%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
+    DateUtilFactory.transform(iterationKey=".localized_datetime");
+</%static:require_module_async>
+
+<!--added by nisha--->
+
+<script type="text/javascript">
+
+  $(document).ready(function() {
+
+    //to display association full nam on hover
+    $('[data-toggle="tooltip"]').tooltip();  
+
+  //logo slider
+ 
+  var owl = $("#logo-slider");
+  owl.owlCarousel({
+    loop:true,
+    margin:10,
+    nav: true,
+    autoplay:true,
+    autoplayTimeout:2000,
+    autoplayHoverPause:true,
+    navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+        '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:2,
+            nav:true
+        },
+        600:{
+            items:2,
+            nav:false
+        },
+        1000:{
+            items:4,
+            nav:true,
+            loop:true
+        }
+    }
+  });
+
+  //topic slider
+
+  var topicSlider = $("allTopics-slider");
+  topicSlider.owlCarousel({
+    loop:true,
+    margin:10,
+    nav: true,
+    autoplay:true,
+    autoplayTimeout:2000,
+    autoplayHoverPause:true,
+    navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+        '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:1,
+            nav:true
+        },
+        600:{
+            items:3,
+            nav:false
+        },
+        1000:{
+            items:4,
+            nav:true,
+            loop:true
+        }
+    }
+  });
+
+
+  //course slider
+  var courseSlider = $("#allcourse-slider");
+  courseSlider.owlCarousel({   
+    loop:true,
+    margin:15,
+    nav: true,
+    autoplay:true,
+    autoplayTimeout:2000,
+    autoplayHoverPause:true,
+    navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+        '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:1,
+            nav:true
+        },
+        600:{
+            items:3,
+            nav:false
+        },
+        1000:{
+            items:4,
+            nav:true,
+            loop:true
+        }
+    }
+  });
+
+  //upcoming course
+   
+  var upcoming = $("#upcomingcourse-slider");
+  upcoming.owlCarousel({   
+    loop:false,
+    margin:15,
+    nav: true,
+    autoplay:true,
+    autoplayTimeout:2000,
+    autoplayHoverPause:true,
+    navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+        '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:1,
+            nav:true
+        },
+        600:{
+            items:3,
+            nav:false
+        },
+        1000:{
+            items:4,
+            nav:true,
+            loop:false
+        }
+    }
+  });
+   
+  //upcoming lecture
+
+  var upcominglect = $("#upcominglect-slider");
+  upcominglect.owlCarousel({   
+    loop:true,
+    margin:15,
+    nav: true,
+    autoplay:true,
+    autoplayTimeout:2000,
+    autoplayHoverPause:true,
+    navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+        '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:1,
+            nav:true
+        },
+        600:{
+            items:3,
+            nav:false
+        },
+        1000:{
+            items:4,
+            nav:true,
+            loop:false
+        }
+    }
+  });
+
+
+  //user stories slider
+
+  var userSlider = $("#user-stories-slider");
+  userSlider.owlCarousel({ 
+    loop:true,
+    margin:10,
+    items:2,
+    nav: true,
+    navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+        '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:1,
+            nav:true
+        },
+        600:{
+            items:2,
+            nav:false
+        },
+        1000:{
+            items:2,
+            nav:true,
+            loop:true
+        }
+    }
+  });
+
+
+  
+
+
+
+   
+    $(".owl-item.active").next().find(".story-text").addClass("current");  
+    changeImage($("#user-stories-slider .current").attr("id"));
+   
+   $('#user-stories-slider .owl-prev').click(function(){
+        $('.owl-item.active').find(".story-text").removeClass("current");
+        $(".owl-item.active").next().find(".story-text").addClass("current");  
+            changeImage($("#user-stories-slider .current").attr("id"));
+   });
+
+
+   $('#user-stories-slider .owl-next').click(function(){
+         $('.owl-item.active').find(".story-text").removeClass("current");
+         $(".owl-item.active").next().find(".story-text").addClass("current");
+        changeImage($("#user-stories-slider .current").attr("id"));
+        
+   }); 
+
+
+function changeImage(image){
+    if(image=='image1')
+    {
+     document.getElementById('bgimage1').style.backgroundImage = 'url("/static/weq-theme/images/weq-images/user1.png")';  
+    }else if(image=='image2')
+    {
+        document.getElementById('bgimage1').style.backgroundImage = 'url("/static/weq-theme/images/weq-images/user2.png") ';
+    }else if(image=='image3')
+    {
+        document.getElementById('bgimage1').style.backgroundImage = 'url("/static/weq-theme/images/weq-images/user1.png") ';
+    }
+        
+}
+
+  
+  //home tab-close and active green color highlight js
+  $(document).on('click',".tab-close", function(){
+    $(".doc-tabs").removeClass("active");
+    $(".firstimg-tab").addClass("active");
+    $(".all-tabs-ul li").eq(0).addClass("active");
+    $(".all-tabs-ul li").eq(1).removeClass("active");
+    $(".all-tabs-ul li").eq(2).removeClass("active");
+    $(".all-tabs-ul li").eq(3).removeClass("active");
+    $(".all-tabs-ul li").eq(4).removeClass("active");
+    $(".all-tabs-ul li").eq(5).removeClass("active");
+    $(".img-overlay").addClass("img-close");
+  });
+
+  $(document).on('click',".nav-link", function(){
+    if ($('li.nav-item').hasClass("active")){
+        $(".img-overlay").removeClass("img-close");
+    }  
+  });
+
+}); //closing of document ready function
+</script> 

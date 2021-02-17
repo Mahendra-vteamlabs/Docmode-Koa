@@ -6,9 +6,10 @@ Student Views
 import datetime
 import logging
 import uuid
-from collections import namedtuple
-
 import six
+from collections import namedtuple
+from pytz import UTC
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -16,6 +17,7 @@ from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.sites.models import Site
 from django.core.validators import ValidationError, validate_email
 from django.db import transaction
+from django.db.models import Count
 from django.db.models.signals import post_save
 from django.dispatch import Signal, receiver
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
@@ -36,12 +38,8 @@ from opaque_keys.edx.keys import CourseKey
 from pytz import UTC
 from six import text_type
 
-from common.djangoapps.track import views as track_views
 from lms.djangoapps.bulk_email.models import Optout
-from common.djangoapps.course_modes.models import CourseMode
 from lms.djangoapps.courseware.courses import get_courses, sort_by_announcement, sort_by_start_date
-from common.djangoapps.edxmako.shortcuts import marketing_link, render_to_response, render_to_string
-from common.djangoapps.entitlements.models import CourseEntitlement
 from openedx.core.djangoapps.ace_common.template_context import get_base_template_context
 from openedx.core.djangoapps.catalog.utils import get_programs_with_type
 from openedx.core.djangoapps.embargo import api as embargo_api
@@ -51,6 +49,10 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 from openedx.core.djangoapps.theming import helpers as theming_helpers
 from openedx.core.djangoapps.user_api.preferences import api as preferences_api
 from openedx.core.djangolib.markup import HTML, Text
+from common.djangoapps.track import views as track_views
+from common.djangoapps.course_modes.models import CourseMode
+from common.djangoapps.edxmako.shortcuts import marketing_link, render_to_response, render_to_string
+from common.djangoapps.entitlements.models import CourseEntitlement
 from common.djangoapps.student.helpers import DISABLE_UNENROLL_CERT_STATES, cert_info, generate_activation_email_context
 from common.djangoapps.student.message_types import AccountActivation, EmailChange, EmailChangeConfirmation, RecoveryEmailCreate
 from common.djangoapps.student.models import (
@@ -73,6 +75,11 @@ from common.djangoapps.student.text_me_the_app import TextMeTheAppFragmentView
 from common.djangoapps.util.db import outer_atomic
 from common.djangoapps.util.json_request import JsonResponse
 from xmodule.modulestore.django import modulestore
+
+#Added by Mahendra
+from lms.djangoapps.specialization.models import categories, sub_categories
+from lms.djangoapps.course_extrainfo.models import course_extrainfo
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 
 log = logging.getLogger("edx.student")
 
@@ -158,6 +165,76 @@ def index(request, extra_context=None, user=AnonymousUser()):
 
     # Add marketable programs to the context.
     context['programs_list'] = get_programs_with_type(request.site, include_hidden=False)
+
+    # Added by Mahendra
+    today = datetime.datetime.now(UTC).date()
+    today_date_time = datetime.datetime.now(UTC)
+    context["category_course_count"] = (
+        course_extrainfo.objects.exclude(category="")
+        .values("category")
+        .annotate(ccount=Count("category"))
+        .filter(ccount__gte=1)
+        .order_by("-ccount")[:8]
+    )
+    cat_course_count = (
+        course_extrainfo.objects.exclude(category="")
+        .values("category")
+        .annotate(ccount=Count("category"))
+        .filter(ccount__gte=1)
+        .order_by("-ccount")[:8]
+    )
+    categoryid = []
+    for catid in cat_course_count:
+        categoryid.append(catid["category"])
+    context["categories_list"] = categories.objects.filter(pk__in=categoryid).values()
+
+    # for lectures list
+    lectures = course_extrainfo.objects.filter(course_type=2).values()
+    cid = []
+    for courseid in lectures:
+        course_id = CourseKey.from_string(courseid["course_id"])
+        cid.append(course_id)
+
+    context["clectures"] = (
+        CourseOverview.objects.all()
+        .filter(pk__in=cid, start__gte=today)
+        .exclude(catalog_visibility="none")
+        .order_by("start")
+    )
+
+    # for courses list
+    index_courses = course_extrainfo.objects.filter(course_type=1).values()
+    index_cid = []
+    for index_course in index_courses:
+        index_course_id = CourseKey.from_string(index_course["course_id"])
+        index_cid.append(index_course_id)
+        # log.info(u'course-id %s',index_course_id)
+    # below query commented for displaying upcoming courses
+    context["index_upcoming_courses"] = (
+        CourseOverview.objects.all()
+        .filter(pk__in=index_cid, start__gte=today)
+        .order_by("start")[::-1]
+    )
+    # query to display all courses
+    context["index_ongoing_courses"] = (
+        CourseOverview.objects.all()
+        .filter(pk__in=index_cid, start__lte=today_date_time, end__gte=today_date_time)
+        .order_by("start")[::-1]
+    )
+    context["index_all"] = (
+        CourseOverview.objects.all()
+        .exclude(catalog_visibility="none")
+        .order_by("start")[::-1][:10]
+    )
+    # for upcoming case studies
+    index_case_studies = course_extrainfo.objects.filter(course_type=3).values()
+    index_csid = []
+    for index_casestudy in index_case_studies:
+        index_casestudy_id = CourseKey.from_string(index_casestudy["course_id"])
+        index_csid.append(index_casestudy_id)
+    context["index_upcoming_case_studies"] = (
+        CourseOverview.objects.all().filter(pk__in=index_csid).order_by("start")[::-1]
+    )
 
     return render_to_response('index.html', context)
 
