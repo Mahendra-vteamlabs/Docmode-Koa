@@ -77,8 +77,6 @@ from common.djangoapps.util.json_request import JsonResponse
 from xmodule.modulestore.django import modulestore
 
 #Added by Mahendra
-from lms.djangoapps.specialization.models import categories, sub_categories
-from lms.djangoapps.course_extrainfo.models import course_extrainfo
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 
 log = logging.getLogger("edx.student")
@@ -167,6 +165,8 @@ def index(request, extra_context=None, user=AnonymousUser()):
     context['programs_list'] = get_programs_with_type(request.site, include_hidden=False)
 
     # Added by Mahendra
+    from lms.djangoapps.specialization.models import categories
+    from lms.djangoapps.course_extrainfo.models import course_extrainfo
     today = datetime.datetime.now(UTC).date()
     today_date_time = datetime.datetime.now(UTC)
     context["category_course_count"] = (

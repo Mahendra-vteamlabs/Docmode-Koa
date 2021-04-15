@@ -5,14 +5,15 @@ Utility library for working with the edx-organizations app
 
 from django.conf import settings
 from django.db.utils import DatabaseError
-from common.djangoapps.organizations import api as organizations_api
-from common.djangoapps.organizations.exceptions import InvalidOrganizationException
+
+
 
 
 def add_organization(organization_data):
     """
     Client API operation adapter/wrapper
     """
+    from common.djangoapps.organizations import api as organizations_api
     if not organizations_enabled():
         return None
     return organizations_api.add_organization(organization_data=organization_data)
@@ -22,6 +23,7 @@ def add_organization_course(organization_data, course_id):
     """
     Client API operation adapter/wrapper
     """
+    from common.djangoapps.organizations import api as organizations_api
     if not organizations_enabled():
         return None
     return organizations_api.add_organization_course(organization_data=organization_data, course_key=course_id)
@@ -31,6 +33,7 @@ def get_organization(organization_id):
     """
     Client API operation adapter/wrapper
     """
+    from common.djangoapps.organizations import api as organizations_api
     if not organizations_enabled():
         return []
     return organizations_api.get_organization(organization_id)
@@ -40,6 +43,8 @@ def get_organization_by_short_name(organization_short_name):
     """
     Client API operation adapter/wrapper
     """
+    from common.djangoapps.organizations.exceptions import InvalidOrganizationException
+    from common.djangoapps.organizations import api as organizations_api
     if not organizations_enabled():
         return None
     try:
@@ -52,6 +57,7 @@ def get_organizations():
     """
     Client API operation adapter/wrapper
     """
+    from common.djangoapps.organizations import api as organizations_api
     if not organizations_enabled():
         return []
     # Due to the way unit tests run for edx-platform, models are not yet available at the time
@@ -69,6 +75,7 @@ def get_organization_courses(organization_id):
     """
     Client API operation adapter/wrapper
     """
+    from common.djangoapps.organizations import api as organizations_api
     if not organizations_enabled():
         return []
     return organizations_api.get_organization_courses(organization_id)
@@ -78,6 +85,7 @@ def get_course_organizations(course_id):
     """
     Client API operation adapter/wrapper
     """
+    from common.djangoapps.organizations import api as organizations_api
     if not organizations_enabled():
         return []
     return organizations_api.get_course_organizations(course_id)

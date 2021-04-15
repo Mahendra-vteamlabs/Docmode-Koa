@@ -1,0 +1,176 @@
+.breadcrums {
+  padding: 15px 0;
+  margin: 0 15px;
+}
+
+.breadcrums li {
+  display: inline-block;
+}
+
+.breadcrums li .active {
+  color: #606062;
+}
+
+.row {
+  max-width: 100%;
+}
+
+.content-wrapper .container {
+  border: none;
+  background: #fff;
+  padding-top: 0;
+}
+
+h1 {
+  color: #30529a;
+  font-size: 36px;
+  text-align: left;
+}
+
+.rediofield {
+  display: inline-block;
+  position: relative;
+  padding-left: 23px;
+  margin-bottom: 0px;
+  cursor: pointer;
+  font-size: 16px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding-right: 14px;
+  color: #606062;
+  font-weight: normal;
+  opacity: 0.8;
+  font-style: normal;
+}
+
+.rediofield input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.rediofield .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16px;
+  width: 16px;
+  background-color: #fff;
+  border: 1px solid #30529a;
+  border-radius: 50%;
+}
+
+.rediofield:hover input ~ .checkmark {
+  background-color: #ededed;
+}
+
+.rediofield input:checked ~ .checkmark {
+  background-color: #fff;
+  border: 1px solid #30529a;
+}
+
+.rediofield .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.rediofield input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.rediofield .checkmark:after {
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #30529a;
+}
+
+.viewtypeSec {
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  padding: 12px 8px;
+}
+
+.viewtypeSec span {
+  font-size: 16px;
+  color: #333;
+  font-weight: bold;
+  padding-right: 10px;
+  opacity: 0.8;
+}
+
+.comman h2 {
+  color: #30529a;
+  font-size: 28px;
+  font-family: 'Lato';
+  margin-top: 0;
+  text-align: left;
+  font-weight: 600;
+}
+
+.comman p {
+  color: #606062;
+  font-size: 16px;
+  font-family: 'Lato';
+  opacity: 0.8;
+}
+
+.comman a {
+  background: #07b256;
+  color: #fff;
+  display: inline-block;
+  padding: 7px 11px;
+  text-transform: uppercase;
+}
+
+.comman span {
+  color: #606062;
+  display: inline-block;
+  font-size: 14px;
+}
+
+.partnerlist .learner-card {
+  border: 0;
+}
+
+.partnerlist .card {
+  border-radius: 0;
+  background: #fff;
+}
+
+.partnerlist .card .card-text {
+  min-height: 0;
+  border-top: 1px solid #b6348e;
+}
+
+.partnerlist .card .card-text span {
+  color: #b6348e;
+}
+
+.partnerlistBlock {
+  width: 25%;
+  padding: 0px 10px;
+  float: left;
+}
+
+.partnerlist .comman p {
+  padding-top: 10px;
+  padding-bottom: 15px;
+}
+
+@media only screen and (max-width: 991px) {
+  .partnerlistBlock {
+    width: 50%;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .partnerlist .rediofield {
+    display: block;
+  }
+}

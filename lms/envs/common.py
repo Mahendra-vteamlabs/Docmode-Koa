@@ -2469,8 +2469,6 @@ INSTALLED_APPS = [
     # History tables
     'simple_history',
 
-    'common.djangoapps.organizations',
-
     # Database-backed configuration
     'config_models',
     'openedx.core.djangoapps.config_model_utils',
@@ -2746,6 +2744,7 @@ INSTALLED_APPS = [
 
     'ratelimitbackend',
 
+    'common.djangoapps.organizations',
 
     #Added by Mahendra chaudhari
     # 'lms.djangoapps.add_manager',
