@@ -50,7 +50,6 @@ from lms.djangoapps.specialization.models import (
 from opaque_keys.edx.keys import CourseKey, UsageKey
 from opaque_keys import InvalidKeyError
 from student.models import CourseEnrollment
-from track.backends.django import TrackingLog
 from courseware.courses import (
     get_courses,
     get_course,
@@ -72,7 +71,6 @@ from student.models import User, UserProfile, CourseAccessRole
 from rest_framework import viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_oauth.authentication import OAuth2Authentication
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.throttling import UserRateThrottle
 from common.djangoapps.organizations.models import (
@@ -93,10 +91,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 # from lang_pref import LANGUAGE_KEY
 
-from openedx.core.lib.api.authentication import (
-    OAuth2AuthenticationAllowInactiveUser,
-    SessionAuthenticationAllowInactiveUser,
-)
+from openedx.core.lib.api.authentication import OAuth2AuthenticationAllowInactiveUser
 
 from openedx.core.lib.api.permissions import ApiKeyHeaderPermissionIsAuthenticated
 from openedx.core.lib.api.view_utils import DeveloperErrorViewMixin, view_auth_classes
@@ -622,6 +617,8 @@ def get_user_type(sname):
 
 
 def getuserlog(cid):
+    from track.backends.django import TrackingLog
+
     usercnt = ""
     try:
         usercnt = TrackingLog.objects.filter(event_type__contains=cid).count()

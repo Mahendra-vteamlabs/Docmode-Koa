@@ -32,5 +32,5 @@ class webform(models.Model):
         verbose_name = _("Google Forms")
         verbose_name_plural = _("Google Forms")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.courseid

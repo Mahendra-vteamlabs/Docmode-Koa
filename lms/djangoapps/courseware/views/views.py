@@ -134,6 +134,12 @@ from ..context_processor import user_timezone_locale_prefs
 from ..entrance_exams import user_can_skip_entrance_exam
 from ..module_render import get_module, get_module_by_usage_id, get_module_for_descriptor
 
+
+#Added by Mahendra
+from common.djangoapps.organizations.models import Organization, OrganizationCourse, OrganizationSlider, OrganizationMembers
+
+from openedx.core.djangoapps.theming.helpers import get_current_site_theme, get_current_site, get_current_theme
+
 log = logging.getLogger("edx.courseware")
 
 
@@ -955,6 +961,24 @@ def course_about(request, course_id):
         # Embed the course reviews tool
         reviews_fragment_view = CourseReviewsModuleFragmentView().render_to_fragment(request, course=course)
 
+        #Added by Mahendra
+        try:
+            creviews = StudentModule.objects.filter(course_id=course.id,module_type='rate')
+        except StudentModule.DoesNotExist:
+            creviews = None
+
+        try:
+            org_data = Organization.objects.get(short_name=course.display_org_with_default)
+            assoc_logo = org_data.logo
+        except Organization.DoesNotExist:
+            org_data = None
+            assoc_logo = None
+
+        try:
+            org_courses = CourseOverview.objects.all().filter(display_org_with_default=course.display_org_with_default).order_by('start')[::-1][:4]
+        except CourseOverview.DoesNotExist:
+            org_courses = list()
+
         context = {
             'course': course,
             'course_details': course_details,
@@ -982,6 +1006,10 @@ def course_about(request, course_id):
             'reviews_fragment_view': reviews_fragment_view,
             'sidebar_html_enabled': sidebar_html_enabled,
             'allow_anonymous': allow_anonymous,
+            # Added by Mahendra
+            'creviews' : creviews,
+            'assoc_logo' : assoc_logo,
+            'org_courses' : org_courses
         }
 
         return render_to_response('courseware/course_about.html', context)

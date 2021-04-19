@@ -582,6 +582,17 @@ class CourseAboutSearchIndexer(object):
         searcher = SearchEngine.get_search_engine(cls.INDEX_NAME)
         if not searcher:
             return
+        # Added by Mahendra
+        from lms.djangoapps.specialization.models import categories
+        from lms.djangoapps.course_extrainfo.models import course_extrainfo
+        subject_id = course_extrainfo.objects.get(course_id=course.id)
+        subj_name = categories.objects.get(id=subject_id.category)
+        if subject_id.course_type == '1':
+            course_type = "Courses"
+        elif subject_id.course_type == '2':
+            course_type = "Lectures"
+        else:
+            course_type = "Case study"
 
         course_id = text_type(course.id)
         course_info = {
@@ -589,6 +600,8 @@ class CourseAboutSearchIndexer(object):
             'course': course_id,
             'content': {},
             'image_url': course_image_url(course),
+            'subjects': subj_name.topic_name,
+            'coursetype': course_type
         }
 
         # load data for all of the 'about' modules for this course into a dictionary

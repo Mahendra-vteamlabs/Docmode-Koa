@@ -77,7 +77,10 @@ from common.djangoapps.util.json_request import JsonResponse
 from xmodule.modulestore.django import modulestore
 
 #Added by Mahendra
+from django.db.models import Count
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from lms.djangoapps.specialization.models import categories, sub_categories
+from lms.djangoapps.course_extrainfo.models import course_extrainfo
 
 log = logging.getLogger("edx.student")
 

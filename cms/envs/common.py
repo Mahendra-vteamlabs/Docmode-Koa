@@ -261,10 +261,10 @@ FEATURES = {
     'LICENSING': False,
 
     # Enable the courseware search functionality
-    'ENABLE_COURSEWARE_INDEX': False,
+    'ENABLE_COURSEWARE_INDEX': True,
 
     # Enable content libraries (modulestore) search functionality
-    'ENABLE_LIBRARY_INDEX': False,
+    'ENABLE_LIBRARY_INDEX': True,
 
     # Enable content libraries (blockstore) indexing
     'ENABLE_CONTENT_LIBRARY_INDEX': False,
@@ -273,7 +273,7 @@ FEATURES = {
     'ALLOW_COURSE_RERUNS': True,
 
     # Certificates Web/HTML Views
-    'CERTIFICATES_HTML_VIEW': False,
+    'CERTIFICATES_HTML_VIEW': True,
 
     # Teams feature
     'ENABLE_TEAMS': True,
@@ -293,7 +293,7 @@ FEATURES = {
     # Special Exams, aka Timed and Proctored Exams
     'ENABLE_SPECIAL_EXAMS': False,
 
-    'ORGANIZATIONS_APP': False,
+    'ORGANIZATIONS_APP': True,
 
     # Show the language selector in the header
     'SHOW_HEADER_LANGUAGE_SELECTOR': False,
@@ -739,7 +739,7 @@ MIDDLEWARE = [
 EXTRA_MIDDLEWARE_CLASSES = []
 
 # Clickjacking protection can be disabled by setting this to 'ALLOW'
-X_FRAME_OPTIONS = 'DENY'
+X_FRAME_OPTIONS = 'ALLOW'
 
 # Platform for Privacy Preferences header
 P3P_HEADER = 'CP="Open EdX does not have a P3P policy."'
@@ -1513,6 +1513,22 @@ INSTALLED_APPS = [
     'openedx.core.djangoapps.content.learning_sequences.apps.LearningSequencesConfig',
 
     'ratelimitbackend',
+
+    #Added by Mahendra
+    'common.djangoapps.organizations',
+    # Course Discovery Api
+    'openedx.core.djangoapps.course_discovery_api',
+
+    #push notification APi 
+    #'openedx.core.djangoapps.push_notification',
+    'lms.djangoapps.add_manager',
+    'lms.djangoapps.specialization',
+    'lms.djangoapps.course_extrainfo',
+    'lms.djangoapps.hcspecialization',
+    'lms.djangoapps.reg_form',
+    'lms.djangoapps.webform',
+    'lms.djangoapps.case_study',
+    'lms.djangoapps.userprofile_extrainfo',
 ]
 
 

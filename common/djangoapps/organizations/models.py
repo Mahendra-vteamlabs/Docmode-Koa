@@ -34,7 +34,7 @@ class SponsoringCompany(TimeStampedModel):
         verbose_name = _("Sponsoring Company")
         verbose_name_plural = _("Sponsoring Company")
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{}".format(self.name)
 
 
@@ -71,7 +71,7 @@ class Organization(TimeStampedModel):
     org_promo_video = models.CharField(max_length=555, null=True, blank=True)
     marketing_display = models.BooleanField(default=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{name} ({short_name})".format(
             name=self.name, short_name=self.short_name
         )
@@ -130,7 +130,7 @@ class OrganizationSlider(TimeStampedModel):
         verbose_name = _("Association Sliders")
         verbose_name_plural = _("Association Sliders")
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{}".format(self.organization)
 
 
@@ -152,7 +152,7 @@ class OrgShortCode(TimeStampedModel):
         verbose_name = _("Association Shortcodes")
         verbose_name_plural = _("Association Shortcodes")
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{}".format(self.organization)
 
 
@@ -178,7 +178,7 @@ class OrganizationMembers(TimeStampedModel):
         verbose_name = _("Association Members")
         verbose_name_plural = _("Association Members")
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{}".format(self.user_id)
 
 
@@ -198,5 +198,5 @@ class Organization_sub_admins(TimeStampedModel):
         verbose_name = _("Association Sub Admin")
         verbose_name_plural = _("Association Subadmin")
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{}".format(self.user_email)

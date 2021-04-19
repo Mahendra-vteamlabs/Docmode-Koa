@@ -16,14 +16,14 @@ class specializations(models.Model):
         max_length=500,
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 class sub_categories(models.Model):
     sub_topic_name = models.CharField(max_length=50)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.sub_topic_name
 
 
@@ -38,7 +38,7 @@ class categories(models.Model):
         specializations, db_index=True, related_name="cat_specialization"
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.topic_name
 
 
@@ -46,5 +46,5 @@ class cat_sub_category(models.Model):
     name = models.CharField(max_length=50)
     category = models.ForeignKey(categories, on_delete=models.CASCADE)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name

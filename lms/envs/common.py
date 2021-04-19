@@ -129,7 +129,7 @@ FEATURES = {
 
     # discussion home panel, which includes a subscription on/off setting for discussion digest emails.
     # this should remain off in production until digest notifications are online.
-    'ENABLE_DISCUSSION_HOME_PANEL': False,
+    'ENABLE_DISCUSSION_HOME_PANEL': True,
 
     # .. toggle_name: ENABLE_DISCUSSION_EMAIL_DIGEST
     # .. toggle_implementation: DjangoSetting
@@ -144,7 +144,7 @@ FEATURES = {
     #   since subscribers who receive digests in that case will only be able to unsubscribe via links embedded in
     #   their emails, and they will have no way to resubscribe.
     # .. toggle_tickets: https://github.com/edx/edx-platform/pull/4891
-    'ENABLE_DISCUSSION_EMAIL_DIGEST': False,
+    'ENABLE_DISCUSSION_EMAIL_DIGEST': True,
 
     # .. toggle_name: ENABLE_UNICODE_USERNAME
     # .. toggle_implementation: DjangoSetting
@@ -255,7 +255,7 @@ FEATURES = {
     'CUSTOM_COURSES_EDX': False,
 
     # Toggle to enable certificates of courses on dashboard
-    'ENABLE_VERIFIED_CERTIFICATES': False,
+    'ENABLE_VERIFIED_CERTIFICATES': True,
 
     # .. toggle_name: DISABLE_HONOR_CERTIFICATES
     # .. toggle_implementation: DjangoSetting
@@ -375,7 +375,7 @@ FEATURES = {
     # .. toggle_warnings: When this is enabled, the MKTG_URLS setting should be defined. The use case of this feature
     #   toggle is uncertain.
     # .. toggle_tickets: None
-    'ENABLE_MKTG_SITE': False,
+    'ENABLE_MKTG_SITE': True,
 
     # Prevent concurrent logins per user
     'PREVENT_CONCURRENT_LOGINS': True,
@@ -383,7 +383,7 @@ FEATURES = {
     # When a logged in user goes to the homepage ('/') should the user be
     # redirected to the dashboard - this is default Open edX behavior. Set to
     # False to not redirect the user
-    'ALWAYS_REDIRECT_HOMEPAGE_TO_DASHBOARD_FOR_AUTHENTICATED_USER': True,
+    'ALWAYS_REDIRECT_HOMEPAGE_TO_DASHBOARD_FOR_AUTHENTICATED_USER': False,
 
     # .. toggle_name: ENABLE_COURSE_SORTING_BY_START_DATE
     # .. toggle_implementation: DjangoSetting
@@ -425,7 +425,7 @@ FEATURES = {
     # .. toggle_target_removal_date: None
     # .. toggle_warnings: None
     # .. toggle_tickets: https://openedx.atlassian.net/browse/OSPR-1320
-    'ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER': True,
+    'ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER': False,
 
     # Enable organizational email opt-in
     'ENABLE_MKTG_EMAIL_OPT_IN': False,
@@ -434,19 +434,19 @@ FEATURES = {
     'ENABLE_FOOTER_MOBILE_APP_LINKS': False,
 
     # Let students save and manage their annotations
-    'ENABLE_EDXNOTES': False,
+    'ENABLE_EDXNOTES': True,
 
     # Toggle to enable coordination with the Publisher tool (keep in sync with cms/envs/common.py)
     'ENABLE_PUBLISHER': False,
 
     # Milestones application flag
-    'MILESTONES_APP': False,
+    'MILESTONES_APP': True,
 
     # Organizations application flag
-    'ORGANIZATIONS_APP': False,
+    'ORGANIZATIONS_APP': True,
 
     # Prerequisite courses feature flag
-    'ENABLE_PREREQUISITE_COURSES': False,
+    'ENABLE_PREREQUISITE_COURSES': True,
 
     # For easily adding modes to courses during acceptance testing
     'MODE_CREATION_FOR_TESTING': False,
@@ -456,11 +456,11 @@ FEATURES = {
     'EXPOSE_CACHE_PROGRAMS_ENDPOINT': False,
 
     # Courseware search feature
-    'ENABLE_COURSEWARE_SEARCH': False,
+    'ENABLE_COURSEWARE_SEARCH': True,
     'ENABLE_COURSEWARE_SEARCH_FOR_COURSE_STAFF': False,
 
     # Dashboard search feature
-    'ENABLE_DASHBOARD_SEARCH': False,
+    'ENABLE_DASHBOARD_SEARCH': True,
 
     # log all information from cybersource callbacks
     'LOG_POSTPAY_CALLBACKS': True,
@@ -478,7 +478,7 @@ FEATURES = {
     'LICENSING': False,
 
     # Certificates Web/HTML Views
-    'CERTIFICATES_HTML_VIEW': False,
+    'CERTIFICATES_HTML_VIEW': True,
 
     # .. toggle_name: ENABLE_COURSE_DISCOVERY
     # .. toggle_implementation: DjangoSetting
@@ -491,7 +491,7 @@ FEATURES = {
     # .. toggle_target_removal_date: None
     # .. toggle_warnings: The COURSE_DISCOVERY_MEANINGS setting should be properly defined.
     # .. toggle_tickets: https://github.com/edx/edx-platform/pull/7845
-    'ENABLE_COURSE_DISCOVERY': False,
+    'ENABLE_COURSE_DISCOVERY': True,
 
     # Setting for overriding default filtering facets for Course discovery
     # COURSE_DISCOVERY_FILTERS = ["org", "language", "modes"]
@@ -1388,18 +1388,18 @@ EMAIL_PORT = 25
 EMAIL_USE_TLS = False
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
-DEFAULT_FROM_EMAIL = 'registration@example.com'
-DEFAULT_FEEDBACK_EMAIL = 'feedback@example.com'
-SERVER_EMAIL = 'devops@example.com'
-TECH_SUPPORT_EMAIL = 'technical@example.com'
-CONTACT_EMAIL = 'info@example.com'
-BUGS_EMAIL = 'bugs@example.com'
-UNIVERSITY_EMAIL = 'university@example.com'
-PRESS_EMAIL = 'press@example.com'
+DEFAULT_FROM_EMAIL = 'registration@docmode.com'
+DEFAULT_FEEDBACK_EMAIL = 'feedback@docmode.com'
+SERVER_EMAIL = 'devops@docmode.com'
+TECH_SUPPORT_EMAIL = 'technical@docmode.com'
+CONTACT_EMAIL = 'info@docmode.com'
+BUGS_EMAIL = 'bugs@docmode.com'
+UNIVERSITY_EMAIL = 'university@docmode.com'
+PRESS_EMAIL = 'press@docmode.com'
 FINANCE_EMAIL = ''
 
 # Platform mailing address
-CONTACT_MAILING_ADDRESS = 'SET-ME-PLEASE'
+CONTACT_MAILING_ADDRESS = 'support@docmode.org'
 
 # Account activation email sender address
 ACTIVATION_EMAIL_FROM_ADDRESS = ''
@@ -2744,11 +2744,12 @@ INSTALLED_APPS = [
 
     'ratelimitbackend',
 
-    'common.djangoapps.organizations',
-
     #Added by Mahendra chaudhari
-    # 'lms.djangoapps.add_manager',
-    # 'lms.djangoapps.associations',
+    'lms.djangoapps.pdf_viewer',
+    'common.djangoapps.organizations',
+    'lms.djangoapps.add_manager',
+    'lms.djangoapps.associations',
+    'lms.djangoapps.userprofile_extrainfo',
     'lms.djangoapps.specialization',
     'lms.djangoapps.hcspecialization',
     'lms.djangoapps.case_study',
@@ -2802,7 +2803,9 @@ EDXMKTG_LOGGED_IN_COOKIE_NAME = 'edxloggedin'
 EDXMKTG_USER_INFO_COOKIE_NAME = 'edx-user-info'
 EDXMKTG_USER_INFO_COOKIE_VERSION = 1
 
-MKTG_URLS = {}
+MKTG_URLS = {
+    'ROOT': 'https://docmode.org'
+}
 MKTG_URL_OVERRIDES = {}
 MKTG_URL_LINK_MAP = {
     'ABOUT': 'about',
@@ -2811,7 +2814,7 @@ MKTG_URL_LINK_MAP = {
     'COURSES': 'courses',
     'ROOT': 'root',
     'TOS': 'tos',
-    'HONOR': 'honor',  # If your site does not have an honor code, simply delete this line.
+    'HONOR': 'tos',  # If your site does not have an honor code, simply delete this line.
     'TOS_AND_HONOR': 'edx-terms-service',
     'PRIVACY': 'privacy',
     'PRESS': 'press',
@@ -2864,7 +2867,11 @@ SOCIAL_MEDIA_FOOTER_NAMES = [
 
 # The footer URLs dictionary maps social footer names
 # to URLs defined in configuration.
-SOCIAL_MEDIA_FOOTER_URLS = {}
+SOCIAL_MEDIA_FOOTER_URLS = {
+    'twitter': '@docmode1',
+    'facebook': 'https://www.facebook.com/Docmode',
+    'linkedin': 'https://in.linkedin.com/company/docmode'
+}
 
 # The display dictionary defines the title
 # and icon class for each social media link.
@@ -3431,11 +3438,11 @@ COUNTRIES_OVERRIDE = {
 
 # which access.py permission name to check in order to determine if a course is visible in
 # the course catalog. We default this to the legacy permission 'see_exists'.
-COURSE_CATALOG_VISIBILITY_PERMISSION = 'see_exists'
+COURSE_CATALOG_VISIBILITY_PERMISSION = 'see_in_catalog'
 
 # which access.py permission name to check in order to determine if a course about page is
 # visible. We default this to the legacy permission 'see_exists'.
-COURSE_ABOUT_VISIBILITY_PERMISSION = 'see_exists'
+COURSE_ABOUT_VISIBILITY_PERMISSION = 'see_about_page'
 
 DEFAULT_COURSE_VISIBILITY_IN_CATALOG = "both"
 DEFAULT_MOBILE_AVAILABLE = False
@@ -3614,7 +3621,7 @@ PROFILE_IMAGE_SIZES_MAP = {
 
 # Sets the maximum number of courses listed on the homepage
 # If set to None, all courses will be listed on the homepage
-HOMEPAGE_COURSE_MAX = None
+HOMEPAGE_COURSE_MAX = 4
 
 ################################ Settings for Credit Courses ################################
 # Initial delay used for retrying tasks.

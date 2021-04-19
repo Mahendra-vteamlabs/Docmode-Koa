@@ -14,11 +14,11 @@ class course_extrainfo(models.Model):
         max_length=2,
     )
     specialization = models.ForeignKey(
-        specializations, null=True, default=16, on_delete=models.CASCADE
+        specializations, null=True, blank=True, on_delete=models.CASCADE
     )
     category = models.CharField(max_length=2, db_index=True, null=True)
     sub_category = models.CharField(max_length=150, db_index=True, null=True)
     course_seo_url = models.CharField(max_length=350, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.course_id

@@ -1,0 +1,57 @@
+<%page expression_filter="h"/>
+<%namespace name='static' file='../static_content.html'/>
+<%!
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.markup import HTML, Text
+%>
+<%inherit file="../main.html" />
+
+<%block name="pagetitle">${_("Page Not Found 404")}</%block>
+<% email = 'support@docmode.org' %>
+<main id="main" aria-label="Content" tabindex="-1">  
+    <section >  
+        <div class="row">
+            <div class="container topicCont">
+             
+                <!-- <div class="row" style="text-align: center;">
+                    <h2>${_("Page not found")}</h2> 
+                </div> -->
+                <div class="row">
+                    <a href="https://docmode.org"><img src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/Docmode-Themes/404-error.png" width="100%" height="30%"></a>
+                </div>
+                <!-- <div class="row" style="text-align: center;">
+                    <p>
+                        <h3>Looks like the page you were looking doesn't exist or has been moved.<br/>Please go through other links provided below.
+                        </h3>
+                    </p>
+                </div> -->
+                <!-- <div class="row" style="text-align: center;">
+                    <p>
+                        <ul>
+                            <li>
+                                <p>
+                                    <a href="javascript:history.back()" >Go back</a> to the last page.
+                                </p>
+                            </li>
+                            <li>
+                                <p>
+                                    Go to docmode.org <a href="docmode.org" >home page</a>
+                                </p>
+                            </li>
+                            <li>
+                                <p>
+                                    View our <a href="/courses" >new courses</a>.
+                                </p>
+                            </li>
+                            <li>
+                                <p>
+                                    Please wait a few seconds and then reload the page. If the problem persists, please email us at <a href="mailto:support@docmode.org">support@docmode.org</a>
+                                </p>
+                            </li>
+                        </ul>   
+                    </p>        
+                </div> -->
+            </div>
+        </div>
+    </section>
+</main>

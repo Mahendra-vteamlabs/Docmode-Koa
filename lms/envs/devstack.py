@@ -430,3 +430,20 @@ if os.path.isfile(join(dirname(abspath(__file__)), 'private.py')):
 # Uncomment the lines below if you'd like to see SQL statements in your devstack LMS log.
 # LOGGING['handlers']['console']['level'] = 'DEBUG'
 # LOGGING['loggers']['django.db.backends'] = {'handlers': ['console'], 'level': 'DEBUG', 'propagate': False}
+
+#Added by Mahendra
+####################search filter custom ##############################
+ALL_LANGUAGES = ENV_TOKENS.get('ALL_LANGUAGES', ALL_LANGUAGES)
+LANGUAGE_MAP = {'terms': {lang: display for lang, display in ALL_LANGUAGES}, 'name': 'Language'}
+COURSE_DISCOVERY_MEANINGS = {
+    'subjects': {
+        'name': 'Topics',
+    },
+    'org': {
+        'name': 'Associations',
+    },
+    'coursetype': {
+        'name': 'Types'
+    }
+}
+COURSE_DISCOVERY_FILTERS = ["org", "subjects", "coursetype"]

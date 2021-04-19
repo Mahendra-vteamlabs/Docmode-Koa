@@ -66,5 +66,5 @@ class extrafields(models.Model):
         if self.user_type:
             return self.__enumerable_to_display(self.USER_TYPE, self.user_type)
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{}".format(self.user)

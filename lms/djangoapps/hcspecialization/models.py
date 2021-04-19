@@ -11,5 +11,5 @@ class hcspecializations(models.Model):
         max_length=100,
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name

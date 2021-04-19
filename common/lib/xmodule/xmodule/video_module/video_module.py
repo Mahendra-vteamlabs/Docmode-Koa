@@ -1115,9 +1115,14 @@ class VideoBlock(
 
         # Fall back to other video URLs in the video module if not found in VAL
         if not encoded_videos:
-            if all_sources:
-                encoded_videos["fallback"] = {
-                    "url": all_sources[0],
+            video_url = self.html5_sources[0] if self.html5_sources else self.source
+            if video_url:
+                if video_url.startswith('/asset'):
+                    lms_root_url = settings.LMS_ROOT_URL
+                    video_url = lms_root_url + video_url
+                # fix for mobile video
+                encoded_videos["mobile_low"] = {
+                    "url": video_url,
                     "file_size": 0,  # File size is unknown for fallback URLs
                 }
 

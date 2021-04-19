@@ -18,7 +18,7 @@ class Sponsored_course_users(models.Model):
     question = models.CharField(max_length=250, blank=True)
     answer = models.CharField(max_length=250, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.course_id
 
 
@@ -26,7 +26,9 @@ class associations_ad_manager(models.Model):
     course_id = models.CharField(
         max_length=255, db_index=True, verbose_name="Course ID"
     )
-    organization = models.ForeignKey(Organization, db_index=True)
+    organization = models.ForeignKey(
+        Organization, db_index=True, on_delete=models.CASCADE
+    )
     image_url = models.CharField(max_length=250, blank=True)
     video_url = models.CharField(max_length=250, blank=True)
     disclaimer = models.TextField(blank=True)
@@ -43,16 +45,16 @@ class user_view_counter(models.Model):
     course_id = models.CharField(max_length=255, db_index=True)
     counter = models.CharField(max_length=255, db_index=True)
     mcounter = models.CharField(max_length=255, null=True)
-    user = models.ForeignKey(USER_MODEL, null=True)
+    user = models.ForeignKey(USER_MODEL, null=True, on_delete=models.CASCADE)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.course_id
 
 
 class disclaimer_agreement_status(models.Model):
     course_id = models.CharField(max_length=255, db_index=True)
     status = models.CharField(max_length=255, default=0)
-    user = models.ForeignKey(USER_MODEL, null=True)
+    user = models.ForeignKey(USER_MODEL, null=True, on_delete=models.CASCADE)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.course_id

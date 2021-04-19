@@ -975,3 +975,20 @@ COMPLETION_VIDEO_COMPLETE_PERCENTAGE = ENV_TOKENS.get('COMPLETION_BY_VIEWING_DEL
                                                       COMPLETION_BY_VIEWING_DELAY_MS)
 
 ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER = ENV_TOKENS.get('ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER', False)
+
+#Added by Mahendra
+####################search filter custom ##############################
+ALL_LANGUAGES = ENV_TOKENS.get('ALL_LANGUAGES', ALL_LANGUAGES)
+LANGUAGE_MAP = {'terms': {lang: display for lang, display in ALL_LANGUAGES}, 'name': 'Language'}
+COURSE_DISCOVERY_MEANINGS = {
+    'subjects': {
+        'name': 'Topics',
+    },
+    'org': {
+        'name': 'Associations',
+    },
+    'coursetype': {
+        'name': 'Types'
+    }
+}
+COURSE_DISCOVERY_FILTERS = ["org", "subjects", "coursetype"]

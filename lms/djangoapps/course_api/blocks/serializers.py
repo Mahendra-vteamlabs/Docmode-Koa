@@ -177,6 +177,10 @@ class BlockSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
             if children:
                 data['children'] = [six.text_type(child) for child in children]
 
+        #Added by Mahendra
+        if data.get('type', '') == 'pdf':
+            data['pdf_web_url'] = self.get_pdf_web_url(data)
+
         if authorization_denial_reason and authorization_denial_message:
             data['authorization_denial_reason'] = authorization_denial_reason
             data['authorization_denial_message'] = authorization_denial_message
@@ -187,6 +191,21 @@ class BlockSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
             data = cleaned_data
 
         return data
+
+    #Added by Mahendra
+    def get_pdf_web_url(self, data):
+        block_id = data.get('id')
+        try:
+            location = UsageKey.from_string(block_id)
+        except InvalidKeyError:
+            return None
+        store = modulestore()
+        item = store.get_item(location)
+        pdf_url = getattr(item, 'url', None)
+        # pdf_url = getattr(item, 'href', None)
+        if pdf_url.startswith('/asset'):
+            pdf_url = settings.LMS_ROOT_URL + pdf_url
+        return pdf_url
 
 
 class BlockDictSerializer(serializers.Serializer):  # pylint: disable=abstract-method

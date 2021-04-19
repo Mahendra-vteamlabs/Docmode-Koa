@@ -64,5 +64,5 @@ class case_study_abstracts(models.Model):
     csa_updated = models.DateTimeField(auto_now=True)
     csa_added = models.DateTimeField(auto_now_add=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{}".format(self.user)

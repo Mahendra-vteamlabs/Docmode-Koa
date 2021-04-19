@@ -1,0 +1,54 @@
+<!-- Cookie Consent -->
+<%page expression_filter="h"/>
+<%! from django.utils.translation import ugettext as _ %>
+<%namespace name='static' file='../static_content.html'/>
+<style>
+.cc-theme-classic .cc-btn:last-child {
+    min-width: 70px !important;
+}
+.cc-message {
+    font: -webkit-control !important;
+}
+</style> 
+<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.1/cookieconsent.min.css" />
+<script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.1/cookieconsent.min.js"></script>
+<script>
+window.addEventListener("load", function(){
+  window.cookieconsent.initialise({
+
+    window: '<div dir="${static.dir_rtl()}" role="dialog" tabindex="-1" id="cookiepopup" aria-label="cookieconsent" class="cc-window {{classes}}"><!--googleoff: all-->{{children}}<!--googleon: all--></div>',
+
+    palette:{
+      popup: {background: "#5ca7cf", text: "#ffffff"},
+      button: {background: "#005379", text: "#ffffff"},
+    },
+    "content": {
+      "message": "${_('This website uses cookies to improve your experience. Continue to use the site as normal if you agree to the use of cookies. If you’d like to find out more about the cookies we use or to opt-out, please see our')}",
+      "dismiss": "${_('Got it!')}",
+      "link": "Privacy Policy",
+      "href": "https://docmode.org/privacy",
+    },
+    theme: "classic",
+    "elements": {
+        "dismiss": '<a aria-label="dismiss cookie message" id="dismiss" role=button tabindex="2" class="cc-btn cc-dismiss:focus">{{dismiss}}</a>',
+    },
+    "position": "bottom",
+    "static": "true",
+    showLink: true,
+  },
+  function(popup){
+
+    $(".cc-window").on('keydown', function(event) {
+      if (event.keyCode == 27 ){
+        popup.close();
+      } 
+    });
+
+    $("#dismiss").on('keydown', function(event) {
+      if (event.keyCode == 13 || event.keyCode == 32 ) {
+        popup.onButtonClick(event);
+      }
+    });  
+  });
+});
+</script>

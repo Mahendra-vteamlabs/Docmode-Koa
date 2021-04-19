@@ -7,6 +7,7 @@
 <%!
 from django.utils.translation import ugettext as _
 from openedx.core.djangolib.markup import HTML, Text
+from common.djangoapps.organizations.models import Organization
 %>
 
 <div class="learner-achievements">
@@ -35,9 +36,12 @@ from openedx.core.djangolib.markup import HTML, Text
                 )
                 %>
                 % if certificate_url:
+                    <%
+                        data = Organization.objects.get(short_name=course.display_org_with_default)
+                    %>
                     <a href="${certificate_url}" rel="noopener" target="_blank">
                         <div class="card certificate-card mode-${certificate['type']}">
-                            <div class="card-logo">
+                            <div class="card-logo" style="width: 150px; padding: 8px; margin-top: 10px;">
                                 <h4 class="sr-only">
                                     ${_('{course_mode} certificate').format(
                                         course_mode=certificate['type'],
@@ -47,7 +51,7 @@ from openedx.core.djangolib.markup import HTML, Text
                             <div class="card-content">
                                 <div class="card-supertitle">${course.display_org_with_default}</div>
                                 <div class="card-title">${course.display_name_with_default}</div>
-                                <p class="card-text">${completion_date_message_html}</p>
+                                <p class="card-text" style="min-height:auto;padding: 0px;">${completion_date_message_html}</p>
                             </div>
                         </div>
                     </a>
@@ -63,7 +67,7 @@ from openedx.core.djangolib.markup import HTML, Text
                         <div class="card-content">
                             <div class="card-supertitle">${course.display_org_with_default}</div>
                             <div class="card-title">${course.display_name_with_default}</div>
-                            <p class="card-text">${completion_date_message_html}</p>
+                            <p class="card-text" style="min-height:auto;">${completion_date_message_html}</p>
                         </div>
                     </div>
                 % endif
