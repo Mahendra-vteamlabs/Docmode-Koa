@@ -259,7 +259,7 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
                       &nbsp;${course_overview.display_name_with_default}
                     </span>
                   </a>
-                % elif not is_course_blocked:
+                % elif not is_course_expired:
                   %if assoc_ad != 'n/a':
                     <a href="#" data-toggle="modal" data-target="#ad_${popupid}" class="enter-course archived" onclick="view_ad('${assoc_ad}','${popupid}');">
                   %elif disclaimer != 'n/a':
@@ -611,7 +611,7 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
 <script>
            $( document ).ready(function() {
 
-               if("${is_course_blocked | n, dump_js_escaped_json}" == 'true'){
+               if("${is_course_expired | n, dump_js_escaped_json}" == 'true'){
                    $( "#unregister_block_course" ).click(function() {
                        $('.disable-look-unregister').click();
                    });

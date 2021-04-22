@@ -2746,6 +2746,7 @@ INSTALLED_APPS = [
 
     #Added by Mahendra chaudhari
     'lms.djangoapps.pdf_viewer',
+    # 'django_crontab',
     'common.djangoapps.organizations',
     'lms.djangoapps.add_manager',
     'lms.djangoapps.associations',

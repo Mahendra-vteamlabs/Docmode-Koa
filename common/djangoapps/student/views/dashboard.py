@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.db.models import F
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 from edx_django_utils import monitoring as monitoring_utils
@@ -59,6 +60,10 @@ from common.djangoapps.student.models import (
 )
 from common.djangoapps.util.milestones_helpers import get_pre_requisite_courses_not_completed
 from xmodule.modulestore.django import modulestore
+
+#Added by Mahendra
+from lms.djangoapps.add_manager.models import user_view_counter, disclaimer_agreement_status
+
 
 log = logging.getLogger("edx.student")
 
@@ -492,6 +497,29 @@ def student_dashboard(request):
 
     """
     user = request.user
+
+    #Added by Mahendra
+    if request.is_ajax():
+        if request.method == 'GET' :
+            if user.is_authenticated():
+                if request.GET.get('disclaimer'):
+                    log.info(u'disclaimer %s', request.GET.get('disclaimer'))
+                    usr = request.user.id
+                    cid = request.GET.get('cid')
+                    disclaimer = disclaimer_agreement_status(course_id=cid,user_id=usr,status='1')
+                    disclaimer.save()
+                else:
+                    usr = request.user.id
+                    cid = request.GET.get('cid')
+                    view_counter = user_view_counter.objects.filter(course_id=cid,user=usr)
+                    if view_counter :
+                        update_counter = user_view_counter.objects.filter(course_id=cid,user=usr).update(counter = F('counter')+1)                                        
+                        
+                    else:
+                        countr = user_view_counter(user_id=usr, course_id=cid,counter=1)
+                        countr.save()
+
+
     if not UserProfile.objects.filter(user=user).exists():
         return redirect(reverse('account_settings'))
 

@@ -67,5 +67,5 @@ def course_new_url(courseid):
         geturl = course_extrainfo.objects.get(course_id=courseid)
         url = geturl.course_seo_url
     except ObjectDoesNotExist:
-        url = None
+        url = ""
     return url

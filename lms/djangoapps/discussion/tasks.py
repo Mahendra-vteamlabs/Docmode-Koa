@@ -12,6 +12,7 @@ from celery_utils.logged_task import LoggedTask
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.db.models import Q
 from edx_ace import ace
 from edx_ace.recipient import Recipient
 from edx_ace.utils import date
@@ -30,6 +31,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
 from openedx.core.djangoapps.django_comment_common.models import DiscussionsIdMapping
 from openedx.core.lib.celery.task_utils import emulate_http_request
 from common.djangoapps.track import segment
+from student.models import CourseAccessRole
 
 log = logging.getLogger(__name__)
 
@@ -64,6 +66,14 @@ class ResponseNotification(BaseMessageType):
 def send_ace_message(context):
     context['course_id'] = CourseKey.from_string(context['course_id'])
 
+    #Added by Mahendra
+    course_authors = CourseAccessRole.objects.filter(course_id=context['course_id'],role='staff') | CourseAccessRole.objects.filter(course_id=context['course_id'],role='instructor') 
+    user_ids = []
+    for userid in course_authors:
+        user_ids.append(userid.user_id)
+
+    user_emails = User.objects.filter(pk__in=user_ids).values()
+
     if _should_send_message(context):
         context['site'] = Site.objects.get(id=context['site_id'])
         thread_author = User.objects.get(id=context['thread_author_id'])
@@ -77,6 +87,19 @@ def send_ace_message(context):
             log.info(u'Sending forum comment email notification with context %s', message_context)
             ace.send(message)
             _track_notification_sent(message, context)
+
+        #Added by Mahendra
+        for user_email in user_emails:
+            with emulate_http_request(site=context['site'], user=thread_author):
+                message_context = _build_message_context(context)
+                message = ResponseNotification().personalize(
+                    Recipient(user_email['username'], user_email['email']),
+                    _get_course_language(context['course_id']),
+                    message_context
+                )
+                log.info('Testing forum comment email notification with context %s', message_context)
+                ace.send(message)
+                _track_notification_sent(message, context)
 
 
 def _track_notification_sent(message, context):
@@ -162,7 +185,8 @@ def _build_message_context(context):
         'comment_username': comment_author.username,
         # 'post_link': _get_thread_url(context),    #Added by Mahendra
         'comment_created_at': date.deserialize(context['comment_created_at']),
-        'thread_created_at': date.deserialize(context['thread_created_at'])
+        'thread_created_at': date.deserialize(context['thread_created_at']),
+        'from_address' : 'DocMode <notification@docmode.org> '
     })
     return message_context
 

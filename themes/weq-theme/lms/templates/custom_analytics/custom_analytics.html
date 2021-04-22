@@ -1,4 +1,4 @@
-<%inherit file="/main.html" />
+<%inherit file="../main.html" />
 <%namespace name='static' file='../static_content.html'/>
 <%!
 from django.utils.translation import ugettext as _
@@ -16,7 +16,7 @@ from lms.djangoapps.hcspecialization.views import hcSpecName
 </%block>
 <%block name="pagetitle">DocMode Analytics</%block>
 <!-- Custom Theme Style -->
-<link href="${static.url('/static/css/vendor/build/css/custom.css')}" rel="stylesheet">
+<link href="${static.url('/vendor/build/custom_css/custom.css')}" rel="stylesheet">
 
 <%def name="user_specialization()"><!-- Doctor Specialization Chart Data -->
   [
@@ -211,4 +211,4 @@ from lms.djangoapps.hcspecialization.views import hcSpecName
   }
 </script>
 <!-- Custom Theme Scripts -->
-<script src="${static.url('/static/css/vendor/build/js/custom.js')}"></script>
+<script src="${static.url('/vendor/build/js/custom.js')}"></script>

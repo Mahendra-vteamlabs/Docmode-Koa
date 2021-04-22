@@ -273,14 +273,26 @@ def courses(request):
     # Add marketable programs to the context.
     programs_list = get_programs_with_type(request.site, include_hidden=False)
 
-    return render_to_response(
-        "courseware/courses.html",
-        {
-            'courses': courses_list,
-            'course_discovery_meanings': course_discovery_meanings,
-            'programs_list': programs_list,
-        }
-    )
+    #Added by Mahendra
+    current_site_theme = get_current_site_theme()
+    if current_site_theme.__str__() == 'weq-theme':
+        return render_to_response(
+                "courseware/courses.html",
+                {
+                    'courses': courses_list,
+                    'course_discovery_meanings': course_discovery_meanings,
+                    'programs_list': programs_list
+                }
+            )
+    else:
+        return render_to_response(
+                "courseware/og-courses.html",
+                {
+                    'courses': courses_list,
+                    'course_discovery_meanings': course_discovery_meanings,
+                    'programs_list': programs_list
+                }
+            )
 
 
 class PerUserVideoMetadataThrottle(UserRateThrottle):
@@ -1012,7 +1024,12 @@ def course_about(request, course_id):
             'org_courses' : org_courses
         }
 
-        return render_to_response('courseware/course_about.html', context)
+        current_site_theme = get_current_site_theme()
+        # log.info('xxxx==%s', current_site_theme)
+        if current_site_theme.__str__() == 'weq-theme':
+            return render_to_response('courseware/course_about.html', context)
+        else:
+            return render_to_response('courseware/og_course_about.html', context)
 
 
 @ensure_csrf_cookie

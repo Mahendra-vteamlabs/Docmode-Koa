@@ -1,23 +1,30 @@
-<article class="course" role="region" aria-label="<%- content.display_name %>">
+<article class="course course-card" role="region" aria-label="<%- content.display_name %>">
     <a href="/courses/<%- course %>/about">
-        <header class="course-image">
+        <header class="course-image course-header-img">
             <div class="cover-image">
                 <img src="<%- image_url %>" alt="<%- content.display_name %> <%- content.number %>" />
                 <div class="learn-more" aria-hidden="true"><%- gettext("LEARN MORE") %></div>
             </div>
         </header>
-        <section class="course-info" aria-hidden="true">
-            <h2 class="course-name">
-                <span class="course-organization"><%- org %></span>
-                <span class="course-code"><%- content.number %></span>
-                <span class="course-title"><%- content.display_name %></span>
+        <section class="course-info course-info-text" aria-hidden="true">
+
+            <div class="time_wrap">
+                <span class="course-author"><i class="fa fa-user-o" aria-hidden="true"></i> <%- org %></span>
+            <div>
+            <h2 class="course-name">                        
+                <span class="course-title course-title-text"><%- content.display_name %></span>
             </h2>
-            <div class="course-date" aria-hidden="true">
-                <%- interpolate(
-                      gettext("Starts: %(start_date)s"),
+
+            <div class="card_btn">   
+                <button type="button" class="btn btn-default enroll_btn">View</button>
+                <a href="" class="book_tag">
+                    <span class="course-time"><i class="fa fa-clock-o" aria-hidden="true"></i> <%- interpolate(
+                      gettext("%(start_date)s"),
                       { start_date: start }, true
-                    ) %>
+                    ) %></span>
+                </a>
             </div>
+
         </section>
         <div class="sr">
             <ul>

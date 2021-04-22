@@ -1,0 +1,212 @@
+<%page expression_filter="h"/>
+
+<%!
+import json
+
+from django.urls import reverse
+from django.conf import settings
+from django.utils.translation import ugettext as _
+
+from openedx.core.djangolib.js_utils import dump_js_escaped_json, js_escaped_string
+from openedx.core.djangolib.markup import HTML
+from webpack_loader.templatetags.webpack_loader import render_bundle
+from openedx.core.djangoapps.user_api.accounts.utils import is_secondary_email_feature_enabled
+from lms.djangoapps.reg_form.views import userdetails
+%>
+
+<%inherit file="/main.html" />
+<%def name="online_help_token()"><% return "learneraccountsettings" %></%def>
+<%namespace name='static' file='/static_content.html'/>
+
+<%block name="pagetitle">${_("Account Settings")}</%block>
+
+% if duplicate_provider:
+    <section>
+        <%include file='/dashboard/_dashboard_third_party_error.html' />
+    </section>
+% endif
+<% add = userdetails(request.user.id) %>
+
+<div class="wrapper-account-settings"></div>
+<div class="account-settings-container" style="padding:80px; padding-top: 0px;">
+        <div class="account-settings-sections">
+            <div class="section" style="border-bottom: 4px solid #f5f5f5;"></div>
+            <div class="section">
+                <h3 class="section-header">Extra Account Information (required)</h3>
+                <div class="account-settings-section-body">
+                    <div class="u-field u-field-text u-field-mci">
+                        <span class="u-field-title" aria-hidden="true">MCI No.</span>
+                        <span class="u-field-value">
+                        
+                        <input id="reg_num" aria-describedby="u-field-message-help-name" type="text" name="input" value="${add.reg_num}" onchange="useraddupdate('reg_num');">
+                        </span>
+                        <span class="u-field-message" id="reg_nummsg"></span>
+                    </div>
+                    <div class="u-field u-field-text u-field-mci">
+                        <span class="u-field-title" aria-hidden="true">Country</span>
+                        <span class="u-field-value">
+                            <input type="text" id="rcountry" onchange="useraddupdate('rcountry');" value="${add.rcountry}" >
+                        </span>
+                        <span class="u-field-message" id="rcountrymsg"></span>
+                    </div>
+                    <div class="u-field u-field-text u-field-mci">
+                        <span class="u-field-title" aria-hidden="true">State</span>
+                        <span class="u-field-value">
+                            <input type="text" id="rstate" onchange="useraddupdate('rstate');" value="${add.rstate}">
+                        </span>
+                        <span class="u-field-message" id="rstatemsg"></span>
+                    </div>
+                    <div class="u-field u-field-text u-field-mci" style="border-bottom:none;">
+                        <span class="u-field-title" aria-hidden="true">City</span>
+                        <span class="u-field-value">
+                            <input type="text" id="rcity" onchange="useraddupdate('rcity');" value="${add.rcity}">
+                        </span>
+                        <span class="u-field-message" id="rcitymsg"></span>
+                    </div>
+                    <div class="u-field u-field-dropdown u-field-user_type editable-always mode-edit" style="display: none;">
+                        <label class="u-field-title" for="u-field-select-user_type">
+                            User Type
+                        </label>
+                        <span class="u-field-value" aria-label="User Type">
+            
+                            <select name="select" id="u-field-select-user_type" aria-describedby="u-field-message-user_type">
+                                <option value=""></option>
+                                <option value="dr">Doctor</option>
+                                <option value="u">User</option>
+                                <option value="ms">Medical Student</option>
+                                <option value="hc">Health Care Professional</option>
+                            </select>
+                            <button class="u-field-value-display">
+                                <span class="sr">User Type &nbsp;</span>
+                                <span class="u-field-value-readonly">User</span>
+                                <span class="sr">&nbsp; Click to edit</span>
+                            </button>
+
+                        </span>
+                        <span class="u-field-message" id="u-field-message-user_type">
+                            <span class="u-field-message-notification" aria-live="polite"></span>
+                            <span class="u-field-message-help" id="u-field-help-message-user_type"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+<%block name="headextra">
+    <%static:css group='style-course'/>
+    <link type="text/css" rel="stylesheet" href="${STATIC_URL}paragon/static/paragon.min.css">
+</%block>
+
+<%block name="js_extra">
+<%static:require_module module_name="js/student_account/views/account_settings_factory" class_name="AccountSettingsFactory">
+    var fieldsData = ${ fields | n, dump_js_escaped_json },
+        ordersHistoryData = ${ order_history | n, dump_js_escaped_json },
+        authData = ${ auth | n, dump_js_escaped_json },
+        platformName = '${ static.get_platform_name() | n, js_escaped_string }',
+        contactEmail = '${ static.get_contact_email_address() | n, js_escaped_string }',
+        allowEmailChange = ${ bool(settings.FEATURES['ALLOW_EMAIL_ADDRESS_CHANGE']) | n, dump_js_escaped_json },
+        socialPlatforms = ${ settings.SOCIAL_PLATFORMS | n, dump_js_escaped_json },
+
+        syncLearnerProfileData = ${ bool(sync_learner_profile_data) | n, dump_js_escaped_json },
+        enterpriseName = '${ enterprise_name | n, js_escaped_string }',
+        enterpriseReadonlyAccountFields = ${ enterprise_readonly_account_fields | n, dump_js_escaped_json },
+        edxSupportUrl = '${ edx_support_url | n, js_escaped_string }',
+        extendedProfileFields = ${ extended_profile_fields | n, dump_js_escaped_json },
+        displayAccountDeletion = ${ enable_account_deletion | n, dump_js_escaped_json};
+        isSecondaryEmailFeatureEnabled = ${ bool(is_secondary_email_feature_enabled()) | n, dump_js_escaped_json },
+
+    AccountSettingsFactory(
+        fieldsData,
+        ${ disable_order_history_tab | n, dump_js_escaped_json },
+        ordersHistoryData,
+        authData,
+        '${ password_reset_support_link | n, js_escaped_string }',
+        '${ user_accounts_api_url | n, js_escaped_string }',
+        '${ user_preferences_api_url | n, js_escaped_string }',
+        ${ user.id | n, dump_js_escaped_json },
+        platformName,
+        contactEmail,
+        allowEmailChange,
+        socialPlatforms,
+
+        syncLearnerProfileData,
+        enterpriseName,
+        enterpriseReadonlyAccountFields,
+        edxSupportUrl,
+        extendedProfileFields,
+        displayAccountDeletion,
+        isSecondaryEmailFeatureEnabled,
+        ${ beta_language | n, dump_js_escaped_json },
+    );
+</%static:require_module>
+
+<script type="text/javascript">
+     window.auth = ${ auth | n, dump_js_escaped_json };
+     window.isActive = ${ user.is_active | n, dump_js_escaped_json };
+     window.additionalSiteSpecificDeletionText = "${ static.get_value('SITE_SPECIFIC_DELETION_TEXT', _(' and access to private sites offered by MIT Open Learning, Wharton Executive Education, and Harvard Medical School')) | n, js_escaped_string }";
+     window.mktgRootLink = "${ static.marketing_link('ROOT') | n, js_escaped_string }";
+     window.platformName = "${ platform_name | n, js_escaped_string }";
+     window.siteName = "${ static.get_value('SITE_NAME', settings.SITE_NAME) | n, js_escaped_string }";
+
+</script>
+<%static:webpack entry="StudentAccountDeletionInitializer">
+</%static:webpack>
+</%block>
+<script type="text/javascript">
+    jQuery.each(jQuery('textarea[data-autoresize]'), function() {
+        var offset = this.offsetHeight - this.clientHeight;
+     
+        var resizeTextarea = function(el) {
+            jQuery(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+        };
+        jQuery(this).on('keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
+    });
+
+    $("input").on("keypress", function(e) {
+        if (e.which === 32 && !this.value.length)
+        e.preventDefault();
+    });
+
+    $("textarea").on("keypress", function(e) {
+        if (e.which === 32 && !this.value.length)
+        e.preventDefault();
+    });
+
+    function usermciupdate(id) {
+        var mci = document.getElementById('u-field-input-mci').value
+        if(mci.length > 0) {
+            $.ajax({
+                method:'GET',
+                url:'',
+                dataType:'html',
+                data:{
+                    mci : mci
+                },
+                success:function(data){
+                  $('#mcimsg').html(data),
+                  $('#mcimsg').delay(2000).fadeOut();
+                }
+            });
+            return false;
+        } else {
+            $('#mcimsg').html('Mci num cannot be empty');
+        }
+    }
+    
+    function useraddupdate(val) {
+        var values = {};
+        values[val] = document.getElementById(val).value;
+        $.ajax({
+            method:'GET',
+            url:'',
+            dataType:'html',
+            data : values,
+            success:function(data){
+                $('#'+val+'msg').show(),
+                $('#'+val+'msg').html(data),
+                $('#'+val+'msg').delay(2000).fadeOut();
+            }
+        });
+        return false;
+    }
+</script>

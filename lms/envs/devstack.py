@@ -26,8 +26,8 @@ ORA2_FILEUPLOAD_BACKEND = 'django'
 DEBUG = True
 USE_I18N = True
 DEFAULT_TEMPLATE_ENGINE['OPTIONS']['debug'] = True
-LMS_BASE = 'localhost:18000'
-CMS_BASE = 'localhost:18010'
+LMS_BASE = ENV_TOKENS.get('LMS_BASE', 'localhost:18000')
+CMS_BASE = ENV_TOKENS.get('CMS_BASE', 'localhost:18010')
 SITE_NAME = LMS_BASE
 
 # By default don't use a worker, execute tasks as if they were local functions
@@ -109,7 +109,7 @@ def should_show_debug_toolbar(request):
     hostname = request.get_host()
     if hostname.startswith('edx.devstack.lms:') or hostname.startswith('lms.devstack.edx:'):
         return False
-    return True
+    return False
 
 ########################### PIPELINE #################################
 
@@ -162,13 +162,13 @@ FEATURES['LICENSING'] = True
 
 
 ########################## Courseware Search #######################
-FEATURES['ENABLE_COURSEWARE_SEARCH'] = False
+FEATURES['ENABLE_COURSEWARE_SEARCH'] = True
 FEATURES['ENABLE_COURSEWARE_SEARCH_FOR_COURSE_STAFF'] = True
 SEARCH_ENGINE = 'search.elastic.ElasticSearchEngine'
 
 
 ########################## Dashboard Search #######################
-FEATURES['ENABLE_DASHBOARD_SEARCH'] = False
+FEATURES['ENABLE_DASHBOARD_SEARCH'] = True
 
 
 ########################## Certificates Web/HTML View #######################
@@ -192,7 +192,7 @@ COURSE_DISCOVERY_MEANINGS = {
     'language': LANGUAGE_MAP,
 }
 
-FEATURES['ENABLE_COURSE_DISCOVERY'] = False
+FEATURES['ENABLE_COURSE_DISCOVERY'] = True
 # Setting for overriding default filtering facets for Course discovery
 # COURSE_DISCOVERY_FILTERS = ["org", "language", "modes"]
 FEATURES['COURSES_ARE_BROWSEABLE'] = True

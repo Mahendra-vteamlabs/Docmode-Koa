@@ -12,7 +12,7 @@ from common.djangoapps.organizations.models import Organization
 
 <div class="learner-achievements">
     % if course_certificates or own_profile:
-        <h3 class="u-field-title">Course Certificates</h3>
+
         % if course_certificates:
             % for certificate in course_certificates:
                 <%
@@ -42,16 +42,12 @@ from common.djangoapps.organizations.models import Organization
                     <a href="${certificate_url}" rel="noopener" target="_blank">
                         <div class="card certificate-card mode-${certificate['type']}">
                             <div class="card-logo" style="width: 150px; padding: 8px; margin-top: 10px;">
-                                <h4 class="sr-only">
-                                    ${_('{course_mode} certificate').format(
-                                        course_mode=certificate['type'],
-                                    )}
-                                </h4>
+                                <img src="${data.logo}">
+                                <p>Certificate</p>
                             </div>
                             <div class="card-content">
-                                <div class="card-supertitle">${course.display_org_with_default}</div>
                                 <div class="card-title">${course.display_name_with_default}</div>
-                                <p class="card-text" style="min-height:auto;padding: 0px;">${completion_date_message_html}</p>
+                                <p class="card-text" style="min-height:auto;padding: 0px;">Course ${completion_date_message_html}</p>
                             </div>
                         </div>
                     </a>

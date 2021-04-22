@@ -19,9 +19,19 @@
                     color: rgba(0,0,0,.75);">
                 {{ comment_body }}
             </div>
-
-            {% trans "View discussion" as course_cta_text %}{{course_cta_text|force_escape}}
-            {% include "ace_common/edx_ace/common/return_to_course_cta.html" with course_cta_text=course_cta_text course_cta_url=post_link%}
+            <p>
+                <a href="https://learn.docmode.org/courses/{{course_id}}/discussion/forum/" style="color: #ffffff;
+    text-decoration: none;
+    border-radius: 4px;
+    background-color: #005686;
+    border-top: 12px solid #005686;
+    border-bottom: 12px solid #005686;
+    border-right: 50px solid #005686;
+    border-left: 50px solid #005686;
+    display: inline-block;" >View Discussion</a>
+            </p>
+<!--             {% trans "View discussion" as course_cta_text %}{{course_cta_text|force_escape}}
+            {% include "ace_common/edx_ace/common/return_to_course_cta.html" with course_cta_text=course_cta_text course_cta_url=post_link%} -->
 
             {% block google_analytics_pixel %}
                 <img src="{{ ga_tracking_pixel_url }}" alt="" role="presentation" aria-hidden="true" style="display: block;"/>

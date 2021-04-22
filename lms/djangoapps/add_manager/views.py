@@ -1,6 +1,5 @@
 import json
 import logging
-import urlparse
 import urllib
 from datetime import datetime
 
@@ -67,8 +66,7 @@ def sponsored_user(user, course_id):
         querystring=user_query,
         cache_key=cache_key,
     )
-    user_order = "N/A"
-    # log.info('======data %s', commerce_user_orders)
+    user_order = 0
     if commerce_user_orders:
         if not user.is_staff:
             for order in commerce_user_orders:
@@ -79,19 +77,13 @@ def sponsored_user(user, course_id):
                     order_coupon_code = "nocode"
                 else:
                     order_coupon_code = order["vouchers"][0]["code"]
-                    # log.info('======coupon_code %s', order_coupon_code)
                 try:
                     Sponsored_course = Sponsored_course_users.objects.get(
                         course_id=course_id, coupon_code__contains=order_coupon_code
                     )
                     user_order = Sponsored_course.video_url
-                    log.info("sponsored_data---> %s", user_order)
-                    log.info("user--> %s", user)
-                    # log.info('======coupon_code %s', order_coupon_code)
-                    # log.info('======user_order %s', user_order)
                 except ObjectDoesNotExist:
-                    user_order = "n/a"
-                    # log.info('======user_order %s', user_order)
+                    user_order = 0
 
                 return user_order
 

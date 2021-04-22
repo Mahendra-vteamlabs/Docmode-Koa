@@ -1,0 +1,127 @@
+{% extends "main_django.html" %}
+{% with online_help_token="wiki" %}
+{% load theme_pipeline %}{% load sekizai_tags i18n configuration %}{% load static %}
+
+{% block title %}
+  {% block pagetitle %}{% endblock %} | {% trans "Wiki" as tmsg%}{{tmsg|force_escape}} | {% platform_name %}
+{% endblock %}
+
+{% block bodyclass %}view-in-course view-wiki{% endblock %}
+
+{% block headextra %}
+  {% stylesheet 'course' %}
+  {% stylesheet 'style-course-vendor' %}
+  {% stylesheet 'style-course' %}
+
+	<link rel="stylesheet" type="text/css" href="{% static 'paragon/static/paragon.min.css' %}" />
+
+  <link rel="stylesheet" type="text/css" href="{% static 'custom_css/bootstrap.min.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'custom_css/animate.min.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'custom_css/prettyPhoto.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'custom_css/main.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'custom_css/responsive.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'custom_css/style.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'custom_css/customOne.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'custom_css/breadcrumbs.css' %}">
+
+  <script type="text/javascript">
+    function ajaxError(){}
+
+    $.ajaxSetup({
+      timeout: 7000,
+      cache: false,
+      error: function(e, xhr, settings, exception) {
+          ajaxError();
+      }
+    });
+
+    function jsonWrapper(url, callback) {
+      $.getJSON(url, function(data) {
+        if (data == null) {
+          ajaxError();
+        } else {
+          callback(data);
+        }
+      });
+    }
+  </script>
+
+  {% comment %} The wiki page does not use the main.html template {% endcomment %}
+  <script type="text/javascript" src="{% static 'js/header/header.js' %}"></script>
+
+  {% addtoblock 'js' %}
+    {% comment %} These scripts load at the bottom of the body {% endcomment %}
+
+    <script rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/noreferrer.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/utils/navigation.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.prettyPhoto.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.isotope.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/wow.min.js' %}"></script>
+
+    <script src="{% static 'js/bootstrap-alert.js' %}"></script>
+    <script src="{% static 'js/bootstrap-collapse.js' %}"></script>
+    <script src="{% static 'js/bootstrap-modal.js' %}"></script>
+
+    {% with mathjax_mode='wiki' %}
+      {% include "mathjax_include.html" %}
+    {% endwith %}
+  {% endaddtoblock %}
+
+{% endblock %}
+
+{% block body %}
+  {% if request.course %}
+  {% with course=request.course %}
+    {% include "courseware/course_navigation.html" with active_page_context="wiki" %}
+  {% endwith %}
+  {% endif %}
+
+<style type="text/css">
+  #wiki-content-wrap .breadcrumbs-header{box-shadow: none !important;padding: 0px !important;
+    border-bottom: 0px !important;background-color: transparent !important;}
+  #wiki-content-wrap .breadcrumbs-header .breadcrumb{background-color: none !important;}
+</style>
+
+<div class="container">
+    {% load render_bundle from webpack_loader %}
+    {% render_bundle "AlertStatusBar" %}
+
+  <div class="wiki-content-wrap">
+    <main id="main" aria-label="Content" tabindex="-1">
+          <section class="wiki {{ selected_tab }}" id="wiki-content"
+            {% if request.course.language %}
+              lang="{{ request.course.language }}"
+            {% endif %}
+          >
+        {% block wiki_body %}
+
+          {% block wiki_breadcrumbs %}{% endblock %}
+
+          {% if messages %}
+            {% for message in messages %}
+              <div id="alert_stat_bar"></div>
+              <script type="text/javascript">
+                new StatusAlertRenderer(
+                  "{{ message }}",
+                  "#alert_stat_bar",
+                  ".nav nav-tabs"
+                );
+              </script>
+
+            {% endfor %}
+          {% endif %}
+
+          {% block wiki_contents %}{% endblock %}
+
+        {% endblock %}
+
+      </section>
+    </main>
+  </div>
+</div>
+
+{% endblock %}
+{% endwith %}
