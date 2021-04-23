@@ -25,10 +25,12 @@ log = logging.getLogger(__name__)
 
 # Create your models here.
 
+
 class Custom_email(models.Model):
     """
     Abstract base class for common information for an email.
     """
+
     subject = models.CharField(max_length=128, blank=True)
     html_message = models.TextField(null=True, blank=True)
     text_message = models.TextField(null=True, blank=True)
@@ -42,8 +44,16 @@ class Custom_email(models.Model):
 
     @classmethod
     def create(
-            cls, course_id, sender, targets, subject, html_message,
-            text_message=None, template_name=None, from_addr=None):
+        cls,
+        course_id,
+        sender,
+        targets,
+        subject,
+        html_message,
+        text_message=None,
+        template_name=None,
+        from_addr=None,
+    ):
         """
         Create an instance of CourseEmail.
         """
@@ -71,7 +81,9 @@ class Custom_email(models.Model):
         """
         return CustomEmailTemplate.get_template(name=self.template_name)
 
-COURSE_EMAIL_MESSAGE_BODY_TAG = '{{message_body}}'
+
+COURSE_EMAIL_MESSAGE_BODY_TAG = "{{message_body}}"
+
 
 class CustomEmailTemplate(models.Model):
     """
@@ -82,6 +94,7 @@ class CustomEmailTemplate(models.Model):
     The admin console interface disables add and delete operations.
     Validation is handled in the CustomEmailTemplateForm class.
     """
+
     html_template = models.TextField(null=True, blank=True)
     plain_template = models.TextField(null=True, blank=True)
     name = models.CharField(null=True, max_length=255, unique=True, blank=True)
@@ -118,7 +131,7 @@ class CustomEmailTemplate(models.Model):
         """
 
         # Substitute all %%-encoded keywords in the message body
-        if 'user_id' in context and 'course_id' in context:
+        if "user_id" in context and "course_id" in context:
             message_body = substitute_keywords_with_data(message_body, context)
 
         result = format_string.format(**context)
@@ -154,11 +167,13 @@ class CustomEmailTemplate(models.Model):
                 context[key] = markupsafe.escape(value)
         return CustomEmailTemplate._render(self.html_template, htmltext, context)
 
+
 class custom_mail_to_users(models.Model):
-	course_emailid = models.CharField(max_length=128, blank=True)
-	user_id = models.CharField(max_length=128, blank=True)
-	user_email = models.CharField(max_length=128, blank=True)
-	created = models.DateTimeField(auto_now_add=True)
-	course_id = models.CharField(max_length=128, blank=True, default='N/a')
-	def __unicode__(self):
-		return self.user_email
+    course_emailid = models.CharField(max_length=128, blank=True)
+    user_id = models.CharField(max_length=128, blank=True)
+    user_email = models.CharField(max_length=128, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    course_id = models.CharField(max_length=128, blank=True, default="N/a")
+
+    def __unicode__(self):
+        return self.user_email

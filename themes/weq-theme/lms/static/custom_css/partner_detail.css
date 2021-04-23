@@ -22,6 +22,8 @@
    transition: all 0.3s ease;
    margin-right: 2%;
    transition: all 0.3s ease;
+   box-shadow: 0px 0px 10px #00000033;
+   -webkit-transition: all 0.3s ease;
 }
 
 .comman p {
@@ -94,11 +96,11 @@ h1 {
    border-radius: 50%;
 }
 
-.rediofield:hover input ~ .checkmark {
+.rediofield:hover input~.checkmark {
    background-color: #ededed;
 }
 
-.rediofield input:checked ~ .checkmark {
+.rediofield input:checked~.checkmark {
    background-color: #fff;
    border: 1px solid #30529a;
 }
@@ -109,7 +111,7 @@ h1 {
    display: none;
 }
 
-.rediofield input:checked ~ .checkmark:after {
+.rediofield input:checked~.checkmark:after {
    display: block;
 }
 

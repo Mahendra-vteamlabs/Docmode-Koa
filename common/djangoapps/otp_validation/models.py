@@ -17,18 +17,24 @@ class OTPManagement(TimeStampedModel):
     """
     Manage otp for reset password
     """
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     otp = models.CharField(max_length=6)
-    status = models.CharField(max_length=30, choices=(
-        ('unused', _(u'Unused')),
-        ('used', _(u'Used')),
-        ('verified', _(u'Verfied')),
-        ('expired', _(u'expired')),
-    ))
-    secret = models.CharField(max_length=40, help_text='Secret key used for veryfying otp')
+    status = models.CharField(
+        max_length=30,
+        choices=(
+            ("unused", _(u"Unused")),
+            ("used", _(u"Used")),
+            ("verified", _(u"Verfied")),
+            ("expired", _(u"expired")),
+        ),
+    )
+    secret = models.CharField(
+        max_length=40, help_text="Secret key used for veryfying otp"
+    )
 
     class Meta:
-        unique_together = ('otp', 'status', 'secret')
+        unique_together = ("otp", "status", "secret")
 
     @classmethod
     def check_previous_otp(cls, user):
@@ -37,7 +43,9 @@ class OTPManagement(TimeStampedModel):
         """
         now = datetime.now()
         earlier = now - timedelta(seconds=30)
-        results = cls.objects.filter(user=user, status='unused', created__range=(earlier, now))
+        results = cls.objects.filter(
+            user=user, status="unused", created__range=(earlier, now)
+        )
         if results.exists():
             return True
         return False
@@ -48,10 +56,7 @@ class OTPManagement(TimeStampedModel):
         otp, secret = self.create_otp()
         try:
             cls.objects.get_or_create(
-                user=user,
-                otp=otp,
-                secret=secret,
-                status='unused'
+                user=user, otp=otp, secret=secret, status="unused"
             )
             log.info("Current OTP: {}".format(otp))
             log.info("Otp saved for user: {}".format(user.username))
@@ -69,7 +74,7 @@ class OTPManagement(TimeStampedModel):
         try:
             otp_obj = self.get_otp_object(obj.secret)
             if otp_obj.verify(otp, valid_window=1):
-                obj.status = 'verified'
+                obj.status = "verified"
                 obj.save()
                 log.info("OTP {} status changed to verified".format(otp))
                 return True
@@ -83,7 +88,7 @@ class OTPManagement(TimeStampedModel):
         try:
             obj = cls.objects.get(otp=otp)
             if obj.user.extrafields.phone == mobile_number:
-                obj.status = 'used'
+                obj.status = "used"
                 log.info("OTP {} status changed to used".format(otp))
                 obj.save()
                 return obj, True
@@ -98,7 +103,10 @@ class OTPManagement(TimeStampedModel):
         Returns otp
         """
         try:
-            return cls.objects.get(Q(user__extrafields__phone=mobile_number, otp=otp) | Q(user__email=mobile_number, otp=otp))
+            return cls.objects.get(
+                Q(user__extrafields__phone=mobile_number, otp=otp)
+                | Q(user__email=mobile_number, otp=otp)
+            )
         except Exception as e:
             return None
 
@@ -119,4 +127,3 @@ class OTPManagement(TimeStampedModel):
         secret = self.get_new_secret()
         obj = self.get_otp_object(secret)
         return obj.now(), secret
-

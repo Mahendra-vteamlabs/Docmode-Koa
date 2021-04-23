@@ -1,5 +1,5 @@
 .clearfix {
-  clear: both;
+  clear: both
 }
 
 .coursesDetail h2 {
@@ -48,6 +48,7 @@
 
 .coursesDetail .share span {
   display: inline-block;
+  ;
 }
 
 .offerby span {
@@ -71,7 +72,8 @@
   padding: 2px 2px;
 }
 
-.social-shareCont li a, .social-shareCont li a:hover {
+.social-shareCont li a,
+.social-shareCont li a:hover {
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -86,12 +88,13 @@
   background: #00ACED;
 }
 
-.facebook span, .twitter span {
+.facebook span,
+.twitter span {
   margin-top: 0;
   display: inline-block;
 }
 
-.coursesDetail .share:hover + .social-shareCont {
+.coursesDetail .share:hover+.social-shareCont {
   display: block;
   position: absolute;
   left: 21px;
@@ -263,20 +266,20 @@
   display: inline-block;
 }
 
-.rating > span {
+.rating>span {
   display: inline-block;
   position: relative;
   width: 1.1em;
   font-size: 18px;
 }
 
-.rating > span:hover,
-.rating > span:hover ~ span {
+.rating>span:hover,
+.rating>span:hover~span {
   color: transparent;
 }
 
-.rating > span:hover:before,
-.rating > span:hover ~ span:before {
+.rating>span:hover:before,
+.rating>span:hover~span:before {
   content: "\2605";
   position: absolute;
   left: 0;

@@ -68,8 +68,7 @@ from lms.djangoapps.userprofile_extrainfo.views import (
     about_add
 )
 from lms.djangoapps.pdf_viewer.views import generate_pdf
-from lms.djangoapps.reg_form.views import kol_registration
-
+from lms.djangoapps.reg_form.views import kol_registration,custom_registration_form, viatris_emas_registration
 
 RESET_COURSE_DEADLINES_NAME = 'reset_course_deadlines'
 RENDER_XBLOCK_NAME = 'render_xblock'
@@ -1026,6 +1025,14 @@ urlpatterns += [
         export_csv,
         name='usercsv'
     ),
+    #url for viatris association course data download
+    url(
+        r'^dashboard/{}/viatris_excel/(?P<datatype>[^/]+)$'.format(
+            settings.COURSE_ID_PATTERN,
+        ),
+        viatris_export_csv,
+        name='viatris_usercsv'
+    ),
     url(r'^assoc/?$', index),
     url(r'^search_term/?$',search_list),
     url(r'^subjects/?$', list_categories),
@@ -1045,6 +1052,8 @@ urlpatterns += [
     url(r'^research/new/?$', cs_addnew),
     url(r'^research/(?P<caseid>[0-9]+)/?$', cs_update),
     url(r'^kol_registration/?$', kol_registration),
+    url(r'^registration/?$', custom_registration_form),
+    url(r'^viatris_registration/?$', viatris_emas_registration),
     url(r'^subjects/(?P<category_id>[\w-]+)$',category),
     url(r'^dashboard/(?P<org_sname>[^/]+)/$',association_dashboard),
     # TODO: These views need to be updated before they work

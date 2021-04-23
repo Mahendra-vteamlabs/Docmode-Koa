@@ -8,6 +8,7 @@
 <%!
 import json
 import re
+from six import text_type
 from datetime import datetime
 from django.urls import reverse
 from django.utils.translation import ugettext as _
@@ -136,6 +137,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
     }
 
 </style>
+<script src="https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js"></script>
 </%block>
 
 <div class="message-banner" aria-live="polite"></div>
@@ -173,9 +175,9 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                         %if userprofile_extrainfo.user_type == 'dr':
                                             Dr. 
                                         %endif
-                                            ${userprofile.name} 
+                                            ${userprofile.name}, 
                                         %if specz_name:
-                                            , ${specz_name}
+                                            ${specz_name}
                                         %endif
                                         </h1>
                                         
@@ -205,9 +207,11 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                     <!-- <p id="moreDetails" class="profession-text collapse"><div class="profile-about-editor wrapper-profile-bio"></div></p> -->
                                     <div class="edu_box">
                                         <div class="edu_details">
-                                            <div class="add-del-btn">
-                                                <a class="add-icon" href="#" data-toggle="modal" data-target="#about_form"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
-                                            </div>
+                                            % if own_profile:
+                                                <div class="add-del-btn">
+                                                    <a class="add-icon" href="#" data-toggle="modal" data-target="#about_form"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
+                                                </div>
+                                            % endif
                                             %if userprofile_extrainfo.user_long_description:
                                                 <p>${userprofile_extrainfo.user_long_description |n}</p>
                                             %else:
@@ -456,7 +460,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                             <div class="item">
                                 <div class="col-md-12 col-sm-12 col-xs-12">
                                     <div class="course_wrap_sec profile_courses">
-                                        <a href="${reverse('about_course', args=[course.id.to_deprecated_string()])}">
+                                        <a href="${reverse('about_course', args=[text_type(course.id)])}">
                                             <div class="card">
                                             <div class="card-img">
                                                 <img src="${course.course_image_url}" alt="${course.display_name_with_default}">
@@ -514,7 +518,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                 <div class="item">
                                     <div class="col-md-12 col-sm-12 col-xs-12">
                                         <div class="course_wrap_sec profile_courses">
-                                            <a href="${reverse('about_course', args=[course.id.to_deprecated_string()])}">
+                                            <a href="${reverse('about_course', args=[text_type(course.id)])}">
                                                 <div class="card">
                                                 <div class="card-img">
                                                     <img src="${course.course_image_url}" alt="${course.display_name_with_default}">
@@ -1141,20 +1145,23 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                     </div>
                     <div class="row">
                     %for featured in featured_data:
+                        <%
+                            title = (featured.title[:70] + '..') if len(featured.title) > 70 else featured.title
+                        %>
                         <div class="col-md-6">
                             <div class="card card-default">
                             % if own_profile:
                                 <span class="mediacard-close">
                                     <a href="#" data-toggle="modal" data-target="#featured_del_form" onclick="featured_deactivate('${featured.id}');"><i class="fa fa-times" ></i></a>
                                 </span>
-                                <span class="mediacard-edit"><a href="" data-toggle="modal" data-target="#featured_edit_form" onclick="featured_edit_modal_data('${featured.title}','${featured.media_name}','${featured.media_link}','${featured.img}','${featured.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit_img.png"></a></span>
+                                <span class="mediacard-edit"><a href="" data-toggle="modal" data-target="#featured_edit_form" onclick='featured_edit_modal_data("${featured.title}","${featured.media_name}","${featured.media_link}","${featured.img}","${featured.id}");'><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit_img.png"></a></span>
                             %endif
                                   <a href="" data-toggle="modal" data-target="#popmyModal" class="card-link" onclick="show('${featured.id}','${featured.media_link}');">
                                     <span class="card-img">
                                        <img src="${featured.img}" alt="">
                                     </span>
                                     <span class="card-body">
-                                      <span class="h3 heading">${featured.title}</span>
+                                      <span class="h3 heading">${title}</span>
                                       <p>${featured.media_name}</p>
                                     </span>
                                   </a>
@@ -1358,7 +1365,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                             address2 = re.escape(clinic.address_line2)
                             address3 = re.escape(clinic.address_line3)
                         %>
-                        <div class="col-md-4 col-sm-4 col-xs-12">
+                        <div class="col-md-4 col-sm-4 col-xs-12" style="min-height: 210px;">
                             <div class="et_pb_blurb_content">
                                 <div class="et_pb_main_blurb_image">
                                     <span class="et_pb_image_wrap">

@@ -2,13 +2,14 @@
 <%!
 import json
 from django.utils.translation import ugettext as _
-from django.urls import reverse
+from django.core.urlresolvers import reverse
 from django.conf import settings
 from edxmako.shortcuts import marketing_link
 from openedx.core.lib.courses import course_image_url
+from associations.views import course_det
 from django.template.context_processors import csrf
-from lms.djangoapps.associations.views import speczName, userType, orgName, course_det
-from common.djangoapps.organizations.models import Organization
+from lms.djangoapps.associations.views import speczName, userType, orgName
+from organizations.models import Organization
 from lms.djangoapps.course_extrainfo.views import course_ctype, course_ctype_number
 from lms.djangoapps.course_extrainfo.models import course_extrainfo
 %>
@@ -16,9 +17,21 @@ from lms.djangoapps.course_extrainfo.models import course_extrainfo
 <%inherit file="../main.html" />
 <%block name="headextra">
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-M7SX36F');</script>
+  <!-- End Google Tag Manager -->
 </%block>
 
 <%block name="pagetitle">${category.topic_name}</%block>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M7SX36F"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 <div class="allergy-container">
   <div class="row">
     <div class="col-md-3 col-sm-4 col-xs-12">
@@ -48,6 +61,7 @@ from lms.djangoapps.course_extrainfo.models import course_extrainfo
               <%
                 if course.start is not None:
                   course_date_string = course.start.strftime('%Y-%m-%dT%H:%M:%S%z')
+                  course_start = course.start.strftime("%b %d, %Y ")
                 else:
                   course_date_string = ''
                 association_name = Organization.objects.get(short_name=course.display_org_with_default)
@@ -65,7 +79,7 @@ from lms.djangoapps.course_extrainfo.models import course_extrainfo
                 course_url = course_extrainfo.objects.get(course_id=course.id)
               %>
             <li>
-              <div class="col-md-4 col-sm-6 col-xs-12 course-card allergy-card">
+              <div class="col-md-4 col-sm-6 col-xs-12 course-card allergy-card" onclick="category_course_data('${course.display_name_with_default}','${course_start}');">
                     <a href="https://docmode.org/${course_url.course_seo_url}">
                     <div class="card">
                         <div class="card-img course-header-img">
@@ -179,6 +193,14 @@ from lms.djangoapps.course_extrainfo.models import course_extrainfo
           }
     });
     return false;
+  }
+
+  function category_course_data(course_name, course_start_date){
+    dataLayer.push({
+      'event': 'CourseClicked',
+      'courseName':course_name,
+      'courseDate':course_start_date,
+    });
   }
 </script>
 <%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">

@@ -27,7 +27,7 @@ from common.djangoapps.student.models import User
 
 
 #Added by Mahendra
-from student.models import CourseEnrollment, CourseAccessRole
+from student.models import CourseEnrollment, CourseAccessRole, UserProfile
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from lms.djangoapps.reg_form.models import extrafields
 from lms.djangoapps.userprofile_extrainfo.models import (
@@ -37,7 +37,7 @@ from lms.djangoapps.userprofile_extrainfo.models import (
     healthcare_awareness_videos, 
     experience
 )
-from lms.djangoapps.certificates import api as certificate_ap
+from lms.djangoapps.certificates import api as certificate_api
 
 @login_required
 @require_http_methods(['GET'])
@@ -78,25 +78,6 @@ def learner_profile(request, username):
 
     try:
         context = learner_profile_context(request, username, request.user.is_staff)
-        #Added by Mahendra
-        message_viewed = False
-        if (context['own_profile'] and
-                SHOW_PROFILE_MESSAGE.is_enabled() and
-                request.COOKIES.get('profile-message-viewed', '') != 'True'):
-            message_text = Text(_(
-                'Welcome to the new learner profile page. Your full profile now displays more '
-                'information to other learners. You can instead choose to display a limited '
-                'profile. {learn_more_link_start}Learn more{learn_more_link_end}'
-            )).format(
-                learn_more_link_start=HTML(
-                    '<a href="https://edx.readthedocs.io/projects/open-edx-learner-guide/en/'
-                    'latest/SFD_dashboard_profile_SectionHead.html#adding-profile-information">'
-                ),
-                learn_more_link_end=HTML('</a>')
-            )
-            PageLevelMessages.register_info_message(request, message_text, dismissable=True)
-            message_viewed = True
-
         return render(
             request=request,
             template_name='learner_profile/learner_profile.html',

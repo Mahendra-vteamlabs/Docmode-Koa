@@ -581,13 +581,15 @@ def featured_media_add(request):
 
             if request.FILES:
                 featured_img = media_featured.objects.get(user=usr, id=featuredid)
-                img_path = featured_img.img.split("featured")
-                splitted_img_path = img_path[1].split("/")
-                # log.info('myaddedfile %s', splitted_img_path[1])
+                if featured_img.img != 'not uploaded':
+                    img_path = featured_img.img.split('featured')
+                    splitted_img_path = img_path[1].split('/')
+                    #log.info('myaddedfile %s', splitted_img_path[1])
 
-                b = Key(bucket)
-                b.key = username + "/featured/" + splitted_img_path[1]
-                bucket.delete_key(b)
+                    b = Key(bucket)
+                    b.key = username+'/featured/'+splitted_img_path[1]
+                    bucket.delete_key(b)
+
 
                 for myfile in request.FILES.getlist("edit_featured_img"):
                     fs = FileSystemStorage()

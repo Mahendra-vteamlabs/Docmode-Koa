@@ -266,8 +266,9 @@ def _handle_successful_authentication_and_login(user, request):
     """
     Handles clearing the failed login counter, login tracking, and setting session timeout.
     """
-    if LoginFailures.is_feature_enabled():
-        LoginFailures.clear_lockout_counter(user)
+    if not user.is_active:
+        if LoginFailures.is_feature_enabled():
+            LoginFailures.clear_lockout_counter(user)
 
     _track_user_login(user, request)
 
@@ -280,6 +281,53 @@ def _handle_successful_authentication_and_login(user, request):
         log.critical("Login failed - Could not create session. Is memcached running?")
         log.exception(exc)
         raise
+
+
+def _handle_failed_authentication_microsite(user):
+    """
+    Handles updating the failed login count, inactive user notifications, and logging failed authentications.
+    """
+    if user:
+        if LoginFailures.is_feature_enabled():
+            LoginFailures.increment_lockout_counter(user)
+
+        if not user.is_active:
+            _log_and_raise_inactive_user_auth_error(user)
+
+        # if we didn't find this username earlier, the account for this email
+        # doesn't exist, and doesn't have a corresponding password
+        if settings.FEATURES['SQUELCH_PII_IN_LOGS']:
+            loggable_id = user.id if user else "<unknown>"
+            AUDIT_LOG.warning(u"Login failed - password for user.id: {0} is invalid".format(loggable_id))
+        else:
+            AUDIT_LOG.warning(u"Login failed - password for {0} is invalid".format(user.email))
+
+    raise AuthFailedError(_('Incorrect Password. You can reset your password using Forgot password link or Sign In using the OTP option.'))
+
+#Below function to allow inactive users to login 5 times 
+def _handle_inactive_user_failed_authentication(user):
+    """
+    Handles updating the failed login count, inactive user notifications, and logging failed authentications.
+    """
+    if user:
+        if not user.is_active:
+            record, _ = LoginFailures.objects.get_or_create(user=user)
+            record.failure_count = record.failure_count + 1
+            log.info('count--> %s',record.failure_count)
+            if record.failure_count <= 5:
+                if record.failure_count < 5:
+                    log.info('count1--> %s',record.failure_count)
+                    if LoginFailures.is_feature_enabled():
+                        LoginFailures.increment_lockout_counter(user)
+                    return user
+                elif record.failure_count == 5:
+                    log.info('count2--> %s',record.failure_count)
+                    record.failure_count = record.failure_count
+                    #record.lockout_until = datetime.now(UTC)
+                    record.save()
+                    return user
+            else:
+                _log_and_raise_inactive_user_auth_error(user)
 
 
 def _track_user_login(user, request):
@@ -479,7 +527,8 @@ def login_user(request):
                 _enforce_password_policy_compliance(request, possibly_authenticated_user)
 
         if possibly_authenticated_user is None or not possibly_authenticated_user.is_active:
-            _handle_failed_authentication(user, possibly_authenticated_user)
+            # _handle_failed_authentication(user, possibly_authenticated_user)
+            _handle_failed_authentication_microsite(user)
 
         _handle_successful_authentication_and_login(possibly_authenticated_user, request)
 

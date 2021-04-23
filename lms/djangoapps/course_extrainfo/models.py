@@ -21,6 +21,9 @@ class course_extrainfo(models.Model):
     course_seo_url = models.CharField(max_length=350, blank=True)
     mci_mandatory = models.CharField(max_length=2, blank=True, default=0)
     google_calendar_url = models.CharField(max_length=950, blank=True)
+    course_extradata = models.CharField(max_length=950, blank=True)
+    total_webinar_hours = models.CharField(max_length=10, blank=True, default=1)
+    microsite_visibile_only = models.CharField(max_length=10, blank=True, default=0)
 
     def __str__(self):
         return self.course_id

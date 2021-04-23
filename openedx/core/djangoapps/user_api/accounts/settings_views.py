@@ -36,6 +36,9 @@ from common.djangoapps.student.models import UserProfile
 from common.djangoapps.third_party_auth import pipeline
 from common.djangoapps.util.date_utils import strftime_localized
 
+#Added by Mahendra
+from lms.djangoapps.reg_form.models import extrafields
+
 log = logging.getLogger(__name__)
 
 
@@ -70,6 +73,52 @@ def account_settings(request):
             )
 
         return redirect(url)
+
+    #Added by Mahendra
+    if request.is_ajax():
+        if request.method == 'GET' :
+            if 'mobile_number'in request.GET:
+                phone = request.GET.get('mobile_number')
+                try:
+                    uphone = extrafields.objects.get(phone=phone)
+                    if uphone.user_id != usr:
+                        msg = {}
+                        msg['msg'] = "Mobile number is associated with different account."
+                        msg['status'] = 400
+                except ObjectDoesNotExist:
+                    gmember = extrafields.objects.filter(user_id=usr).update(phone=phone)
+                    msg = {}
+                    msg['msg'] = 'Mobile number updated succesfully'
+                    msg['status'] = 200
+                return JsonResponse(msg, status=200, safe=False)
+            elif 'extra_data'in request.GET:
+                extra_data = request.GET.get('extra_data')
+                speczid = request.GET.get('specz')
+                if extra_data != '' and speczid != 0:
+                    gmember = extrafields.objects.filter(user_id=usr).update(user_extra_data=extra_data,specialization_id=speczid)
+                    if gmember:
+                        msg = {}
+                        msg['msg'] = 'IDAVL updated succesfully'
+                        msg['status'] = 200
+                    else:
+                        msg = {}
+                        msg['msg'] = 'IDAVL not updated succesfully'
+                        msg['status'] = 400
+                else:
+                    msg = {}
+                    msg['msg'] = 'Please enter data'
+                    msg['status'] = 400
+                return JsonResponse(msg, status=200, safe=False)
+            else:
+                vfields = request.GET
+                for key in vfields:
+                    vfield = key   
+                columname = vfield   
+                fieldvalue = vfields[key]
+                gmember = extrafields.objects.filter(user_id=usr).update(**{ columname: fieldvalue })
+                msg = ' Updated succesfully'
+                return HttpResponse(msg)
+
 
     context = account_settings_context(request)
     return render_to_response('student_account/account_settings.html', context)

@@ -129,3 +129,87 @@ class CourseDetailSerializer(CourseSerializer):  # pylint: disable=abstract-meth
         # fields from CourseSerializer, which get their data
         # from the CourseOverview object in SQL.
         return CourseDetails.fetch_about_attribute(course_overview.id, "overview")
+
+
+class Custom_CourseSerializer(
+    serializers.Serializer
+):  # pylint: disable=abstract-method
+    """
+    Serializer for Course objects providing minimal data about the course.
+    Compare this with CourseDetailSerializer.
+    """
+
+    blocks_url = serializers.SerializerMethodField()
+    effort = serializers.CharField()
+    end = serializers.DateTimeField()
+    enrollment_start = serializers.DateTimeField()
+    enrollment_end = serializers.DateTimeField()
+    id = serializers.CharField()  # pylint: disable=invalid-name
+    media = _CourseApiMediaCollectionSerializer(source="*")
+    name = serializers.CharField(source="display_name_with_default_escaped")
+    number = serializers.CharField(source="display_number_with_default")
+    org = serializers.CharField(source="display_org_with_default")
+    short_description = serializers.CharField()
+    start = serializers.DateTimeField()
+    start_display = serializers.CharField()
+    start_type = serializers.CharField()
+    pacing = serializers.CharField()
+    topic_name = serializers.CharField()
+    # mobile_available = serializers.BooleanField()
+    # hidden = serializers.SerializerMethodField()
+    # invitation_only = serializers.BooleanField()
+    # payment_url = serializers.CharField()
+    # course_price = serializers.CharField()
+    # other_courses = serializers.ListField()
+    # disclaimer = serializers.ListField()
+    total_enrolled_users = serializers.CharField()
+    instructors = serializers.ListField()
+
+    # 'course_id' is a deprecated field, please use 'id' instead.
+    course_id = serializers.CharField(source="id", read_only=True)
+
+    def get_hidden(self, course_overview):
+        """
+        Get the representation for SerializerMethodField `hidden`
+        Represents whether course is hidden in LMS
+        """
+        catalog_visibility = course_overview.catalog_visibility
+        return catalog_visibility in ["about", "none"]
+
+    def get_blocks_url(self, course_overview):
+        """
+        Get the representation for SerializerMethodField `blocks_url`
+        """
+        base_url = "?".join(
+            [
+                reverse("blocks_in_course"),
+                urllib.urlencode({"course_id": course_overview.id}),
+            ]
+        )
+        return self.context["request"].build_absolute_uri(base_url)
+
+
+class Custom_CourseDetailSerializer(
+    Custom_CourseSerializer
+):  # pylint: disable=abstract-method
+    """
+    Serializer for Course objects providing additional details about the
+    course.
+
+    This serializer makes additional database accesses (to the modulestore) and
+    returns more data (including 'overview' text). Therefore, for performance
+    and bandwidth reasons, it is expected that this serializer is used only
+    when serializing a single course, and not for serializing a list of
+    courses.
+    """
+
+    # overview = serializers.SerializerMethodField()
+
+    def get_overview(self, course_overview):
+        """
+        Get the representation for SerializerMethodField `overview`
+        """
+        # Note: This makes a call to the modulestore, unlike the other
+        # fields from CourseSerializer, which get their data
+        # from the CourseOverview object in SQL.
+        return CourseDetails.fetch_about_attribute(course_overview.id, "overview")

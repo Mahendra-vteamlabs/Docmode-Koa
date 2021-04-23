@@ -1392,7 +1392,7 @@ DEFAULT_FROM_EMAIL = 'registration@docmode.com'
 DEFAULT_FEEDBACK_EMAIL = 'feedback@docmode.com'
 SERVER_EMAIL = 'devops@docmode.com'
 TECH_SUPPORT_EMAIL = 'technical@docmode.com'
-CONTACT_EMAIL = 'info@docmode.com'
+CONTACT_EMAIL = 'support@docmode.com'
 BUGS_EMAIL = 'bugs@docmode.com'
 UNIVERSITY_EMAIL = 'university@docmode.com'
 PRESS_EMAIL = 'press@docmode.com'
@@ -2760,6 +2760,7 @@ INSTALLED_APPS = [
     'lms.djangoapps.reg_form',
     'lms.djangoapps.webform',
     'lms.djangoapps.send_custom_email',
+    'lms.djangoapps.user_session_tracking',
     'openedx.core.djangoapps.push_notification',
     'openedx.core.djangoapps.course_discovery_api',
     'openedx.core.djangoapps.wp_course_discovery_api'
@@ -4187,3 +4188,18 @@ MAX_BLOCKS_PER_CONTENT_LIBRARY = 1000
 # COUNTRIES_FIRST = ['SA', 'BH', 'QA'] will display these countries on top of the list
 # https://github.com/SmileyChris/django-countries#show-certain-countries-first
 COUNTRIES_FIRST = []
+
+
+ ######### SMS Gateway Details #########
+# SMS_URL = "https://api.textlocal.in/send/"
+# SMS_API_KEY = "roNrKQ0eMbM-StD625VkRr2YK0rvpec54lIw5o8drs"
+# SMS_SENDER_ID = "DOCMOD"
+
+######## new sms credentials #############
+SMS_URL = "http://bulkpush.mytoday.com/BulkSms/SingleMsgApi"
+SMS_FEEDID = 382110
+SMS_USERNAME = 8767767003
+SMS_PASSWORD = "DocMode@123"
+SMS_SENDER_ID = "DOCMOD"
+SMS_TEMPLATE_ID = 1107160654212979263
+OTP_TOKEN = None

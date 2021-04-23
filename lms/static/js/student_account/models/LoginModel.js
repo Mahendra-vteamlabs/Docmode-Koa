@@ -44,9 +44,19 @@
                     headers: headers,
                     success: function() {
                         model.trigger('sync');
+                        dataLayer.push({
+                            'event': 'MyAccount',
+                            'signedIn': 'Sign In',
+                            'status':'Success'
+                        })
                     },
                     error: function(error) {
                         model.trigger('error', error);
+                        dataLayer.push({
+                            'event': 'MyAccount',
+                            'signedIn': 'Sign In',
+                            'status':'Fail'
+                        });
                     }
                 });
             }

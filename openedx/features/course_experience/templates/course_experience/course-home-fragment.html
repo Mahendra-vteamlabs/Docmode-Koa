@@ -30,57 +30,95 @@ from openedx.features.course_experience.course_tools import HttpMethod
                 <h2 class="hd hd-3 page-title">${course.display_name_with_default}</h2>
             </nav>
         </div>
-        <div class="page-header-secondary">
-            % if show_search:
-                <div class="page-header-search">
-                    <form id="course-search-form" class="search-form input-group" role="search" action="${reverse('openedx.course_search.course_search_results', args=[course_key])}">
-                        <label class="field-label sr-only" for="search" id="search-hint">${_('Search the course')}</label>
-                        <input
-                                class="field-input input-text search-input form-control"
-                                type="search"
-                                name="query"
-                                id="search"
-                                placeholder="${_('Search the course')}"
-                        />
-                        <span class="input-group-btn">
-                            <button class="btn btn-outline-primary search-button" type="submit">${_('Search')}</button>
-                        </span>
-                    </form>
+        <%
+            orgs = ['Viatris-emas','Viatris-via','viatris-serc']
+            if course.org in orgs:
+                course_or_webinar = 'Webinar'
+                if course.org == 'Viatris-via':
+                    background_color = '#c48c09'
+                else:
+                    background_color = '#c81f95'
+                endif
+            else:
+                course_or_webinar = 'Course'
+        %>
+        % if course.org not in orgs:
+            <div class="page-header-secondary">
+                % if show_search:
+                    <div class="page-header-search">
+                        <form id="course-search-form" class="search-form input-group" role="search" action="${reverse('openedx.course_search.course_search_results', args=[course_key])}">
+                            <label class="field-label sr-only" for="search" id="search-hint">${_('Search the course')}</label>
+                            <input
+                                    class="field-input input-text search-input form-control"
+                                    type="search"
+                                    name="query"
+                                    id="search"
+                                    placeholder="${_('Search the course')}"
+                            />
+                            <span class="input-group-btn">
+                                <button class="btn btn-outline-primary search-button" type="submit">${_('Search')}</button>
+                            </span>
+                        </form>
+                    </div>
+                % endif
+                <div class="form-actions start-course-btn">
+                    % if resume_course_url:
+                        <%
+                            abc = resume_course_url.split('/', 1)
+                            new_url = 'https:/' + abc[1]
+                        %>
+                        <a class="btn btn-primary action-resume-course" href="${new_url}">
+                            % if has_visited_course:
+                                <span data-action-type="resume" onclick="dataLayer.push({ 'event': 'ModulesStart','buttonName':'Resume ${course_or_webinar}',  'courseName':'${course.display_name_with_default}'});">Resume ${course_or_webinar}</span>
+                            % else:
+                                <span data-action-type="start" onclick="dataLayer.push({ 'event': 'ModulesStart','buttonName':'Start Course',  'courseName':'${course.display_name_with_default}'});">Start ${course_or_webinar} </span>
+                            % endif
+                        </a>
+                    % endif
                 </div>
-            % endif
-            <div class="form-actions start-course-btn">
+            </div>
+        %else:
+            <div class="page-header-secondary" style="float: unset;">
+                <div class="form-actions start-course-btn">
                 % if resume_course_url:
-                    <a class="btn btn-primary action-resume-course" href="${resume_course_url}">
+                    <%
+                        abc = resume_course_url.split('/', 1)
+                        new_url = 'https:/' + abc[1]
+                    %>
+                    <a class="btn btn-primary action-resume-course" href="${new_url}" style="background-color: ${background_color}">
                         % if has_visited_course:
-                            <span data-action-type="resume">${_("Resume Course")}</span>
+                            <span data-action-type="resume" onclick="dataLayer.push({ 'event': 'ModulesStart','buttonName':'Resume ${course_or_webinar}',  'courseName':'${course.display_name_with_default}'});">Resume ${course_or_webinar}</span>
                         % else:
-                            <span data-action-type="start">${_("Start Course")}</span>
+                            <span data-action-type="start" onclick="dataLayer.push({ 'event': 'ModulesStart','buttonName':'Start Course',  'courseName':'${course.display_name_with_default}'});">Start ${course_or_webinar} </span>
                         % endif
                     </a>
                 % endif
+                </div>
             </div>
-        </div>
+        %endif
     </header>
     <div class="page-content page-content-wrap">
         <div class="page-content-main">
-            % if offer_banner_fragment:
-                ${HTML(offer_banner_fragment.content)}
-            % endif
-            % if course_expiration_fragment:
-                ${HTML(course_expiration_fragment.content)}
-            % endif
-            % if course_home_message_fragment:
-                ${HTML(course_home_message_fragment.body_html())}
-            % endif
+            % if course.org not in orgs:
+                % if offer_banner_fragment:
+                    ${HTML(offer_banner_fragment.content)}
+                % endif
+                % if course_expiration_fragment:
+                    ${HTML(course_expiration_fragment.content)}
+                % endif
+                % if course_home_message_fragment:
+                    ${HTML(course_home_message_fragment.body_html())}
+                % endif
 
-            % if update_message_fragment and not DISABLE_UNIFIED_COURSE_TAB_FLAG.is_enabled(course.id):
-                <div class="section section-update-message">
-                    ${HTML(update_message_fragment.body_html())}
-                </div>
-            % endif
+                % if update_message_fragment and not DISABLE_UNIFIED_COURSE_TAB_FLAG.is_enabled(course.id):
+                    <div class="section section-update-message">
+                        ${HTML(update_message_fragment.body_html())}
+                    </div>
+                % endif
 
-            % if outline_fragment:
-                ${HTML(outline_fragment.body_html())}
+                % if outline_fragment:
+                    ${HTML(outline_fragment.body_html())}
+                % endif
             % endif
         </div>
         <aside class="page-content-secondary course-sidebar">
@@ -109,31 +147,33 @@ from openedx.features.course_experience.course_tools import HttpMethod
                     </div>
                 </div>
             % endif
-            % if course_tools:
-                <div class="section section-tools">
-                    <h3 class="hd-6 section-title">${_("Course Tools")}</h3>
-                    <ul class="list-unstyled">
-                        % for course_tool in course_tools:
-                            <li class="course-tool">
-                                % if course_tool.http_method == HttpMethod.GET:
-                                    <a class="course-tool-link" data-analytics-id="${course_tool.analytics_id()}" href="${course_tool.url(course_key)}">
-                                        <span class="icon ${course_tool.icon_classes()}" aria-hidden="true"></span>
-                                        ${course_tool.title()}
-                                    </a>
-                                % elif course_tool.http_method == HttpMethod.POST:
-                                    <form class="course-tool-form" action="${course_tool.url(course_key)}" method="post">
-                                        <input type="hidden" id="csrf_token" name="csrfmiddlewaretoken" value="${csrf_token}">
-                                        <input type="hidden" name="tool_data" value="${course_tool.data()}">
-                                        <button class="course-tool-button" data-analytics-id="${course_tool.analytics_id()}" aria-hidden="true">
+            % if course.org not in orgs:
+                % if course_tools:
+                    <div class="section section-tools">
+                        <h3 class="hd-6 section-title">${_("Course Tools")}</h3>
+                        <ul class="list-unstyled">
+                            % for course_tool in course_tools:
+                                <li class="course-tool">
+                                    % if course_tool.http_method == HttpMethod.GET:
+                                        <a class="course-tool-link" data-analytics-id="${course_tool.analytics_id()}" href="${course_tool.url(course_key)}">
                                             <span class="icon ${course_tool.icon_classes()}" aria-hidden="true"></span>
                                             ${course_tool.title()}
-                                        </button>
-                                    </form>
-                                % endif
-                            </li>
-                        % endfor
-                    </ul>
-                </div>
+                                        </a>
+                                    % elif course_tool.http_method == HttpMethod.POST:
+                                        <form class="course-tool-form" action="${course_tool.url(course_key)}" method="post">
+                                            <input type="hidden" id="csrf_token" name="csrfmiddlewaretoken" value="${csrf_token}">
+                                            <input type="hidden" name="tool_data" value="${course_tool.data()}">
+                                            <button class="course-tool-button" data-analytics-id="${course_tool.analytics_id()}" aria-hidden="true">
+                                                <span class="icon ${course_tool.icon_classes()}" aria-hidden="true"></span>
+                                                ${course_tool.title()}
+                                            </button>
+                                        </form>
+                                    % endif
+                                </li>
+                            % endfor
+                        </ul>
+                    </div>
+                % endif
             % endif
             % if upgrade_url and upgrade_price:
                 <div class="section section-upgrade course-home-sidebar-upgrade ${'discount' if has_discount else 'no-discount'}">
@@ -153,10 +193,12 @@ from openedx.features.course_experience.course_tools import HttpMethod
                         </div>
                 </div>
             % endif
-            % if dates_fragment:
-                <div class="section section-dates">
-                    ${HTML(dates_fragment.body_html())}
-                </div>
+            % if course.org not in orgs:
+                % if dates_fragment:
+                    <div class="section section-dates">
+                        ${HTML(dates_fragment.body_html())}
+                    </div>
+                % endif
             % endif
             % if handouts_html:
                 <div class="section section-handouts">

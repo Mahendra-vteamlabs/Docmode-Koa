@@ -5,4 +5,4 @@ from django.apps import AppConfig
 
 
 class SendCustomEmailConfig(AppConfig):
-    name = 'send_custom_email'
+    name = "send_custom_email"

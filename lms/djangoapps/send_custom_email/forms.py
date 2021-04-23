@@ -24,7 +24,7 @@ class CustomEmailTemplateForm(forms.ModelForm):
 
     class Meta(object):
         model = CustomEmailTemplate
-        fields = ('html_template', 'plain_template', 'name')
+        fields = ("html_template", "plain_template", "name")
 
     def _validate_template(self, template):
         """Check the template for required tags."""
@@ -34,7 +34,9 @@ class CustomEmailTemplateForm(forms.ModelForm):
             log.warning(msg)
             raise ValidationError(msg)
         if template.find(COURSE_EMAIL_MESSAGE_BODY_TAG, index + 1) >= 0:
-            msg = 'Multiple instances of tag: "{}"'.format(COURSE_EMAIL_MESSAGE_BODY_TAG)
+            msg = 'Multiple instances of tag: "{}"'.format(
+                COURSE_EMAIL_MESSAGE_BODY_TAG
+            )
             log.warning(msg)
             raise ValidationError(msg)
         # TODO: add more validation here, including the set of known tags
@@ -66,9 +68,10 @@ class CustomEmailTemplateForm(forms.ModelForm):
             try:
                 CustomEmailTemplate.get_template(name)
                 # already exists, this is no good
-                raise ValidationError('Name of "{}" already exists, this must be unique.'.format(name))
+                raise ValidationError(
+                    'Name of "{}" already exists, this must be unique.'.format(name)
+                )
             except CustomEmailTemplate.DoesNotExist:
                 # this is actually the successful validation
                 pass
         return name
-

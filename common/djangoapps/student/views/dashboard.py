@@ -636,7 +636,7 @@ def student_dashboard(request):
             )
 
 
-# Disable lookup of Enterprise consent_required_course due to ENT-727
+    # Disable lookup of Enterprise consent_required_course due to ENT-727
     # Will re-enable after fixing WL-1315
     consent_required_courses = set()
     enterprise_customer_name = None
@@ -747,10 +747,17 @@ def student_dashboard(request):
     )
     courses_requirements_not_met = get_pre_requisite_courses_not_completed(user, courses_having_prerequisites)
 
+    site_domain = request.site
     if 'notlive' in request.GET:
-        redirect_message = _("The course you are looking for does not start until {date}.").format(
-            date=request.GET['notlive']
-        )
+        if 'viatris' in str(site_domain):
+            redirect_message = _("The webinar you are looking for does not start until {date}.").format(
+                date=request.GET['notlive']
+            )
+        else:
+            redirect_message = _("The course you are looking for does not start until {date}.").format(
+                date=request.GET['notlive']
+            )
+
     elif 'course_closed' in request.GET:
         redirect_message = _("The course you are looking for is closed for enrollment as of {date}.").format(
             date=request.GET['course_closed']

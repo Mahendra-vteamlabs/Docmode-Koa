@@ -1,11 +1,11 @@
 .hrclass {
-	display:block;
-	border:0px;
-	height:3px;
+	display: block;
+	border: 0px;
+	height: 3px;
 	/*background-image:url('https://s3-ap-southeast-1.amazonaws.com/docmode.co/Docmode-Themes/DocmodeLine.png');*/
 	margin-top: 0;
 	margin-bottom: 0;
-	background-color: #80808042; 
+	background-color: #80808042;
 }
 
 #loggeduser {
@@ -23,19 +23,19 @@
 }
 
 @media(max-width: 768px) {
-	#btnmenu{
+	#btnmenu {
 		display: none;
 	}
-	#btnmenus{
+	#btnmenus {
 		display: none;
 	}
-	#btnlogin{
+	#btnlogin {
 		display: none;
 	}
 	.dropdown .pull-right {
 		display: block;
 	}
-	.col-md-7{
+	.col-md-7 {
 		border-bottom: 1px solid;
 	}
 	.navbar li {
@@ -46,7 +46,7 @@
 	.navbar-inverse .navbar-toggle .icon-bar {
 		background-color: grey;
 	}
-	.navbar .cta{
+	.navbar .cta {
 		width: 100%;
 		position: relative;
 	}
@@ -57,13 +57,12 @@
 		text-align: center;
 		width: 100%;
 	}
-	.course-info .details{
+	.course-info .details {
 		width: 100%;
 	}
-	.course-info .course-sidebar{
+	.course-info .course-sidebar {
 		width: 50%;
 	}
-
 	.course-info header.course-profile .intro-inner-wrapper .intro {
 		width: 50%;
 	}

@@ -53,7 +53,11 @@ class regextrafields(forms.ModelForm):
 
     address = forms.CharField(label="Address", required=False)
 
-    reg_num = forms.CharField(label="Medical Registration Number", required=False)
+    reg_num = forms.CharField(
+        label="Medical Registration Number",
+        required=False,
+        error_messages={"required": "enter your mci no."},
+    )
 
     specialization = forms.ModelChoiceField(
         queryset=specializations.objects.all(),

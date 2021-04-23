@@ -66,7 +66,7 @@ def sponsored_user(user, course_id):
         querystring=user_query,
         cache_key=cache_key,
     )
-    user_order = 0
+    user_order = "n/a"
     if commerce_user_orders:
         if not user.is_staff:
             for order in commerce_user_orders:
@@ -83,7 +83,7 @@ def sponsored_user(user, course_id):
                     )
                     user_order = Sponsored_course.video_url
                 except ObjectDoesNotExist:
-                    user_order = 0
+                    user_order = "n/a"
 
                 return user_order
 

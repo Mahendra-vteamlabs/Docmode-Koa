@@ -1,6 +1,5 @@
 """
 Search API views
-Adding from the staging server
 """
 import math
 import json
@@ -75,6 +74,11 @@ class CourseSearchView(DeveloperErrorViewMixin, APIView):
             }
 
         field_dictionary = _process_field_values(request)
+        # if 'coursetype' in field_dictionary.keys():
+        #     if field_dictionary['coursetype'] == 'Lectures':
+        #         field_dictionary['coursetype'] = 'lectures'
+        #     elif field_dictionary['coursetype'] == 'Courses':
+        #         field_dictionary['coursetype'] = 'courses'
 
         results = course_discovery_search(
             search_term=search_key,
@@ -282,6 +286,11 @@ class CourseCategoryView(DeveloperErrorViewMixin, APIView):
             }
 
         field_dictionary = _process_field_values(request)
+        # if 'coursetype' in field_dictionary.keys():
+        #     if field_dictionary['coursetype'] == 'Lectures':
+        #         field_dictionary['coursetype'] = 'lectures'
+        #     elif field_dictionary['coursetype'] == 'Courses':
+        #         field_dictionary['coursetype'] = 'courses'
         # logging.info(field_dictionary)
         results = course_discovery_search(
             search_term=search_key,
@@ -356,6 +365,11 @@ class CourseSearchEnrollmentView(DeveloperErrorViewMixin, APIView):
                 }
 
             field_dictionary = _process_field_values(request)
+            # if 'coursetype' in field_dictionary.keys():
+            #     if field_dictionary['coursetype'] == 'Lectures':
+            #         field_dictionary['coursetype'] = 'lectures'
+            #     elif field_dictionary['coursetype'] == 'Courses':
+            #         field_dictionary['coursetype'] = 'courses'
 
             results = course_discovery_search(
                 search_term=search_key,
@@ -374,6 +388,11 @@ class CourseSearchEnrollmentView(DeveloperErrorViewMixin, APIView):
                 }
 
             field_dictionary = _process_field_values(request)
+            # if 'coursetype' in field_dictionary.keys():
+            #     if field_dictionary['coursetype'] == 'Lectures':
+            #         field_dictionary['coursetype'] = 'lectures'
+            #     elif field_dictionary['coursetype'] == 'Courses':
+            #         field_dictionary['coursetype'] = 'courses'
             if search_key:
                 results = course_discovery_search(
                     search_term=search_key,

@@ -3,12 +3,14 @@
 <%!
 import datetime
 import six
-
+from pytz import UTC, timezone
+from datetime import timedelta
 from django.conf import settings
 from django.utils.http import urlencode, urlquote_plus
 from django.utils.translation import ugettext as _
 from django.utils.translation import ungettext
 from django.urls import reverse
+from student.models import CourseEnrollment
 from common.djangoapps.course_modes.models import CourseMode
 from common.djangoapps.course_modes.helpers import enrollment_mode_display
 from lms.djangoapps.verify_student.services import IDVerificationService
@@ -91,7 +93,19 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
     popupid = course_id
     social_url = 'https://docmode.org/'+ course_new_url(course_overview.id)
   %>
+  <% 
+    enrollment_data = CourseEnrollment.objects.get(course_id=course_overview.id,user_id=request.user.id)
+    diffdate = datetime.datetime.now(UTC) - enrollment_data.created
+    total_mins = (diffdate.days*1440 + diffdate.seconds/60)
+    minutes = divmod(diffdate.seconds, 60)
+    total_mins = abs(total_mins)
+    enrollment_date = enrollment_data.created.strftime("%b %d, %Y")
+    enrollment_time = enrollment_data.created.strftime("%X")
 
+    course_id = course_overview.display_number_with_default
+    popupid = course_id
+    social_url = 'https://docmode.org/'+ course_new_url(course_overview.id)
+  %>
 
   <section class="details" aria-labelledby="details-heading-${enrollment.course_id}">
       <h2 class="hd hd-2 sr" id="details-heading-${enrollment.course_id}">${_('Course details')}</h2>
@@ -134,45 +148,41 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
           % endif
         </h3>
         <div class="course-info">
+
           <span class="info-university">${course_overview.display_org_with_default} - </span>
           <span class="info-course-id">${course_overview.display_number_with_default}</span>
           <%
-            enrollment_date = course_overview.self_paced and enrollment and enrollment.created
             if course_overview.start_date_is_still_default:
                 container_string = _("Coming Soon")
                 course_date = None
             else:
                 format = 'shortDate'
-                dashboard_start_display = course_overview.dashboard_start_display
                 if course_overview.has_ended():
                     container_string = _("Ended - {date}")
                     course_date = course_overview.end
                 elif course_overview.has_started():
                     container_string = _("Started - {date}")
-                    if enrollment_date and isinstance(dashboard_start_display, datetime.datetime):
-                      course_date = max(enrollment_date, dashboard_start_display)
-                    else:
-                      course_date = enrollment_date or dashboard_start_display
+                    course_date = course_overview.dashboard_start_display
                 elif course_overview.starts_within(days=5):
                     container_string = _("Starts - {date}")
-                    course_date = dashboard_start_display
+                    course_date = course_overview.dashboard_start_display
+                    if ctype_numb == 2:
+                      course_date = course_date + datetime.timedelta(0,1800)
+                    endif
                     format = 'defaultFormat'
                 else: ## hasn't started yet
                     container_string = _("Starts - {date}")
-                    course_date = dashboard_start_display
+                    course_date = course_overview.dashboard_start_display
+                    if ctype_numb == 2:
+                      course_date = course_date + datetime.timedelta(0,1800)
+                    endif
+                    format = 'defaultFormat'
                 endif
             endif
           %>
 
             <span class="info-date-block-container">
-                % if not is_unfulfilled_entitlement and is_course_expired:
-                  <span class="info-date-block" data-course-key="${enrollment.course_id}">
-                    ${show_courseware_link.user_message}
-                    <span class="sr">
-                      &nbsp;${_('for {course_display_name}').format(course_display_name=course_overview.display_name_with_default)}
-                    </span>
-                  </span>
-                % elif is_unfulfilled_entitlement:
+                % if is_unfulfilled_entitlement:
                     <span class="info-date-block" aria-live="polite">
                         <span class="icon fa fa-warning" aria-hidden="true"></span>
                         % if not entitlement_expired_at:
@@ -229,11 +239,11 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
                     ${_('View Archived Course')}<span class="sr">&nbsp;${course_overview.display_name_with_default}</span></a>
                 % else:
                   %if assoc_ad != 'n/a':
-                    <a href="#" data-toggle="modal" data-target="#ad_${popupid}" class="enter-course archived" onclick="view_ad('${assoc_ad}','${popupid}');">
+                    <a href="#" data-toggle="modal" data-target="#ad_${popupid}" class="enter-course archived" onclick="view_ad('${assoc_ad}','${popupid}'); dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %elif disclaimer != 'n/a':
-                    <a href="#" data-toggle="modal" class="enter-course archived" data-target="#disclaimer_${popupid}" onclick="view_disclaimer('${popupid}');">
+                    <a href="#" data-toggle="modal" class="enter-course archived" data-target="#disclaimer_${popupid}" onclick="view_disclaimer('${popupid}'); dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %else:
-                    <a href="/courses/${course_overview.id}/${ctype}" class="enter-course archived" data-course-key="${enrollment.course_id}">
+                    <a href="/courses/${course_overview.id}/${ctype}" class="enter-course archived" data-course-key="${enrollment.course_id}" onclick="dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %endif
                     %if ctype_numb == '1':
                       ${_("View Course")} </a>
@@ -252,7 +262,7 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
                   %else:
                     <a href="${resume_button_url}"
                      class="enter-course ${'hidden' if is_unfulfilled_entitlement else ''}"
-                     data-course-key="${enrollment.course_id}">
+                     data-course-key="${enrollment.course_id}" onclick="dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'Resume Course'});">
                   %endif
                     ${_('Resume Course')}
                     <span class="sr">
@@ -261,13 +271,13 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
                   </a>
                 % elif not is_course_expired:
                   %if assoc_ad != 'n/a':
-                    <a href="#" data-toggle="modal" data-target="#ad_${popupid}" class="enter-course archived" onclick="view_ad('${assoc_ad}','${popupid}');">
+                    <a href="#" data-toggle="modal" data-target="#ad_${popupid}" class="enter-course archived" onclick="view_ad('${assoc_ad}','${popupid}'); dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %elif disclaimer != 'n/a':
-                    <a href="#" data-toggle="modal" class="enter-course ${'hidden' if is_unfulfilled_entitlement else ''}" data-target="#disclaimer_${popupid}" onclick="view_disclaimer('${popupid}');">
+                    <a href="#" data-toggle="modal" class="enter-course ${'hidden' if is_unfulfilled_entitlement else ''}" data-target="#disclaimer_${popupid}" onclick="view_disclaimer('${popupid}'); dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %else:
                     <a href="/courses/${course_overview.id}/${ctype}" 
                      class="enter-course ${'hidden' if is_unfulfilled_entitlement else ''}" 
-                     data-course-key="${enrollment.course_id}">
+                     data-course-key="${enrollment.course_id}" onclick="dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %endif
                     %if ctype_numb == '1':
                       ${_("View Course")} </a>
@@ -411,7 +421,11 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
                     % endif
                       <li class="actions-item" id="actions-item-email-settings-${dashboard_index}" role="menuitem">
                         % if show_email_settings:
-                            <a href="#email-settings-modal" class="action action-email-settings" rel="leanModal" data-course-id="${course_overview.id}" data-course-number="${course_overview.number}" data-dashboard-index="${dashboard_index}" data-optout="${course_overview.id in course_optouts}">${_('Email Settings')}</a>
+                          % if not is_course_expired:
+                            <a href="#email-settings-modal" class="action action-email-settings" rel="leanModal" data-course-id="${course_overview.id}" data-course-number="${course_overview.number}" data-dashboard-index="${dashboard_index}" data-optout="${course_overview.id in course_optouts}" onclick="dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'Email Settings'});">${_('Email Settings')}</a>
+                          % else:
+                            <a class="action action-email-settings is-disabled" data-course-id="${course_overview.id}" data-course-number="${course_overview.number}" data-dashboard-index="${dashboard_index}" data-optout="${course_overview.id in course_optouts}" onclick="dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'Email Settings'});">${_('Email Settings')}</a>
+                          % endif
                         % endif
                       </li>
                     </ul>
@@ -616,6 +630,21 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
                        $('.disable-look-unregister').click();
                    });
                }
+               if(${total_mins} < 5){  
+                 smartech(  
+                  'dispatch', 'enroll data',  
+                  { 
+                    'USER ID': '${request.user.id}',  
+                    'COURSE_LANG': 'English', 
+                    'COURSE_NAME':'${course_overview.display_name_with_default}' ,  
+                    'COURSE_ID': '${enrollment.course_id}', 
+                    'EnrollDate':'${enrollment_date}',  
+                    'EnrollTime':'${enrollment_time}',  
+                    'SiteName':'learn.docmode.org', 
+                    'REGISTRATION_DATE':'${user.date_joined}' 
+                  } 
+                  );  
+                }
            });
 </script>
 % if share_settings.get('DASHBOARD_FACEBOOK', False) and share_settings.get('DASHBOARD_TWITTER', False):

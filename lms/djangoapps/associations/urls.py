@@ -39,6 +39,11 @@ urlpatterns = [
         name="wp_course_detail",
     ),
     url(
+        r"^api/courses/v1/drl_course_detail/(?P<course_title>[\w-]+)$",
+        views.custom_CourseDetailView.as_view(),
+        name="custom_course_detail",
+    ),
+    url(
         r"^api/v1/home/ongoing_courses/$",
         views.wp_home_ongoing_courses.as_view(),
         name="home_ongoing_courses",
@@ -79,5 +84,35 @@ urlpatterns = [
         r"^api/v1/thirdparty/user_registration_api$",
         views.user_registration_api.as_view(),
         name="user_registration_api",
+    ),
+    url(
+        r"^api/v1/user_basic_data/(?P<emailid>.+)/$",
+        views.user_basic_data.as_view(),
+        name="user_data_google_analytics",
+    ),
+    url(
+        r"^api/v1/user_data_username/(?P<username>.+)/$",
+        views.user_data_username.as_view(),
+        name="user_data_by_username",
+    ),
+    url(
+        r"^api/v1/doc_vidya/user_registration_api$",
+        views.docvidya_user_registration_api.as_view(),
+        name="docvidya_user_registration_api",
+    ),
+    url(
+        r"^api/v1/doc_vidya/user_profile/(?P<email>.+)/$",
+        views.docvidya_user_profile_api.as_view(),
+        name="docvidya_user_profile_api",
+    ),
+    url(
+        r"^api/v1/doc_vidya/popular_topics/$",
+        views.docvidya_popular_topics_api.as_view(),
+        name="docvidya_popular_topics_api",
+    ),
+    url(
+        r"^api/v1/doc_vidya/popular_instructor/$",
+        views.docvidya_popular_insturctor_api.as_view(),
+        name="docvidya_popular_insturctor_api",
     ),
 ]

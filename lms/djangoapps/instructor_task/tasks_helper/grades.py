@@ -447,8 +447,8 @@ class CourseGradeReport(object):
             (['Cohort Name'] if context.cohorts_enabled else []) +
             [u'Experiment Group ({})'.format(partition.name) for partition in context.course_experiments] +
             (['Team Name'] if context.teams_enabled else []) +
-            ['Enrollment Track', 'Verification Status'] +
-            ['Certificate Eligible', 'Certificate Delivered', 'Certificate Type'] +
+            ['Enrollment Track'] +
+            ['Certificate Eligible', 'Certificate Delivered'] +
             ['Enrollment Status']
         )
 
@@ -662,7 +662,7 @@ class CourseGradeReport(object):
             enrollment_mode,
             user_is_verified=user.id in bulk_enrollments.verified_users,
         )
-        return [enrollment_mode, verification_status]
+        return [enrollment_mode]
 
     def _user_certificate_info(self, user, context, course_grade, bulk_certs):
         """

@@ -71,6 +71,8 @@ from lms.djangoapps.webform.views import feedback_form_link
 <script type="text/javascript" src="${static.url('js/src/tooltip_manager.js')}"></script>
 
 <link href="${static.url('css/vendor/jquery.autocomplete.css')}" rel="stylesheet" type="text/css">
+<link rel="stylesheet" type="text/css" href="https://s3-ap-southeast-1.amazonaws.com/docmode-in-uploads/youtube-chapters.css">
+<link rel="stylesheet" href="https://s3-ap-southeast-1.amazonaws.com/site-js/feedback.css" />
   ${HTML(fragment.head_html())}
 </%block>
 
@@ -290,6 +292,100 @@ ${HTML(fragment.foot_html())}
       % endif
     </nav>
 % endif
+<%
+  course_extra = course_extrainfo.objects.get(course_id=course.id)
+  user_data = extrafields.objects.get(user_id=request.user)
+%>
+<div class="modal fade" id="course_extradata" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-sm-12 col-md-8">
+                <p>Please Enter your IADVL number</p>
+              </div>
+              <div class="col-sm-12 col-md-8">
+                <input type="text" name="idavl" id="idavl" class="extra_data_val">
+              </div>
+              <p id="idavl_error_msg"></p>
+            </div>
+            <p></p>
+            %if user_data.specialization_id is None:
+              <div class="row">
+                <div class="col-sm-12 col-md-8">
+                  <p>Specialization</p>
+                </div>
+                <div class="col-sm-12 col-md-8">
+                  <select style="ackground: transparent;opacity: 0.85;border: none;outline: solid 1px #bbb;cursor: pointer;" id="specz">
+                    <option value="0">select your specialization</option>
+                      <option value="10">Dermatology</option>
+                  </select>
+                  <p id="specz_error_msg"></p>
+                </div>
+              </div>
+            %else:
+              <input type="hidden" id="specz" value="${user_data.specialization_id}">
+            %endif
+            
+            <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+          <div class="modal-footer" id="closebtn" style="text-align: center; border:unset;">
+              <button type="button" class="btn btn-primary extra_data" id="submit" onclick="update_extra_data();">Submit</button>
+          </div>
+      </div>
+  </div>
+</div>
+%if course_extra.course_extradata =='1' and user_data.user_extra_data == '':
+  <script type="text/javascript">
+    $("document").ready(function() {
+      $("#course_extradata").modal('show');
+      $("#error_msg").hide();
+    });
+
+          function update_extra_data(){   
+            var extra_data = document.getElementById('idavl').value;
+            var speczid = document.getElementById("specz").value;
+            var intRegex = /^[A-Za-z0-9!@#$&()-`.+,/\" ]+$/;
+            if(intRegex.test(extra_data)){
+              if (extra_data.length < 5){
+                $("#error_msg").show();
+                $('#idavl').val("");
+                $("#idavl_error_msg").html("Please enter minimum 5 charac")
+                return false;
+              } 
+            }else{
+              $("#error_msg").show();
+                    $("#idavl_error_msg").html("Please enter valid data")
+                    return false;
+            }
+            if(speczid == '0'){
+              $("#error_msg").show();
+              $("#specz_error_msg").html("Please select your specialization!")
+                    return false;
+            }
+                $.ajax({
+                    type: "GET",
+                    url: "/account/settings",
+                    data: {
+                      extra_data:extra_data,
+                      specz:speczid,
+                      csrfmiddlewaretoken : document.getElementsByName('csrfmiddlewaretoken')[0].value
+                    },
+                    success: function(data) {
+                      if(data.status != 200){
+                          $("#error_msg").html(data.msg);
+                          $("#error_msg").show();
+                      } else {
+                        $("#error_msg").html(data.msg);
+                        $("#error_msg").show();
+                        setTimeout(function(){$("#course_extradata").modal('hide');}, 2000);
+                      }
+                    }
+                });
+              
+            }
+
+  </script>
+%endif
 <script src="https://s3-ap-southeast-1.amazonaws.com/site-js/feedback.js"></script>
 <script src="https://docmode-in-uploads.s3-ap-southeast-1.amazonaws.com/youtube-chapters.min.js"></script>
 <script src="https://player.vimeo.com/api/player.js"></script>

@@ -9,6 +9,14 @@ from django.utils.translation import ugettext_noop
 USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "auth.User")
 
 
+class states(models.Model):
+    name = models.CharField(blank=False, max_length=50)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return u"{}".format(self.name)
+
+
 class extrafields(models.Model):
     """
     This model contains two extra fields that will be saved when a user registers.
@@ -44,6 +52,7 @@ class extrafields(models.Model):
     )
     user_seo_url = models.CharField(blank=True, max_length=350)
     user_long_description = RichTextField(blank=True, null=True)
+    user_extra_data = models.CharField(blank=True, max_length=550)
 
     reg_num = models.CharField(
         verbose_name="Reg Num",

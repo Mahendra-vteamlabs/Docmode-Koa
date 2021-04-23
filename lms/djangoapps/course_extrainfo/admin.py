@@ -11,6 +11,7 @@ class Course_extrainfo_Admin(admin.ModelAdmin):
         "specialization",
         "mci_mandatory",
         "google_calendar_url",
+        "microsite_visibile_only",
     ]
 
     search_fields = ["course_id"]

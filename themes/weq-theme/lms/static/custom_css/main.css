@@ -385,8 +385,8 @@ input[type="text"].search-text {
   display:block;
 }
 .breadcrums {
-	padding: 15px 0;
-	margin: 0 15px;
+  padding: 15px 0;
+  margin: 0 15px;
 }
 .breadcrums li{
 display: inline-block;
@@ -396,15 +396,15 @@ display: inline-block;
 color: #606062;
 }
 .row{
-	max-width: 100%;
+  max-width: 100%;
 }
 .content-wrapper .container{
-	border:none;
-	background: #ffffff08;
-	padding-top: 0;
+  border:none;
+  background: #ffffff08;
+  padding-top: 0;
 }
 h1{
-	    color: #30529a;
+      color: #30529a;
     font-size: 36px;
     text-align: left;
 }

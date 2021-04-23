@@ -609,7 +609,7 @@ def activate_account(request, key):
                 message = _(
                     '{html_start}Success! You have activated your account.{html_end}'
                     'You will now receive email updates and alerts from us related to'
-                    ' the courses you are enrolled in. Sign In to continue.'
+                    ' the webinars you are enrolled in. Sign In to continue.'
                 )
 
             # Add message for later use.

@@ -668,7 +668,7 @@ def certificate_info_for_user(user, course_id, grade, user_is_whitelisted, user_
         certificate_is_delivered = 'Y'
         certificate_type = status['mode']
 
-    return [eligible_for_certificate, certificate_is_delivered, certificate_type]
+    return [eligible_for_certificate, certificate_is_delivered]
 
 
 class ExampleCertificateSet(TimeStampedModel):
