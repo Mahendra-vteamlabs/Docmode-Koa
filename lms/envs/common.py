@@ -2746,7 +2746,8 @@ INSTALLED_APPS = [
 
     #Added by Mahendra chaudhari
     'lms.djangoapps.pdf_viewer',
-    # 'django_crontab',
+    'django_crontab',
+    'common.djangoapps.otp_validation',
     'common.djangoapps.organizations',
     'lms.djangoapps.add_manager',
     'lms.djangoapps.associations',
@@ -2758,6 +2759,7 @@ INSTALLED_APPS = [
     'lms.djangoapps.course_extrainfo',
     'lms.djangoapps.reg_form',
     'lms.djangoapps.webform',
+    'lms.djangoapps.send_custom_email',
     'openedx.core.djangoapps.push_notification',
     'openedx.core.djangoapps.course_discovery_api',
     'openedx.core.djangoapps.wp_course_discovery_api'
@@ -2810,13 +2812,13 @@ MKTG_URLS = {
 MKTG_URL_OVERRIDES = {}
 MKTG_URL_LINK_MAP = {
     'ABOUT': 'about',
-    'CONTACT': 'contact',
+    #'CONTACT': 'contact',
     'FAQ': 'help',
     'COURSES': 'courses',
+    'LECTURES': 'programs',
     'ROOT': 'root',
     'TOS': 'tos',
     'HONOR': 'tos',  # If your site does not have an honor code, simply delete this line.
-    'TOS_AND_HONOR': 'edx-terms-service',
     'PRIVACY': 'privacy',
     'PRESS': 'press',
     'BLOG': 'blog',

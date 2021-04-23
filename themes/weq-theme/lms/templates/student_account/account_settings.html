@@ -12,6 +12,7 @@ from openedx.core.djangolib.markup import HTML
 from webpack_loader.templatetags.webpack_loader import render_bundle
 from openedx.core.djangoapps.user_api.accounts.utils import is_secondary_email_feature_enabled
 from lms.djangoapps.reg_form.views import userdetails
+from lms.djangoapps.specialization.models import specializations
 %>
 
 <%inherit file="/main.html" />
@@ -25,7 +26,18 @@ from lms.djangoapps.reg_form.views import userdetails
         <%include file='/dashboard/_dashboard_third_party_error.html' />
     </section>
 % endif
-<% add = userdetails(request.user.id) %>
+<% 
+    add = userdetails(request.user.id) 
+
+    speczs = specializations.objects.all()
+
+    if add.specialization_id == None:
+        def_speczid = 16
+    else:
+        def_speczid = add.specialization_id
+    
+    user_specz = specializations.objects.get(id=def_speczid)
+%>
 
 <div class="wrapper-account-settings"></div>
 <div class="account-settings-container" style="padding:80px; padding-top: 0px;">
@@ -87,6 +99,25 @@ from lms.djangoapps.reg_form.views import userdetails
                             <span class="u-field-message-notification" aria-live="polite"></span>
                             <span class="u-field-message-help" id="u-field-help-message-user_type"></span>
                         </span>
+                    </div>
+                    <div class="u-field u-field-dropdown u-field-user_type editable-always mode-edit">
+
+                        <span class="u-field-title" aria-hidden="true">
+                            Specialization
+                        </span>
+                        <span class="u-field-value" aria-label="Specialization" onchange="useraddupdate('specialization_id')">
+            
+                            <select name="specialization_id" id="specialization_id" aria-describedby="u-field-message-specialization" >
+                                <option value="${user_specz.id}">${user_specz.name}</option>
+                                %for specz in speczs:
+                                    %if user_specz.id != specz.id:
+                                        <option value="${specz.id}">${specz.name}</option>
+                                    %endif
+                                %endfor
+                            </select>
+
+                        </span>
+                        <span class="u-field-message" id="specialization_idmsg"></span>
                     </div>
                 </div>
             </div>

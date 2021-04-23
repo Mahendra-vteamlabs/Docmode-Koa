@@ -2,6 +2,7 @@ import datetime
 import logging
 import uuid
 import warnings
+from six.moves.urllib.parse import parse_qs, urlsplit, urlunsplit
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -13,21 +14,28 @@ from django.http import (
     HttpResponseForbidden,
 )
 from django.shortcuts import redirect, render
-from .models import extrafields
+from .models import extrafields, medical_councils
 from django.core.exceptions import ObjectDoesNotExist
-from student.models import UserProfile, create_comments_service_user
+from student.models import UserProfile
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.validators import ValidationError, validate_email
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import ensure_csrf_cookie
 from edxmako.shortcuts import render_to_response
 from django.db import transaction
-from openedx.core.djangoapps.user_authn.views.registration_form import (
-    AccountCreationForm,
-)
+from openedx.core.djangoapps.user_authn.views.registration_form import AccountCreationForm
 from student.helpers import (
     AccountValidationError,
-    create_or_set_user_attribute_created_on_site,
+    create_or_set_user_attribute_created_on_site
+)
+from student.models import (
+    CourseAccessRole,
+    CourseEnrollment,
+    LoginFailures,
+    Registration,
+    UserProfile,
+    anonymous_id_for_user,
+    create_comments_service_user,
 )
 from student.helpers import authenticate_new_user, do_create_account
 from openedx.core.djangoapps.user_authn.utils import generate_password
@@ -66,6 +74,11 @@ def get_authuser(userid):
         getDetails = None
 
     return getDetails
+
+
+def medical_council_lists():
+    mci_list = medical_councils.objects.all()
+    return mci_list
 
 
 def str2bool(s):

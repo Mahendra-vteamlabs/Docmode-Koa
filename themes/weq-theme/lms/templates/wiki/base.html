@@ -89,7 +89,7 @@
     {% load render_bundle from webpack_loader %}
     {% render_bundle "AlertStatusBar" %}
 
-  <div class="wiki-content-wrap">
+  <div id="wiki-content-wrap" class="wiki-wrapper">
     <main id="main" aria-label="Content" tabindex="-1">
           <section class="wiki {{ selected_tab }}" id="wiki-content"
             {% if request.course.language %}

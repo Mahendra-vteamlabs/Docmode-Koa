@@ -202,7 +202,48 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                         <span>Level Name</span>
                                     </div>                                   
                                     <button href="#moreDetails" data-toggle="collapse" class="plusBtn"><i class="fa fa-plus"></i></button> -->
-                                    <p id="moreDetails" class="profession-text collapse"><div class="profile-about-editor wrapper-profile-bio"></div></p> 
+                                    <!-- <p id="moreDetails" class="profession-text collapse"><div class="profile-about-editor wrapper-profile-bio"></div></p> -->
+                                    <div class="edu_box">
+                                        <div class="edu_details">
+                                            <div class="add-del-btn">
+                                                <a class="add-icon" href="#" data-toggle="modal" data-target="#about_form"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
+                                            </div>
+                                            %if userprofile_extrainfo.user_long_description:
+                                                <p>${userprofile_extrainfo.user_long_description |n}</p>
+                                            %else:
+                                                <p>Tell us something about yourself</p>
+                                            %endif
+                                            <div class="modal fade" id="about_form" data-backdrop="static"
+                                                data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                            <h4 class="modal-title">About</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                           <form method="POST" action="/about_add/" enctype="multipart/form-data" autocomplete="off">
+                                                                <div class="form-group">
+                                                                    <textarea class="form-control" id="user_long_description" rows="3" name="user_long_description" >
+                                                                    %if userprofile_extrainfo.user_long_description:
+                                                                        <p>${userprofile_extrainfo.user_long_description |n}</p>
+                                                                    %else:
+                                                                        <p>Tell us something about yourself</p>
+                                                                    %endif
+                                                                </textarea>
+                                                                </div>
+                                                                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                                                <input type="submit" value="Submit" >
+                                                            </form>
+                                                        </div>
+                                                        <!-- <div class="modal-footer">
+                                                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                                        </div> -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> 
                                 </div>
                             </div>
                         </div>
@@ -731,7 +772,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                                <form action="/education/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
                                                     <div class="form-group">
                                                         <label for="formGroupExampleInput">Year</label>
-                                                        <input type="text" class="form-control" id="year" placeholder="Example input" name="year" required>
+                                                        <input type="text" class="form-control" id="year" placeholder="Example input" name="year">
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="formGroupExampleInput">Institution Name</label>
@@ -769,7 +810,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                                <form action="/education/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
                                                     <div class="form-group">
                                                         <label for="formGroupExampleInput">Year</label>
-                                                        <input type="text" class="form-control" id="edit_year" placeholder="Example input" name="year" required>
+                                                        <input type="text" class="form-control" id="edit_year" placeholder="Example input" name="year">
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="formGroupExampleInput">Institution Name</label>
@@ -808,7 +849,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                 <div class="container">
                     <div class="row">
                         <div class="col-md-8 col-sm-8 col-xs-10">
-                            <h2>Awards</h2>
+                            <h2>Awards & Achievements</h2>
                         </div>
                         % if own_profile:
                             <div class="col-md-4 col-sm-4 col-xs-2">
@@ -1028,7 +1069,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                                 <h4>OR</h4>
                                                 <div class="form-group">
                                                     <label for="formGroupExampleInput">Research Paper link</label>
-                                                    <input type="text" class="form-control" id="research_link" placeholder="" name="research_link" required="">
+                                                    <input type="text" class="form-control" id="research_link" placeholder="" name="research_link">
                                                 </div>
                                                 <input type="submit" value="Submit" >
                                             </form>
@@ -1068,7 +1109,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                         <h4>OR</h4>
                                         <div class="form-group">
                                             <label for="formGroupExampleInput">Research Paper link</label>
-                                            <input type="text" class="form-control" id="edit_research_link" placeholder="Example input" name="edit_research_link" required="">
+                                            <input type="text" class="form-control" id="edit_research_link" placeholder="Example input" name="edit_research_link">
                                         </div>
                                         <input type="submit" value="Submit" >
                                     </form>
@@ -1104,7 +1145,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                             <div class="card card-default">
                             % if own_profile:
                                 <span class="mediacard-close">
-                                    <a href="#" data-toggle="modal" data-target="#featured_del_form"><i class="fa fa-times" ></i></a>
+                                    <a href="#" data-toggle="modal" data-target="#featured_del_form" onclick="featured_deactivate('${featured.id}');"><i class="fa fa-times" ></i></a>
                                 </span>
                                 <span class="mediacard-edit"><a href="" data-toggle="modal" data-target="#featured_edit_form" onclick="featured_edit_modal_data('${featured.title}','${featured.media_name}','${featured.media_link}','${featured.img}','${featured.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit_img.png"></a></span>
                             %endif
@@ -1327,6 +1368,9 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                 <div class="et_pb_blurb_container">
                                     <h3 class="et_pb_module_header">${clinic.clinic_hospital_name}</h3>
                                     <span>${clinic.timings}</span>
+                                    <span>${clinic.timing_2}</span>
+                                    <span>${clinic.timing_3}</span>
+                                    <span>${clinic.timing_4}</span>
                                     <div class="et_pb_blurb_description">
                                         <p>${clinic.address_line1}</p>
                                         <p>${clinic.address_line2}</p>
@@ -1343,7 +1387,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                     </div>
                                 % if own_profile:
                                     <div class="contact-btns">
-                                        <a class="add-icon" href="#" data-toggle="modal" data-target="#clinic_edit_form" onclick="clinic_edit_modal_data('${clinic.clinic_hospital_name}','${address1}','${address2}','${address3}','${clinic.phone_number}','${clinic.website}','${clinic.timings}','${clinic.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
+                                        <a class="add-icon" href="#" data-toggle="modal" data-target="#clinic_edit_form" onclick="clinic_edit_modal_data('${clinic.clinic_hospital_name}','${address1}','${address2}','${address3}','${clinic.phone_number}','${clinic.website}','${clinic.timings}','${clinic.timing_2}','${clinic.timing_3}','${clinic.timing_4}','${clinic.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
                                         <a class="delete-icon" href="#" data-toggle="modal" data-target="#clinic_del_form" onclick="clinic_deactivate('${clinic.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/delete.png" title="Delete"></a>
                                     </div>
                                 %endif
@@ -1414,8 +1458,20 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                                     <input type="text" class="form-control" id="clinic_hospital_website" placeholder="Example input" name="clinic_hospital_website">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="formGroupExampleInput">Timings</label>
-                                                    <input type="text" class="form-control" id="clinic_hospital_timings" placeholder="Example input" name="clinic_hospital_timings">
+                                                    <label for="formGroupExampleInput">Timing 1</label>
+                                                    <input type="text" class="form-control"  placeholder="Example input" name="clinic_hospital_timing_1">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="formGroupExampleInput">Timing 2</label>
+                                                    <input type="text" class="form-control"  placeholder="Example input" name="clinic_hospital_timing_2">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="formGroupExampleInput">Timing 3</label>
+                                                    <input type="text" class="form-control"  placeholder="Example input" name="clinic_hospital_timing_3">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="formGroupExampleInput">Timing 4</label>
+                                                    <input type="text" class="form-control"  placeholder="Example input" name="clinic_hospital_timing_4">
                                                 </div>
                                                 <input type="submit" value="Submit" >
                                             </form>
@@ -1464,8 +1520,20 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
                                             <input type="text" class="form-control" id="edit_clinic_hospital_website" placeholder="Example input" name="edit_clinic_hospital_website">
                                         </div>
                                         <div class="form-group">
-                                            <label for="formGroupExampleInput">Timings</label>
-                                            <input type="text" class="form-control" id="edit_clinic_hospital_timings" placeholder="Example input" name="edit_clinic_hospital_timings">
+                                            <label for="formGroupExampleInput">Timing 1</label>
+                                            <input type="text" class="form-control" id="edit_clinic_hospital_timing_1" placeholder="Example input" name="edit_clinic_hospital_timing_1">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Timing 2</label>
+                                            <input type="text" class="form-control" id="edit_clinic_hospital_timing_2" placeholder="Example input" name="edit_clinic_hospital_timing_2">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Timing 3</label>
+                                            <input type="text" class="form-control" id="edit_clinic_hospital_timing_3" placeholder="Example input" name="edit_clinic_hospital_timing_3">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Timing 4</label>
+                                            <input type="text" class="form-control" id="edit_clinic_hospital_timing_4" placeholder="Example input" name="edit_clinic_hospital_timing_4">
                                         </div>
                                         <input type="submit" value="Submit" >
                                     </form>
@@ -1836,7 +1904,7 @@ $(".profession-text.collapse").on('show.bs.collapse', function(){
     }
 
     function featured_deactivate(award_number){
-        document.getElementById('research_number').value=award_number;
+        document.getElementById('featured_number').value=award_number;
     }
 
     function featured_edit_modal_data(title,medianame,medialink,img,edit_number){
@@ -1851,14 +1919,17 @@ $(".profession-text.collapse").on('show.bs.collapse', function(){
         document.getElementById('del_clinic_hospital_number').value=award_number;
     }
 
-    function clinic_edit_modal_data(name,address_line1,address_line2,address_line3,phone,website,timings,number){
+    function clinic_edit_modal_data(name,address_line1,address_line2,address_line3,phone,website,timing_1,timing_2,timing_3,timing_4,number){
         document.getElementById('edit_clinic_hospital_name').value=name;
         document.getElementById('edit_clinic_hospital_address_line1').value=address_line1;
         document.getElementById('edit_clinic_hospital_address_line2').value = address_line2;
         document.getElementById('edit_clinic_hospital_address_line3').value = address_line3;
         document.getElementById('edit_clinic_hospital_website').value = website;
         document.getElementById('edit_clinic_hospital_phone').value = phone;
-        document.getElementById('edit_clinic_hospital_timings').value = timings;
+        document.getElementById('edit_clinic_hospital_timing_1').value = timing_1;
+        document.getElementById('edit_clinic_hospital_timing_2').value = timing_2;
+        document.getElementById('edit_clinic_hospital_timing_3').value = timing_3;
+        document.getElementById('edit_clinic_hospital_timing_4').value = timing_4;
         document.getElementById('clinic_hospital_number').value = number;
     }
 
@@ -1913,4 +1984,5 @@ $(".profession-text.collapse").on('show.bs.collapse', function(){
         });
 
     });
+    CKEDITOR.replace('user_long_description');
 </script>

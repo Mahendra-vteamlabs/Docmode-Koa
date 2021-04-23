@@ -81,7 +81,7 @@ if course is not None:
             </ul>
         </nav>
     % else:
-        <nav class="${active_page} wrapper-course-material" aria-label="${_('Course Material')}">
+        <nav id="course-navbar" class="${active_page} wrapper-course-material" aria-label="${_('Course Material')}">
             <div class="course-material">
                 <%
                 tabs_tmpl = static.get_template_path('/courseware/tabs.html')

@@ -56,6 +56,7 @@ from common.djangoapps.util import views as util_views
 
 # Added by Mahendra
 from lms.djangoapps.associations.views import *
+from lms.djangoapps.send_custom_email.views import list_categories
 from lms.djangoapps.case_study.views import csy_about,csy_admin_dashboard,csy_dashboard,cs_addnew,cs_update
 from lms.djangoapps.userprofile_extrainfo.views import (
     education_add, award_add,
@@ -63,7 +64,8 @@ from lms.djangoapps.userprofile_extrainfo.views import (
     featured_media_add,
     clinic_hospital_address_add,
     healthcare_awareness_videos_add, 
-    experience_add
+    experience_add,
+    about_add
 )
 from lms.djangoapps.pdf_viewer.views import generate_pdf
 from lms.djangoapps.reg_form.views import kol_registration
@@ -1032,6 +1034,7 @@ urlpatterns += [
     url(r'^education/new/?$', education_add),
     url(r'^experience/new/?$',experience_add),
     url(r'^award/new/?$', award_add),
+    url(r'^about_add/?$', about_add),
     url(r'^research_papers/new/?$', research_papers_add),
     url(r'^featured_media/new/?$', featured_media_add),
     url(r'^clinic_hospital_address/new/?$', clinic_hospital_address_add),
@@ -1044,7 +1047,7 @@ urlpatterns += [
     url(r'^kol_registration/?$', kol_registration),
     url(r'^subjects/(?P<category_id>[\w-]+)$',category),
     url(r'^dashboard/(?P<org_sname>[^/]+)/$',association_dashboard),
-    url(r'^calculate$', util_views.calculate),
+    # TODO: These views need to be updated before they work
     url(r'^docmode/analytics$',custom_analytics),
     url(r'^docmode/specz_usercount',export_specz_usercount_csv),
     url(r'^docmode/coupons$',custom_analytics_coupons),
@@ -1053,9 +1056,13 @@ urlpatterns += [
     url(r'^docmode/order_details$',order_details),
     url(r'^docmode/order/excel/$',export_order_csv),
     url(r'^inutrimon$', RedirectView.as_view(url='http://inutrimon.com')),
+    url(r'^view/(?P<redirecturl>[a-zA-Z])/$',logout_redirect),
+    # For view pdf in mobile app
+    url(r'^pdf_viewer/', generate_pdf, name='pdf-viewer'),
     url(r'^(?P<organization_id>[\w-]+)/$',association_about),
     url(r'^', include('openedx.core.djangoapps.course_discovery_api.urls')),
     url(r'^', include('openedx.core.djangoapps.wp_course_discovery_api.urls')),
     url(r'^', include('openedx.core.djangoapps.push_notification.urls')),
     url(r'^', include('lms.djangoapps.associations.urls')),
+    url(r'^', include('common.djangoapps.otp_validation.urls')),
 ]

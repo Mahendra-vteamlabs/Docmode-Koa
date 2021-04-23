@@ -381,6 +381,7 @@ class LoginFailuresAdmin(admin.ModelAdmin):
     """Admin interface for the LoginFailures model. """
     list_display = ('user', 'failure_count', 'lockout_until')
     raw_id_fields = ('user',)
+    readonly_fields = ('user',)
     search_fields = ('user__username', 'user__email', 'user__first_name', 'user__last_name')
     actions = ['unlock_student_accounts']
     change_form_template = 'admin/student/loginfailures/change_form_template.html'

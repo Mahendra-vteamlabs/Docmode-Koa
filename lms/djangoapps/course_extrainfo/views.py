@@ -69,3 +69,13 @@ def course_new_url(courseid):
     except ObjectDoesNotExist:
         url = ""
     return url
+
+
+def course_mci_mandatory(courseid):
+    mci_status = ""
+    try:
+        mci_status = course_extrainfo.objects.get(course_id=courseid)
+        mci_status = mci_status.mci_mandatory
+    except ObjectDoesNotExist:
+        mci_status = "n/a"
+    return mci_status

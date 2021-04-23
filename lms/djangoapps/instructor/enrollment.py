@@ -158,6 +158,9 @@ def enroll_email(course_id, student_email, auto_enroll=False, email_students=Fal
             email_params['message_type'] = 'enrolled_enroll'
             email_params['email_address'] = student_email
             email_params['full_name'] = previous_state.full_name
+            course_url = email_params['course_url'].split('/courses/')
+            new_course_url = course_url[0]+'/login?next=courses/'+course_url[1]
+            email_params['course_url'] = new_course_url
             send_mail_to_student(student_email, email_params, language=language)
 
     elif not is_email_retired(student_email):

@@ -28,6 +28,7 @@ from lms.djangoapps.userprofile_extrainfo.models import (
     experience,
 )
 from lms.djangoapps.userprofile_extrainfo.forms import education_form, award_form
+from lms.djangoapps.reg_form.models import extrafields
 from edxmako.shortcuts import render_to_response
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ObjectDoesNotExist
@@ -48,6 +49,10 @@ def education_add(request):
     if request.method == "POST":
         if "edu_add" in request.POST:
             year = request.POST.get("year", "")
+            if year != "":
+                year = year
+            else:
+                year = None
             description = request.POST.get("description", "")
             institution_name = request.POST.get("institution_name", "")
 
@@ -103,6 +108,10 @@ def education_add(request):
             return HttpResponseRedirect("/u/" + username)
         elif "edu_edit" in request.POST:
             year = request.POST.get("year", "")
+            if year != "":
+                year = year
+            else:
+                year = None
             description = request.POST.get("description", "")
             institution_name = request.POST.get("institution_name", "")
             eduid = request.POST.get("edu_edit_number", "")
@@ -202,6 +211,11 @@ def award_add(request):
     if request.method == "POST":
         if "award_add" in request.POST:
             year = request.POST.get("award_year", "")
+            if year != "":
+                year = year
+            else:
+                year = None
+
             title = request.POST.get("award_title", "")
 
             bucket_name = BUCKET_NAME + "/" + username + "-one/"
@@ -247,6 +261,10 @@ def award_add(request):
             return HttpResponseRedirect("/u/" + username)
         elif "award_edit" in request.POST:
             year = request.POST.get("edit_award_year", "")
+            if year != "":
+                year = year
+            else:
+                year = None
             title = request.POST.get("edit_award_title", "")
             awardid = request.POST.get("award_edit_number", "")
             bucket_name = BUCKET_NAME + "/" + username + "-one/"
@@ -617,7 +635,7 @@ def featured_media_add(request):
             imagedate = imagedate.strftime("%d_%m_%Y")
             # testfile = upload_file.name
 
-            featured_img = media_featured.objects.get(user=usr, id=eduid)
+            featured_img = media_featured.objects.get(user=usr, id=featuredid)
             if featured_img.img != "not uploaded":
                 img_path = featured_img.img.split("featured")
                 splitted_img_path = img_path[1].split("/")
@@ -653,7 +671,10 @@ def clinic_hospital_address_add(request):
             address_line3 = request.POST.get("clinic_hospital_address_line3", "")
             phone_number = request.POST.get("clinic_hospital_phone", "")
             website = request.POST.get("clinic_hospital_website", "")
-            timings = request.POST.get("clinic_hospital_timings", "")
+            timings = request.POST.get("clinic_hospital_timing_1", "")
+            timing_2 = request.POST.get("clinic_hospital_timing_2", "")
+            timing_3 = request.POST.get("clinic_hospital_timing_3", "")
+            timing_4 = request.POST.get("clinic_hospital_timing_4", "")
 
             clinic_hospital_contact = clinic_hospital_address(
                 user=usr,
@@ -664,6 +685,9 @@ def clinic_hospital_address_add(request):
                 phone_number=phone_number,
                 website=website,
                 timings=timings,
+                timing_2=timing_2,
+                timing_3=timing_3,
+                timing_4=timing_4,
             )
             clinic_hospital_contact.save()
 
@@ -677,7 +701,10 @@ def clinic_hospital_address_add(request):
             address_line3 = request.POST.get("edit_clinic_hospital_address_line3", "")
             phone_number = request.POST.get("edit_clinic_hospital_phone", "")
             website = request.POST.get("edit_clinic_hospital_website", "")
-            timings = request.POST.get("edit_clinic_hospital_timings", "")
+            timings = request.POST.get("edit_clinic_hospital_timing_1", "")
+            timing_2 = request.POST.get("edit_clinic_hospital_timing_2", "")
+            timing_3 = request.POST.get("edit_clinic_hospital_timing_3", "")
+            timing_4 = request.POST.get("edit_clinic_hospital_timing_4", "")
             clinic_hospital_id = request.POST.get("clinic_hospital_number", "")
 
             clinic_hospital_contact = clinic_hospital_address.objects.filter(
@@ -690,6 +717,9 @@ def clinic_hospital_address_add(request):
                 phone_number=phone_number,
                 website=website,
                 timings=timings,
+                timing_2=timing_2,
+                timing_3=timing_3,
+                timing_4=timing_4,
             )
             msg = "Clinic/Hospital details edited successfully."
             context = {"errors": msg}
@@ -798,3 +828,16 @@ def experience_add(request):
             "errors": msg,
         }
         render_to_response("learner_profile/learner_profile.html", context)
+
+
+@login_required
+@ensure_csrf_cookie
+def about_add(request):
+    usr = request.user.id
+    username = request.user.username
+    if request.method == "POST":
+        about = request.POST.get("user_long_description", "")
+        gmember = extrafields.objects.filter(user_id=usr).update(
+            user_long_description=about
+        )
+        return HttpResponseRedirect("/u/" + username)

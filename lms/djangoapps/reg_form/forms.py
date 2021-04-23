@@ -73,7 +73,7 @@ class regextrafields(forms.ModelForm):
         ("", "Select user type"),
         ("dr", "Doctor"),
         ("ms", "Medical Student"),
-        ("hc", "Health Care Proffessional"),
+        ("hc", "Healthcare Professional"),
         ("u", "User"),
     )
 

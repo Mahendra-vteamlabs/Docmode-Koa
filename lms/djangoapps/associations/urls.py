@@ -23,7 +23,7 @@ urlpatterns = [
         name="partner_details",
     ),
     url(
-        r"^api/v1/(?P<association_about>[\w-]+)/(?P<emailid>.+)/$",
+        r"^api/v1/assoc_admin/(?P<association_about>[\w-]+)/(?P<emailid>.+)/$",
         views.wp_partner_admin_api.as_view(),
         name="wp_partner_admin",
     ),
@@ -70,4 +70,14 @@ urlpatterns = [
     ),
     url(r"^api/v1/temp/courses/$", views.wp_courses.as_view(), name="wp_courses"),
     url(r"^api/v1/temp/lectures/$", views.wp_lectures.as_view(), name="wp_lectures"),
+    url(
+        r"^api/v1/temp/reminder_users/$",
+        views.reminder_api.as_view(),
+        name="wp_reminder",
+    ),
+    url(
+        r"^api/v1/thirdparty/user_registration_api$",
+        views.user_registration_api.as_view(),
+        name="user_registration_api",
+    ),
 ]

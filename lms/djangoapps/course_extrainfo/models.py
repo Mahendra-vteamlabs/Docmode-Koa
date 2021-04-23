@@ -19,6 +19,8 @@ class course_extrainfo(models.Model):
     category = models.CharField(max_length=2, db_index=True, null=True)
     sub_category = models.CharField(max_length=150, db_index=True, null=True)
     course_seo_url = models.CharField(max_length=350, blank=True)
+    mci_mandatory = models.CharField(max_length=2, blank=True, default=0)
+    google_calendar_url = models.CharField(max_length=950, blank=True)
 
     def __str__(self):
         return self.course_id

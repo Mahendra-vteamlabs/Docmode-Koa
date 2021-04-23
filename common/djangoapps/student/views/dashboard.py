@@ -506,19 +506,20 @@ def student_dashboard(request):
                     log.info(u'disclaimer %s', request.GET.get('disclaimer'))
                     usr = request.user.id
                     cid = request.GET.get('cid')
-                    disclaimer = disclaimer_agreement_status(course_id=cid,user_id=usr,status='1')
+                    disclaimer = disclaimer_agreement_status(course_id=cid, user_id=usr, status='1')
                     disclaimer.save()
                 else:
                     usr = request.user.id
                     cid = request.GET.get('cid')
-                    view_counter = user_view_counter.objects.filter(course_id=cid,user=usr)
+                    view_counter = user_view_counter.objects.filter(course_id=cid, user=usr)
                     if view_counter :
-                        update_counter = user_view_counter.objects.filter(course_id=cid,user=usr).update(counter = F('counter')+1)                                        
-                        
+                        update_counter = user_view_counter.objects.filter(
+                            course_id=cid,
+                            user=usr
+                        ).update(counter = F('counter')+1)
                     else:
                         countr = user_view_counter(user_id=usr, course_id=cid,counter=1)
                         countr.save()
-
 
     if not UserProfile.objects.filter(user=user).exists():
         return redirect(reverse('account_settings'))

@@ -54,9 +54,12 @@ class clinic_hospital_address(models.Model):
     address_line1 = models.CharField(blank=True, max_length=1000)
     address_line2 = models.CharField(blank=True, max_length=1000)
     address_line3 = models.CharField(blank=True, max_length=1000)
-    phone_number = models.CharField(blank=True, max_length=25)
+    phone_number = models.CharField(blank=True, max_length=250)
     website = models.CharField(blank=True, max_length=255)
-    timings = models.CharField(blank=True, max_length=100)
+    timings = models.CharField(blank=True, max_length=500)
+    timing_2 = models.CharField(blank=True, max_length=500)
+    timing_3 = models.CharField(blank=True, max_length=500)
+    timing_4 = models.CharField(blank=True, max_length=500)
 
     def __str__(self):
         return "{}".format(self.user)
