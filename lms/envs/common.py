@@ -2456,6 +2456,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django_celery_results',
+    'ckeditor',
 
     # Common Initialization
     'openedx.core.djangoapps.common_initialization.apps.CommonInitializationConfig',
@@ -3703,7 +3704,7 @@ JWT_AUTH = {
     'JWT_IN_COOKIE_EXPIRATION': 60 * 60,
 
     'JWT_LOGIN_CLIENT_ID': 'login-service-client-id',
-    'JWT_LOGIN_SERVICE_USERNAME': 'login_service_user',
+    'JWT_LOGIN_SERVICE_USERNAME': 'staff',
 
     'JWT_SUPPORTED_VERSION': '1.2.0',
 

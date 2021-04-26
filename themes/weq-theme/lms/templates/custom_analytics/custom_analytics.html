@@ -16,7 +16,7 @@ from lms.djangoapps.hcspecialization.views import hcSpecName
 </%block>
 <%block name="pagetitle">DocMode Analytics</%block>
 <!-- Custom Theme Style -->
-<link href="${static.url('/vendor/build/custom_css/custom.css')}" rel="stylesheet">
+<link href="${static.url('custom_analytics/custom_css/custom.css')}" rel="stylesheet">
 
 <%def name="user_specialization()"><!-- Doctor Specialization Chart Data -->
   [
@@ -211,4 +211,4 @@ from lms.djangoapps.hcspecialization.views import hcSpecName
   }
 </script>
 <!-- Custom Theme Scripts -->
-<script src="${static.url('/vendor/build/js/custom.js')}"></script>
+<script src="${static.url('custom_analytics/js/custom.js')}"></script>

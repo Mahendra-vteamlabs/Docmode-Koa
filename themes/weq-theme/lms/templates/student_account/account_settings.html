@@ -27,16 +27,18 @@ from lms.djangoapps.specialization.models import specializations
     </section>
 % endif
 <% 
-    add = userdetails(request.user.id) 
+    user_profile = userdetails(request.user.id) 
 
     speczs = specializations.objects.all()
 
-    if add.specialization_id == None:
-        def_speczid = 16
+    if user_profile and user_profile.specialization_id:
+        def_speczid = user_profile.specialization_id
     else:
-        def_speczid = add.specialization_id
-    
-    user_specz = specializations.objects.get(id=def_speczid)
+        def_speczid = 16
+    try:
+        user_specz = specializations.objects.get(id=def_speczid)
+    except Exception as e:
+        user_specz = None
 %>
 
 <div class="wrapper-account-settings"></div>
@@ -50,7 +52,7 @@ from lms.djangoapps.specialization.models import specializations
                         <span class="u-field-title" aria-hidden="true">MCI No.</span>
                         <span class="u-field-value">
                         
-                        <input id="reg_num" aria-describedby="u-field-message-help-name" type="text" name="input" value="${add.reg_num}" onchange="useraddupdate('reg_num');">
+                        <input id="reg_num" aria-describedby="u-field-message-help-name" type="text" name="input" value="${user_profile.reg_num if user_profile else ''}" onchange="useraddupdate('reg_num');">
                         </span>
                         <span class="u-field-message" id="reg_nummsg"></span>
                     </div><!-- 
@@ -59,7 +61,7 @@ from lms.djangoapps.specialization.models import specializations
                     <div class="u-field u-field-text u-field-mci">
                         <span class="u-field-title" aria-hidden="true">Address</span>
                         <span class="u-field-value">
-                            <textarea data-autoresize rows="2" rows="10" cols="28" id="address" onchange="useraddupdate(address);">${add.address}</textarea>
+                            <textarea data-autoresize rows="2" rows="10" cols="28" id="address" onchange="useraddupdate(address);">${user_profile.address if user_profile else ''}</textarea>
                         </span>
                         <span class="u-field-message" id="addressmsg"></span>
                     </div> -->
@@ -67,28 +69,28 @@ from lms.djangoapps.specialization.models import specializations
                         <span class="u-field-title" aria-hidden="true">Mobile No.</span>
                         <span class="u-field-value">
                         
-                        <input id="phone" aria-describedby="u-field-message-help-name" type="text" name="input" value="${add.phone}" onchange="useraddupdate('phone');">
+                        <input id="phone" aria-describedby="u-field-message-help-name" type="text" name="input" value="${user_profile.phone if user_profile else ''}" onchange="useraddupdate('phone');">
                         </span>
                         <span class="u-field-message" id="phonemsg"></span>
                     </div>
                     <div class="u-field u-field-text u-field-mci">
                         <span class="u-field-title" aria-hidden="true">Country</span>
                         <span class="u-field-value">
-                            <input type="text" id="rcountry" onchange="useraddupdate('rcountry');" value="${add.rcountry}" >
+                            <input type="text" id="rcountry" onchange="useraddupdate('rcountry');" value="${user_profile.rcountry if user_profile else ''}" >
                         </span>
                         <span class="u-field-message" id="rcountrymsg"></span>
                     </div>
                     <div class="u-field u-field-text u-field-mci">
                         <span class="u-field-title" aria-hidden="true">State</span>
                         <span class="u-field-value">
-                            <input type="text" id="rstate" onchange="useraddupdate('rstate');" value="${add.rstate}">
+                            <input type="text" id="rstate" onchange="useraddupdate('rstate');" value="${user_profile.rstate if user_profile else ''}">
                         </span>
                         <span class="u-field-message" id="rstatemsg"></span>
                     </div>
                     <div class="u-field u-field-text u-field-mci" style="border-bottom:none;">
                         <span class="u-field-title" aria-hidden="true">City</span>
                         <span class="u-field-value">
-                            <input type="text" id="rcity" onchange="useraddupdate('rcity');" value="${add.rcity}">
+                            <input type="text" id="rcity" onchange="useraddupdate('rcity');" value="${user_profile.rcity if user_profile else ''}">
                         </span>
                         <span class="u-field-message" id="rcitymsg"></span>
                     </div>
@@ -119,9 +121,10 @@ from lms.djangoapps.specialization.models import specializations
                         </span>
                         <span class="u-field-value" aria-label="Specialization" onchange="useraddupdate('specialization_id')">
                             <select name="specialization_id" id="specialization_id" aria-describedby="u-field-message-specialization" >
-                                <option value="${user_specz.id}">${user_specz.name}</option>
                                 %for specz in speczs:
-                                    %if user_specz.id != specz.id:
+                                    % if user_specz and user_specz.id != specz.id:
+                                        <option value="${specz.id}" selected="">${specz.name}</option>
+                                    %else:
                                         <option value="${specz.id}">${specz.name}</option>
                                     %endif
                                 %endfor

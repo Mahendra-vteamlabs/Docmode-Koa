@@ -70,6 +70,10 @@ from ..toggles import COURSEWARE_MICROFRONTEND_COURSE_TEAM_PREVIEW, REDIRECT_TO_
 from ..url_helpers import get_microfrontend_url
 from .views import CourseTabView
 
+#Added by Mahendra
+from lms.djangoapps.course_extrainfo.models import course_extrainfo
+from lms.djangoapps.reg_form.models import extrafields
+
 log = logging.getLogger("edx.courseware.views.index")
 
 TEMPLATE_IMPORTS = {'urllib': urllib}
@@ -425,6 +429,17 @@ class CoursewareIndex(View):
         )
         staff_access = self.is_staff
 
+        #Added by Mahendra
+        try:
+            course_extra = course_extrainfo.objects.get(course_id=self.course.id)
+        except Exception as e:
+            course_extra, created = course_extrainfo.objects.get_or_create(course_id=self.course.id)
+
+        try:
+            user_data = extrafields.objects.get(user_id=request.user)
+        except Exception as e:
+            user_data, created = extrafields.objects.get_or_create(user_id=request.user)
+
         courseware_context = {
             'csrf': csrf(self.request)['csrf_token'],
             'course': self.course,
@@ -446,6 +461,8 @@ class CoursewareIndex(View):
             'sequence_title': None,
             'disable_accordion': not DISABLE_COURSE_OUTLINE_PAGE_FLAG.is_enabled(self.course.id),
             'show_search': show_search,
+            'course_extra': course_extra,
+            'user_data': user_data
         }
         courseware_context.update(
             get_experiment_user_metadata_context(

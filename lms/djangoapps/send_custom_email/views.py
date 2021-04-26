@@ -167,9 +167,12 @@ def send_welcome_email(sender, event=None, user=None, course_id=None, **kwargs):
             )
 
             if course_email:
-                course_extra_data = course_extrainfo.objects.get(
-                    course_id=course_email.course_id
-                )
+                try:
+                    course_extra_data = course_extrainfo.objects.get(
+                        course_id=course_email.course_id
+                    )
+                except Exception as e:
+                    return
 
                 cid1 = str(course_email.course_id)
                 userprofile = getuserfullprofile(user.id)
@@ -233,7 +236,11 @@ def send_welcome_email(sender, event=None, user=None, course_id=None, **kwargs):
         except ObjectDoesNotExist:
 
             log.info("universal welcome email %s,%s", user, course_id)
-            course_email = Custom_email.objects.get(id=3)
+            try:
+                course_email = Custom_email.objects.get(id=3)
+            except Exception as e:
+                return
+
             course_extra_data = course_extrainfo.objects.get(course_id=course_id)
 
             cid1 = str(course_email.course_id)
