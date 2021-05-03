@@ -24,7 +24,7 @@ from django.utils.text import get_valid_filename
 from django.utils.translation import ugettext as _
 from opaque_keys.edx.keys import CourseKey
 from opaque_keys.edx.locator import LibraryLocator
-from organizations.models import OrganizationCourse
+from common.djangoapps.organizations.models import OrganizationCourse
 from path import Path as path
 from pytz import UTC
 from six import iteritems, text_type

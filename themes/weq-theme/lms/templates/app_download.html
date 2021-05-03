@@ -1,0 +1,51 @@
+<%namespace name='static' file='static_content.html'/>
+<section class="join_docmode app_download">
+    <span class="close_section">&times;</span>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-xs-12 waiting">
+                <div class="text-right">
+                    <h4>DocMode is now available on Android/IOS now</h4>
+                </div>
+                <div class="col-md-6 col-sm-6 col-xs-12 join_now">
+                    <a href="" class="explore_btn app_btn">
+                        <button type="button" class="btn btn-default">Download</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<%block name="js_extra">
+<script src="${static.url('js/mobile_prompt.js')}"></script>
+</%block>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+.app_download {
+  display: none;
+}
+
+@media(max-width: 1024px){
+.app_download {
+    position: fixed;
+    z-index: 1;
+    bottom: 0%;
+    display: block;
+    width: 100%;
+    background: #ffff;
+}
+.close_section {
+  cursor: pointer;
+  position: absolute;
+  top: 10%;
+  right: 0%;
+  padding: 12px 16px;
+  transform: translate(0%, -50%);
+}
+</style>
+</head>
+</html>

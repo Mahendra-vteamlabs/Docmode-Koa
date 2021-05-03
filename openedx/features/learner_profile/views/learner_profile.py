@@ -26,6 +26,19 @@ from openedx.features.learner_profile.views.learner_achievements import LearnerA
 from common.djangoapps.student.models import User
 
 
+#Added by Mahendra
+from student.models import CourseEnrollment, CourseAccessRole, UserProfile
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from lms.djangoapps.reg_form.models import extrafields
+from lms.djangoapps.userprofile_extrainfo.models import (
+    education, awards, 
+    research_papers, media_featured, 
+    clinic_hospital_address, 
+    healthcare_awareness_videos, 
+    experience
+)
+from lms.djangoapps.certificates import api as certificate_api
+
 @login_required
 @require_http_methods(['GET'])
 def learner_profile(request, username):
@@ -45,19 +58,33 @@ def learner_profile(request, username):
     Example usage:
         GET /account/profile
     """
+    # Added by Mahendra
+    """ User Account update function starts"""
+    if request.is_ajax():
+        if request.method == 'GET' :
+            vfields = request.GET
+            for key in vfields:
+                vfield = key   
+            columname = vfield   
+            fieldvalue = vfields[key]
+            gmember = extrafields.objects.filter(user_id=request.user.id).update(**{ columname: fieldvalue })
+            msg = ' Updated succesfully'
+            return HttpResponse(msg)
+
+
     if should_redirect_to_profile_microfrontend():
         profile_microfrontend_url = "{}{}".format(settings.PROFILE_MICROFRONTEND_URL, username)
         return redirect(profile_microfrontend_url)
 
-    try:
-        context = learner_profile_context(request, username, request.user.is_staff)
-        return render(
-            request=request,
-            template_name='learner_profile/learner_profile.html',
-            context=context
-        )
-    except (UserNotAuthorized, UserNotFound, ObjectDoesNotExist):
-        raise Http404
+    context = learner_profile_context(request, username, request.user.is_staff)
+    return render(
+        request=request,
+        template_name='learner_profile/learner_profile.html',
+        context=context
+    )
+    # try:
+    # except (UserNotAuthorized, UserNotFound, ObjectDoesNotExist):
+    #     raise Http404
 
 
 def learner_profile_context(request, profile_username, user_is_staff):
@@ -83,6 +110,36 @@ def learner_profile_context(request, profile_username, user_is_staff):
     account_settings_data = get_account_settings(request, [profile_username])[0]
 
     preferences_data = get_user_preferences(profile_user, profile_username)
+
+    #Added by Mahendra
+    user_enrolled_courses = CourseEnrollment.objects.filter(user_id=profile_user.id,is_active=1)
+    cid = []
+    for courseid in user_enrolled_courses:
+      course_id = courseid.course_id
+      cid.append(course_id)
+
+    instructor_courses = CourseAccessRole.objects.filter(user_id=profile_user.id,role='instructor')
+    instrsuctor_courseids = []
+    for courseid in instructor_courses:
+      course_id = courseid.course_id
+      instrsuctor_courseids.append(course_id)
+
+    try:
+        userprofile_extrainfo = extrafields.objects.get(user_id=profile_user.id)
+    except Exception as e:
+        userprofile_extrainfo, created = extrafields.objects.get_or_create(user_id=profile_user.id)
+
+    course_data = CourseOverview.objects.all().filter(pk__in=cid).order_by('start')[::-1]
+    instructor_course_delivered = CourseOverview.objects.all().filter(pk__in=instrsuctor_courseids).order_by('start')[::-1]
+    experience_data = experience.objects.all().filter(user=profile_user.id).order_by('-year')
+    education_data = education.objects.all().filter(user=profile_user.id).order_by('-id')
+    award_data = awards.objects.all().filter(user=profile_user.id).order_by('-year')
+    research_data = research_papers.objects.all().filter(user=profile_user.id).order_by('-id')
+    featured_data = media_featured.objects.all().filter(user=profile_user.id).order_by('-id')
+    clinic_hospital_data = clinic_hospital_address.objects.all().filter(user=profile_user.id).order_by('-id')
+    userprofile = UserProfile.objects.get(user_id=profile_user.id)
+    course_certificates = certificate_api.get_certificates_for_user(profile_user.username)
+    awareness_videos = healthcare_awareness_videos.objects.all().filter(user=profile_user.id)
 
     context = {
         'own_profile': own_profile,
@@ -116,6 +173,19 @@ def learner_profile_context(request, profile_username, user_is_staff):
         'disable_courseware_js': True,
         'nav_hidden': True,
         'records_url': get_credentials_records_url(),
+        #Added by Mahendra
+        'instructor_courses' : instructor_course_delivered,
+        'courses': course_data,
+        'experience_data':experience_data,
+        'education_data':education_data,
+        'award_data': award_data,
+        'research_data': research_data,
+        'featured_data': featured_data,
+        'clinic_hospital_data': clinic_hospital_data,
+        'userprofile': userprofile,
+        'userprofile_extrainfo' : userprofile_extrainfo,
+        'course_certificates' : course_certificates,
+        'awareness_videos' : awareness_videos,
     }
 
     if own_profile or user_is_staff:

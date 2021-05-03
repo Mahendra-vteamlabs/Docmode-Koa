@@ -6,7 +6,7 @@ from `lms.djangoapps.program_enrollments.api`.
 """
 
 
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 from social_django.models import UserSocialAuth
 
 from openedx.core.djangoapps.catalog.utils import get_programs

@@ -1,0 +1,69 @@
+.hrclass {
+	display: block;
+	border: 0px;
+	height: 3px;
+	/*background-image:url('https://s3-ap-southeast-1.amazonaws.com/docmode.co/Docmode-Themes/DocmodeLine.png');*/
+	margin-top: 0;
+	margin-bottom: 0;
+	background-color: #80808042;
+}
+
+#loggeduser {
+	display: block;
+}
+
+#content {
+	background: none;
+	max-width: 1700px;
+}
+
+.course-info-header .course-profile {
+	margin-top: 0px;
+	padding-top: 0px;
+}
+
+@media(max-width: 768px) {
+	#btnmenu {
+		display: none;
+	}
+	#btnmenus {
+		display: none;
+	}
+	#btnlogin {
+		display: none;
+	}
+	.dropdown .pull-right {
+		display: block;
+	}
+	.col-md-7 {
+		border-bottom: 1px solid;
+	}
+	.navbar li {
+		width: 100%;
+		border-bottom: 1px solid;
+		float: none;
+	}
+	.navbar-inverse .navbar-toggle .icon-bar {
+		background-color: grey;
+	}
+	.navbar .cta {
+		width: 100%;
+		position: relative;
+	}
+	.navbar .cta .btn {
+		width: : 50%;
+	}
+	.navbar .cta li a {
+		text-align: center;
+		width: 100%;
+	}
+	.course-info .details {
+		width: 100%;
+	}
+	.course-info .course-sidebar {
+		width: 50%;
+	}
+	.course-info header.course-profile .intro-inner-wrapper .intro {
+		width: 50%;
+	}
+}

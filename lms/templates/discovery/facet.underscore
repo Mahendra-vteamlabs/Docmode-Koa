@@ -1,16 +1,19 @@
-<h3 class="header-facet">
-    <%- displayName %>
-</h3>
-<ul data-facet="<%- name %>" class="facet-list collapse">
-    <%= HtmlUtils.ensureHtml(optionsHtml) %>
-</ul>
-<% if (listIsHuge) { %>
-    <div class="toggle ">
-        <button class="show-more discovery-button">
-            <%- gettext("More") %>
-        </button>
-        <button class="show-less hidden discovery-button">
-            <%- gettext("Less") %>
-        </button>
+<%if(displayName=="Types") {%>
+    <button class="header-facet accordionGroup" id="types" style="display:block;">
+        <%- displayName %>
+    </button>
+    <div class="accordionContent" id="typescontent" style="display:block;">
+        <ul data-facet="<%- name %>" class="facet-list">
+            <%= HtmlUtils.ensureHtml(optionsHtml) %>
+        </ul>
+    </div>
+<% } else { %>
+    <button class="header-facet accordionGroup">
+        <%- displayName %>
+    </button>
+    <div class="accordionContent">
+        <ul data-facet="<%- name %>" class="facet-list">
+            <%= HtmlUtils.ensureHtml(optionsHtml) %>
+        </ul>
     </div>
 <% } %>

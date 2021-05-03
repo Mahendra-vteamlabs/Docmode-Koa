@@ -18,6 +18,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import ugettext as _
@@ -558,6 +559,53 @@ def course_listing(request):
     active_courses, archived_courses = _process_courses_list(courses_iter, in_process_course_actions, split_archived)
     in_process_course_actions = [format_in_process_course_view(uca) for uca in in_process_course_actions]
 
+    #Added by Mahendra
+    from common.djangoapps.organizations.models import OrganizationCourse, Organization, OrgShortCode
+    from lms.djangoapps.specialization.models import categories, sub_categories, cat_sub_category
+    if request.method == 'POST' :
+        if 'categoryid' not in request.POST:
+            ret = {}
+            gid = request.POST.get('org')
+            try:
+                orgc = Organization.objects.get(short_name=gid)
+                if orgc:
+                    try:
+                        shortcode = OrgShortCode.objects.get(organization_id=orgc.id)
+                        ret['orgcode'] = shortcode.code
+                        if shortcode:
+                            try:
+                                latest_course_id = CourseOverview.objects.filter(display_org_with_default=orgc.short_name)
+                                if latest_course_id:
+                                    latest_course_id = CourseOverview.objects.filter(display_org_with_default=orgc.short_name).order_by('-created')[0]
+                                    course_number = latest_course_id.display_number_with_default
+                                    #log.info('coursenumber %s',course_number)
+                                    new_course_number = course_number.split('00')
+                                    ret['newcount'] = int(new_course_number[1]) + 1
+                                    #log.info('new->count %s',ret['newcount'])
+                                else:
+                                    ret['newcount'] = 1
+                            except ObjectDoesNotExist:
+                                ret['newcount'] = 1
+                    except ObjectDoesNotExist:
+                        ret['orgcode'] = 'Please add the organization short code'
+                        ret['newcount'] = 0
+            except ObjectDoesNotExist:
+                ret['orgcode'] = 'Association does not exist'
+                ret['newcount'] = 0
+            return HttpResponse(json.dumps(ret), content_type="application/json")
+        else:
+            gid = request.POST.get('categoryid')
+
+            try:
+                orgc = cat_sub_category.objects.filter(category_id=gid).order_by('name')
+                subcat = {}
+                for st in orgc:
+                    subcat[st.id] = st.name            
+            except ObjectDoesNotExist:
+                orgc = 'No sub_categories found.'
+            return HttpResponse(json.dumps(subcat), content_type="application/json")
+
+
     return render_to_response(u'index.html', {
         u'courses': active_courses,
         u'archived_courses': archived_courses,
@@ -822,6 +870,11 @@ def _create_or_rerun_course(request):
         # force the start date for reruns and allow us to override start via the client
         start = request.json.get('start', CourseFields.start.default)
         run = request.json.get('run')
+        #Added by Mahendra
+        #course extra info details line strats here
+        ctype = request.json.get('course_type')
+        c_category = request.json.get('course_category')
+        s_category = request.json.get('sub_category')
 
         # allow/disable unicode characters in course_id according to settings
         if not settings.FEATURES.get('ALLOW_UNICODE_COURSE_ID'):
@@ -853,7 +906,7 @@ def _create_or_rerun_course(request):
             })
         else:
             try:
-                new_course = create_new_course(request.user, org, course, run, fields)
+                new_course = create_new_course(request.user, org, course, run, ctype, c_category,s_category, fields)
                 return JsonResponse({
                     'url': reverse_course_url('course_handler', new_course.id),
                     'course_key': six.text_type(new_course.id),
@@ -879,8 +932,9 @@ def _create_or_rerun_course(request):
             "ErrMsg": _(u"Unable to create course '{name}'.\n\n{err}").format(name=display_name, err=text_type(error))}
         )
 
-
-def create_new_course(user, org, number, run, fields):
+#Added by Mahendra
+#Added extra params in function
+def create_new_course(user, org, number, run, ctype, c_category, s_category, fields):
     """
     Create a new course run.
 
@@ -892,12 +946,21 @@ def create_new_course(user, org, number, run, fields):
         raise ValidationError(_('You must link this course to an organization in order to continue. Organization '
                                 'you selected does not exist in the system, you will need to add it to the system'))
     store_for_new_course = modulestore().default_modulestore.get_modulestore_type()
-    new_course = create_new_course_in_store(store_for_new_course, user, org, number, run, fields)
+    #Updated by Mahendra
+    new_course = create_new_course_in_store(store_for_new_course, user, org, number, run, ctype, c_category,s_category, fields)
     add_organization_course(org_data, new_course.id)
+
+    #Added by Mahendra
+    from lms.djangoapps.course_extrainfo.models import course_extrainfo
+    from lms.djangoapps.specialization.models import categories, cat_sub_category
+    if new_course.id != '':
+        course_extra_date = course_extrainfo(course_id=new_course.id, course_type=ctype, category=c_category, sub_category=s_category)
+        course_extra_date.save()
+
     return new_course
 
-
-def create_new_course_in_store(store, user, org, number, run, fields):
+#Updated by Mahendra
+def create_new_course_in_store(store, user, org, number, run, ctype, c_category,s_category, fields):
     """
     Create course in store w/ handling instructor enrollment, permissions, and defaulting the wiki slug.
     Separated out b/c command line course creation uses this as well as the web interface.

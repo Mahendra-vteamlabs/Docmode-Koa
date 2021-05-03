@@ -54,6 +54,22 @@ from openedx.features.enterprise_support.api import enterprise_enabled
 from common.djangoapps.student import views as student_views
 from common.djangoapps.util import views as util_views
 
+# Added by Mahendra
+from lms.djangoapps.associations.views import *
+from lms.djangoapps.send_custom_email.views import list_categories
+from lms.djangoapps.case_study.views import csy_about,csy_admin_dashboard,csy_dashboard,cs_addnew,cs_update
+from lms.djangoapps.userprofile_extrainfo.views import (
+    education_add, award_add,
+    research_papers_add,
+    featured_media_add,
+    clinic_hospital_address_add,
+    healthcare_awareness_videos_add, 
+    experience_add,
+    about_add
+)
+from lms.djangoapps.pdf_viewer.views import generate_pdf
+from lms.djangoapps.reg_form.views import kol_registration,custom_registration_form, viatris_emas_registration
+
 RESET_COURSE_DEADLINES_NAME = 'reset_course_deadlines'
 RENDER_XBLOCK_NAME = 'render_xblock'
 COURSE_DATES_NAME = 'dates'
@@ -154,7 +170,7 @@ urlpatterns = [
     url(r'^api/credit/', include('openedx.core.djangoapps.credit.urls')),
     url(r'^api/toggles/', include('openedx.core.djangoapps.waffle_utils.urls')),
     url(r'^rss_proxy/', include('lms.djangoapps.rss_proxy.urls')),
-    url(r'^api/organizations/', include('organizations.urls', namespace='organizations')),
+    url(r'^api/organizations/', include('common.djangoapps.organizations.urls', namespace='organizations')),
 
     url(r'^catalog/', include(('openedx.core.djangoapps.catalog.urls', 'openedx.core.djangoapps.catalog'),
                               namespace='catalog')),
@@ -990,4 +1006,72 @@ urlpatterns += [
 # Course Experience API urls
 urlpatterns += [
     url(r'^api/course_experience/', include('openedx.features.course_experience.api.v1.urls')),
+]
+
+
+#Added by Mahendra
+urlpatterns += [
+    url(
+        r'^dashboard/{}/$'.format(
+            settings.COURSE_ID_PATTERN,
+        ),
+        association_course_analytics,
+        name='association_course_analytics'
+    ),
+    url(
+        r'^dashboard/{}/excel/(?P<datatype>[^/]+)$'.format(
+            settings.COURSE_ID_PATTERN,
+        ),
+        export_csv,
+        name='usercsv'
+    ),
+    #url for viatris association course data download
+    url(
+        r'^dashboard/{}/viatris_excel/(?P<datatype>[^/]+)$'.format(
+            settings.COURSE_ID_PATTERN,
+        ),
+        viatris_export_csv,
+        name='viatris_usercsv'
+    ),
+    url(r'^assoc/?$', index),
+    url(r'^search_term/?$',search_list),
+    url(r'^subjects/?$', list_categories),
+    url(r'^lectures?$',list_lectures, name='lectures'),
+    url(r'^case_studies/?$', case_study),
+    url(r'^education/new/?$', education_add),
+    url(r'^experience/new/?$',experience_add),
+    url(r'^award/new/?$', award_add),
+    url(r'^about_add/?$', about_add),
+    url(r'^research_papers/new/?$', research_papers_add),
+    url(r'^featured_media/new/?$', featured_media_add),
+    url(r'^clinic_hospital_address/new/?$', clinic_hospital_address_add),
+    url(r'^healthcare_awareness_video/new/?$',healthcare_awareness_videos_add),
+    url(r'^research/?$', csy_about),
+    url(r'^research/admin?$', csy_admin_dashboard),
+    url(r'^research/dashboard/?$', csy_dashboard),
+    url(r'^research/new/?$', cs_addnew),
+    url(r'^research/(?P<caseid>[0-9]+)/?$', cs_update),
+    url(r'^kol_registration/?$', kol_registration),
+    url(r'^registration/?$', custom_registration_form),
+    url(r'^viatris_registration/?$', viatris_emas_registration),
+    url(r'^subjects/(?P<category_id>[\w-]+)$',category),
+    url(r'^dashboard/(?P<org_sname>[^/]+)/$',association_dashboard),
+    # TODO: These views need to be updated before they work
+    url(r'^docmode/analytics$',custom_analytics),
+    url(r'^docmode/specz_usercount',export_specz_usercount_csv),
+    url(r'^docmode/coupons$',custom_analytics_coupons),
+    url(r'^docmode/coupon/(?P<coupon_name>[^/]+)/$',coupon_details),
+    url(r'^docmode/coupon/excel/(?P<coupon_name>[^/]+)$',export_coupon_csv),
+    url(r'^docmode/order_details$',order_details),
+    url(r'^docmode/order/excel/$',export_order_csv),
+    url(r'^inutrimon$', RedirectView.as_view(url='http://inutrimon.com')),
+    url(r'^view/(?P<redirecturl>[a-zA-Z])/$',logout_redirect),
+    # For view pdf in mobile app
+    url(r'^pdf_viewer/', generate_pdf, name='pdf-viewer'),
+    url(r'^(?P<organization_id>[\w-]+)/$',association_about),
+    url(r'^', include('openedx.core.djangoapps.course_discovery_api.urls')),
+    url(r'^', include('openedx.core.djangoapps.wp_course_discovery_api.urls')),
+    url(r'^', include('openedx.core.djangoapps.push_notification.urls')),
+    url(r'^', include('lms.djangoapps.associations.urls')),
+    url(r'^', include('common.djangoapps.otp_validation.urls')),
 ]

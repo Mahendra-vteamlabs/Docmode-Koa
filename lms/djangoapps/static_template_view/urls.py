@@ -16,7 +16,7 @@ urlpatterns = [
     url(r'^500$', views.render_500, name='static_template_view.views.render_500'),
 
     url(r'^blog$', views.render, {'template': 'blog.html'}, name="blog"),
-    url(r'^contact$', views.render, {'template': 'contact.html'}, name="contact"),
+    # url(r'^contact$', views.render, {'template': 'contact.html'}, name="contact"),
     url(r'^donate$', views.render, {'template': 'donate.html'}, name="donate"),
     url(r'^faq$', views.render, {'template': 'faq.html'}, name="faq"),
     url(r'^help$', views.render, {'template': 'help.html'}, name="help_edx"),
@@ -25,7 +25,9 @@ urlpatterns = [
     url(r'^press$', views.render, {'template': 'press.html'}, name="press"),
     url(r'^media-kit$', views.render, {'template': 'media-kit.html'}, name="media-kit"),
     url(r'^copyright$', views.render, {'template': 'copyright.html'}, name="copyright"),
-
+    # Added for SEO 30th Aug 2018
+    url(r'^robots\.txt$', views.render, {'template': 'robots.txt'}),
+    # Added for SEO 30th Aug 2018
     # Press releases
     url(r'^press/([_a-zA-Z0-9-]+)$', views.render_press_release, name='press_release'),
 ]

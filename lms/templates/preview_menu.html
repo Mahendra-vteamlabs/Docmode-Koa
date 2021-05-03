@@ -56,7 +56,7 @@ show_preview_menu = course and can_masquerade and supports_preview_menu
             <ol class="preview-actions" style="flex-grow: 1;">
                 <li class="action-preview">
                     <form action="#" class="action-preview-form" method="post">
-                        <label for="action-preview-select" class="action-preview-label">${_("View this course as:")}</label>
+                        <label for="action-preview-select" class="action-preview-label" style="font-size: 20px;">${_("View this course as:")}</label>
                         <select class="action-preview-select" id="action-preview-select" name="select">
                             <option value="staff" ${staff_selected}>${_("Staff")}</option>
                             <option value="student" ${student_selected}>${_("Learner")}</option>
@@ -91,11 +91,6 @@ show_preview_menu = course and can_masquerade and supports_preview_menu
                 </div>
             % endif
             <div style="flex-shrink: 1; text-align: center;">
-            % if microfrontend_link:
-                <a class="btn btn-primary" style="border: solid 1px white;" href="${microfrontend_link}">
-                    ${_("View in the new experience")}
-                </a>
-            % endif
             % if studio_url:
                 <a
                     class="btn btn-primary view-in-studio"
@@ -136,11 +131,6 @@ show_preview_menu = course and can_masquerade and supports_preview_menu
                       });
                     });
                   </script>
-            % endif
-            % if insights_url:
-                <a class="btn btn-primary" style="border: solid 1px white;" href="${insights_url}">
-                    ${_("View in Insights")}
-                </a>
             % endif
             </div>
         </div>

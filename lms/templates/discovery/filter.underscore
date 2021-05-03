@@ -1,4 +1,10 @@
-  <button data-value="<%- query %>" class="facet-option discovery-button" data-type="<%- type %>">
-    <span class="query"><%- name %></span>
-    <span aria-hidden="true" class="fa fa-times" aria-hidden="true"></span>
-  </button>
+<%if(query == "Courses" || query == "Lectures") {%>
+    <button data-value="<%- query %>" class="facet-option discovery-button" data-type="<%- type %>">
+        <span class="query"><%- name %></span>
+    </button>
+<% } else { %>
+    <button data-value="<%- query %>" class="facet-option discovery-button" data-type="<%- type %>">
+        <span class="query"><%- name %></span>
+        <span aria-hidden="true" class="fa fa-times" aria-hidden="true"></span>
+    </button>
+<% } %>

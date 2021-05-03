@@ -16,6 +16,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.db.models import F
 import edx_when.api as edx_when_api
 from opaque_keys.edx.keys import CourseKey
 from pytz import UTC
@@ -38,6 +39,7 @@ from xmodule.course_module import COURSE_VISIBILITY_PUBLIC
 from xmodule.modulestore.django import modulestore
 
 from ..utils import get_course_outline_block_tree, get_resume_block
+
 
 DEFAULT_COMPLETION_TRACKING_START = datetime.datetime(2018, 1, 24, tzinfo=UTC)
 
@@ -77,6 +79,24 @@ class CourseOutlineFragmentView(EdxFragmentView):
         missed_deadlines, missed_gated_content = dates_banner_should_display(course_key, request.user)
 
         reset_deadlines_url = reverse(RESET_COURSE_DEADLINES_NAME)
+        #Added by Mahendra
+        from lms.djangoapps.add_manager.models import user_view_counter
+        user = request.user
+        if request.is_ajax():
+            if request.method == 'GET' :
+                if user.is_authenticated():
+                    usr = request.user.id
+                    cid = request.GET.get('cid')
+                    view_counter = user_view_counter.objects.filter(course_id=cid,user=usr)
+                    if view_counter :
+                        update_counter = user_view_counter.objects.filter(
+                            course_id=cid,
+                            user=usr
+                        ).update(counter = F('counter')+1)                                        
+                        
+                    else:
+                        countr = user_view_counter(user_id=usr, course_id=cid,counter=1)
+                        countr.save()
 
         context = {
             'csrf': csrf(request)['csrf_token'],

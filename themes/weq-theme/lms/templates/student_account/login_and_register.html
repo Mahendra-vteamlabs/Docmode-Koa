@@ -1,0 +1,351 @@
+<%page expression_filter="h"/>
+<%!
+    import json
+    from django.utils.translation import ugettext as _
+    from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
+    from openedx.core.djangolib.js_utils import dump_js_escaped_json
+%>
+<%namespace name='static' file='/static_content.html'/>
+
+<%inherit file="../theme-main.html" />
+
+<%block name="pagetitle">${_("Sign in or Register")}</%block>
+
+<%block name="js_extra">
+    <%static:require_module module_name="js/student_account/logistration_factory" class_name="LogistrationFactory">
+        var options = ${data | n, dump_js_escaped_json};
+        LogistrationFactory(options);
+        if ('newrelic' in window) {
+            newrelic.finished();
+            // Because of a New Relic bug, the finished() event doesn't show up
+            // in Insights, so we have to make a new PageAction that is basically
+            // the same thing. We still want newrelic.finished() for session
+            // traces though.
+            newrelic.addPageAction('xfinished');
+        }
+    </%static:require_module>
+    % if configuration_helpers.get_value('DISPLAY_TOS_IN_MODAL_ON_REGISTRATION_PAGE', False):
+    <script type="text/javascript" src="${static.url('js/student_account/tos_modal.js')}"></script>
+    % endif
+</%block>
+
+<%block name="header_extras">
+    % for template_name in ["account", "access", "form_field", "login", "register", "institution_login", "institution_register", "password_reset", "hinted_login"]:
+        <script type="text/template" id="${template_name}-tpl">
+            <%static:include path="student_account/${template_name}.underscore" />
+        </script>
+    % endfor
+</%block>
+<style type="text/css">
+.modal-content-parent {display: inline-block;width: 100%;height: 100%;position: fixed;z-index: 4000;left: 0;top: 0;overflow-y: auto;background-color: rgba(0, 0, 0, .5);}
+.modal-content-parent input[type="text"].email_id{width: 100%;width: 100%;border-radius: 5px;border: solid 1px #e0e0e0;padding: 10px 20px;height: 50px;line-height: 30px;margin-bottom: 0px;     font-size: 16px;}
+.modal-content-parent .modal-content-desktop .disclosure__table{padding-bottom: 10px;}
+.modal-content-parent .modal-content-desktop .disclosure__table.mobile{display: flex;width: 100%;}
+.modal-content-parent .modal-content-desktop .disclosure__table.mobile .country-code{padding: 10px;background: #4fb357;color: white;line-height: 30px;}
+.modal-content-parent .modal-content-desktop .disclosure__table.mobile .mobile_num{width: 100%;border-radius: 5px;border: solid 1px #e0e0e0;padding: 10px 20px;height: 50px;line-height: 30px;font-size: 16px;border-top-left-radius: 0;border-bottom-left-radius: 0;}
+.modal-content-parent .modal-content-desktop {width: 100%;max-width:500px;min-height:200px;background-color:#fff;position: relative;padding: 15px 30px 25px 30px;top: 50%;left: 50%;-webkit-transform: translate(-50%, -50%);-ms-transform: translate(-50%, -50%);-o-transform: translate(-50%, -50%);transform: translate(-50%, -50%);}
+.modal-content-parent .select2-container .select2-selection--single .select2-selection__rendered:focus{outline: none;}
+.modal-content-parent .disclosure_heading {font-size: 24px;font-weight: 500;line-height:35px;color: #000000;margin-bottom: 18px;margin-top: 28px;font-weight: 600;padding-bottom: 10px;border-bottom:2px solid #dedede;border: none;margin-top: 18px; text-align: center;}
+.modal-content-parent .modal-content-desktop .resend-div{text-align: center;}
+.modal-content-parent .modal-content-desktop .error-div{text-align: center;color: red;}
+.modal-content-parent .disclosure__para {text-align:center;line-height: 1.46;color: #2b3d51;font-size: 18px;margin-bottom: 23px;}
+.modal-content-parent .disclosure_footer {width: 100%;display: inline-block;text-align: center; }
+.modal-content-parent .disclosure_footer .disclosure__btn {width: 100%; background:#126f9a; line-height:44px; color:#fff; text-transform: uppercase; border:none; border-radius: 5px; font-size:16px; font-weight: 600;line-height: 42px;background: #07b256;text-shadow: none;font-size: 18px;box-shadow: none;border: none;}
+.modal-content-parent .disclosure_footer .disclosure__btn:hover,
+.modal-content-parent .disclosure_footer .disclosure__btn:focus{background: #099a4c; outline: none; border: none;}
+.modal-content-parent .disclosure_footer p{margin: 0px; font-size:14px; color:#000000; line-height: 16px;  padding-top: 16px;}
+.modal-content-parent .disclosure_footer p a{text-decoration: underline; color:#0087cc;}
+.modal-content-parent .disclosure__close {width: 30px; height: 30px; border:3px solid #fff; background-color: #000000; cursor: pointer; border-radius:50%; text-align: center; position: absolute; top:-15px; right:-12px; }
+.modal-content-parent .disclosure__close .fa{color:#fff;     line-height: 22px;}
+.modal-content-parent .input-slide .FileUpload{position: relative;}
+.modal-content-parent .input-slide .FileUpload .BrowserHidden{position: relative; width: 100%; height: 36px; text-align: right; -moz-opacity: 0; filter: alpha(opacity: 0); opacity: 0; z-index: 2;}
+.modal-content-parent .input-slide .FileUpload .BrowserVisible{position: absolute; top: 0px; right: 0px; z-index: 1; background: url(../images/upload-Btn1.png) no-repeat top right; height: 48px; width: 100%; padding-right:42px;}
+.modal-content-parent .input-slide .FileUpload .FileField{width: 100%; height: 46px; border: solid 1px #dcdcdc; font-size: 16px; color: #333; border-right: none; border-top-left-radius: 5px; border-bottom-left-radius:5px; padding-left: 12px; color:#666666; font-size:16px;}
+.modal-content-parent .select2-container .select2-selection--single .select2-selection__rendered{padding-left: 12px;}
+.modal-content-parent .input-slide .FileUpload .BrowserHidden{height: 46px;}
+.modal-content-parent .input-slide .FileUpload .FileField{height: 44px;}
+.modal-content-parent .input-slide label{margin: 0px; font-size:16px; color:#000000; line-height:28px; padding-bottom: 4px;}
+.modal-content-parent .input-slide{padding-bottom: 26px;}
+.select2-container--custom-option-select{z-index: 999999;}
+.modal-content-parent.visible{display: block;}
+.modal-content-parent{display: none;}
+#timer{text-align: center;color: black;text-decoration: none;}
+.disclosure_lable {display: inline-block; width: 100%; padding-bottom: 20px;}
+.disclosure_lable  ul {padding: 0px; margin:0px -10px; }
+.disclosure_lable  ul li {list-style: none; padding: 0 10px; width: 50%; float: left;}
+.disclosure_lable  ul li a {display: block; width: 100%; border-radius: 5px; line-height: 40px; font-size: 16px; color: #000; text-align: center; border: solid 1px #000; }
+.disclosure_lable  ul li.active a {background: #07b256; border: solid 1px #07b256; color: #fff; }
+.disclosure_lable  ul li a:hover, .disclosure_lable  ul li a:focus {text-decoration: none; color: #000; }
+.disclosure_lable  ul li a.active {background: #07b256; border: solid 1px #07b256; color: #fff; }
+
+@media (max-width: 767px){
+  .modal-content-parent .modal-content-desktop {max-width: 440px;}
+}
+
+@media (max-width: 479px){
+.modal-content-parent .modal-content-desktop {max-width: 290px;}
+}
+</style>
+<div class="section-bkg-wrapper">
+  %if "/login" not in request.path:
+    <div class="loading" id="gifloader">
+        <img src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/logo/100x100Docmode.gif" width="100" height="100" border="0" alt="">
+    </div>
+  %endif
+    <main id="main" aria-label="Content" tabindex="-1">
+        <div id="content-container" class="login-register-content">
+            % if enable_enterprise_sidebar:
+                <%include file="enterprise_sidebar.html" />
+                <%
+                    border_class = 'border-left'
+                %>
+            % else:
+                <%
+                    border_class = ''
+                %>
+            % endif
+            <div id="login-and-registration-container" class="login-register ${border_class}"></div>
+        </div>
+    </main>
+</div>
+<script type="text/javascript">
+    
+    function setfunc() {
+    $("#register-email").on("change", function(event){
+            checkEmailValidity();
+        });
+
+        // $("#register-cemail").on("change", function(event) { 
+        //     checkmail();
+        // } );
+
+        $("#register-user_type").on("change", function(event) { 
+            usertype(this.value);
+
+        } );
+        usertype('dr');
+        $("#register-rpincode").on("change", function(event) { 
+            getlocation(this.value);
+        });
+        
+        var appBanners = document.getElementsByClassName('tip'), i;
+
+        for (var i = 0; i < appBanners.length; i ++) {
+            appBanners[i].style.display = 'none';
+        }
+
+        $('.js-register.register-button').attr("disabled", true);
+
+
+        $('.text-username').hide();
+        $('.text-reg_num').hide();
+        $('.select-specialization').hide();
+        $('.select-hcspecialization').hide();
+        
+        $('.text-rcountry').hide();
+        $('.text-rstate').hide();
+        $('.text-rcity').hide();
+        $('.text-address').hide();
+        $('#gifloader').hide();
+
+        var username = document.getElementById('register-email').value;
+        if (username != '') {
+          newval = username.replace(/[.]/gi, "-");
+          string =  newval.replace("@", "_");
+          document.getElementById('register-username').value = string;
+          $('.text-username').show();
+        }
+    }
+
+    function usertype(val){
+        
+        if(val == 'u') {
+            $('.text-reg_num').hide();
+            $('.select-specialization').hide();
+            $('.select-hcspecialization').hide();
+        } else if(val == 'hc') {
+          $("div").removeClass("hidden");
+            $('.text-reg_num').hide();
+            $('.select-specialization').hide();
+            $('.select-hcspecialization').show();
+        } else if(val == 'dr') {
+          $("div").removeClass("hidden");
+            $('.text-reg_num').hide();
+            $('.select-specialization').show();
+            $('.select-hcspecialization').hide();
+
+        } else if(val == 'ms') {
+          $("div").removeClass("hidden");
+            $('.text-reg_num').hide();
+            $('.select-specialization').show();
+            $('.select-hcspecialization').hide();
+        }
+
+    }
+
+var ZeroBounceApi = /** @class */ (function () {
+        function ZeroBounceApi(apiKey){
+          var baseUrl = "https://api.zerobounce.net/v1";
+          var get = new XMLHttpRequest();
+          /**
+           * @param apiKey - your private API key
+           * */
+          this.apiKey = apiKey;
+
+          /**
+           * @return the number of credits remaining on your account
+           * */
+          this.getCredits = function(){
+              var uri = baseUrl + "/getcredits" + "?apikey=" + apiKey;
+              get.open('GET', uri, false);
+              get.send();
+              if (get.readyState === 4 && get.status === 200) {
+                  return get.responseText;
+              }
+          }
+
+          /**
+           * @param email - the email you want to validate
+           * @return - a JSONObject with all of the information for the specified email
+           * */
+          this.validate = function(email){
+              var uri = baseUrl + "/validate" + "?apikey=" + apiKey + "&email=" + email;
+              get.open('GET', uri, false);
+              get.send();
+              if (get.readyState == 4 && get.status == 200) {
+                  return get.responseText;
+              }
+          }
+
+          /**
+           * @param email - the email you want to validate
+           * @param ip - the ip to be use for this validation (advanced)
+           * @return - a JSONObject with all of the information for the specified email
+           * */
+          this.validateWithIpAddress = function(email, ipAddress){
+              var uri = baseUrl + "/validate" + "?apikey=" + apiKey + "&email=" + email + "&ipAddress=" + ipAddress;
+              get.open('GET', uri, false);
+              get.send();
+              if (get.readyState == 4 && get.status == 200) {
+                  return get.responseText;
+              }
+          }
+        }
+        return ZeroBounceApi;
+    }());
+
+
+function checkEmailValidity() {
+      
+      mail = document.getElementById('register-email').value;
+      var ZeroBounceApiVar = new ZeroBounceApi('af8e53a08b7a4a9ab3cc98584fd3a734');
+      ZeroBounceApiVar.apiKey;
+      ZeroBounceApiVar.getCredits();
+      var getResults = ZeroBounceApiVar.validate(mail);
+      var getStatus = JSON.parse(getResults);
+      // alert(getStatus.status);
+      if (getStatus.status == 'Invalid' || getStatus.status == 'Spamtrap' || getStatus.status == 'Abuse' || getStatus.status == 'DoNotMail') {
+        alert('Email Address Invalid');
+        document.getElementById('register-email').value = "";
+        document.getElementById('register-email').focus();
+      }
+      mail = document.getElementById('register-email').value;
+      newval = mail.replace(/[.]/gi, "-");
+      string =  newval.replace("@", "_");
+      var length = 30;
+      var trimmedString = string.length > length ? 
+                    string.substring(0, length - 3): 
+                    string;
+      var newstring = trimmedString.split("_");
+      document.getElementById('register-username').value = newstring[0];
+      
+      $('.text-username').show();
+      document.getElementById("register-username").focus();
+      document.getElementById("register-name").focus();
+    }
+
+    // function checkmail() {
+
+    //     mail = document.getElementById('register-email').value;
+    //     cmail = document.getElementById('register-cemail').value;
+    //     if (mail != cmail) {
+    //         document.getElementById('register-cemail').style.borderColor = "red";
+    //         document.getElementById('register-cemail').value = "Email id does not match. Please re-enter";
+    //         document.getElementById('register-username').value = "";
+    //     } else {
+    //         document.getElementById('register-cemail').disabled=false;
+    //         document.getElementById('register-cemail').style.backgroundColor = "white";
+    //     newval = mail.replace(/[.]/gi, "-");
+    //         document.getElementById('register-username').value = newval.replace("@", "_");
+    //     }
+    // }
+
+    setTimeout(setfunc, 2000);
+
+    function getlocation(zipcode) {
+      var zip;
+      zip = zipcode;
+      if (zip.length >1) {
+        $.ajax({
+            type: 'POST',
+            url: "https://maps.googleapis.com/maps/api/geocode/json?address=" + zip + "&key=AIzaSyDQUh3L4Gfjc-QOrpQAIUm7MG6hR1RX6Bo",
+            success: (function(_this) {
+            return function(data) {
+              if (data["status"] === "OK") {
+                $('.text-rcountry').show();
+                $('.text-rstate').show();
+                $('.text-rcity').show();
+                $( "input#register-rcountry" ).prev().removeClass( "focus-out" );
+                $( "input#register-rcountry" ).prev().addClass( "focus-in" );
+                $( "input#register-rstate" ).prev().removeClass( "focus-out" );
+                $( "input#register-rstate" ).prev().addClass( "focus-in" );
+                $( "input#register-rcity" ).prev().removeClass( "focus-out" );
+                $( "input#register-rcity" ).prev().addClass( "focus-in" );
+                var count = Object.keys(data["results"][0]["address_components"]).length;
+                if (count >= 6 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][5]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][4]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][2]["long_name"]);
+                    $('.js-register.register-button').attr("disabled", false);
+                } else if (count == 5 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][4]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][3]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][1]["long_name"]);
+                    $('.js-register.register-button').attr("disabled", false);
+                } else if (count == 4 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][3]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][2]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][1]["long_name"]);
+                    $('.js-register.register-button').attr("disabled", false);
+                } else if (count == 3 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][2]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][1]["long_name"]);
+                    $("input#register-rcity").attr("placeholder","Please enter your city");
+                    document.getElementById("register-rcity").style.color = "#80709d";
+                    $('.js-register.register-button').attr("disabled", false);
+                } else {
+                    $('.text-rcountry').show();
+                    $('.text-rstate').show();
+                    $('.text-rcity').show();
+                    // $("input#register-rcountry").attr("placeholder","Please enter your country");
+                    // $("input#register-rstate").attr("placeholder","Please enter your state");
+                    // $("input#register-rcity").attr("placeholder","Please enter your city");
+                    $('.js-register.register-button').attr("disabled", false);
+                }
+                $('input#register-address').val(data["results"][0]["formatted_address"]);
+              } if (data["status"] != "OK") {
+                $('.text-rcountry').show();
+                $('.text-rstate').show();
+                $('.text-rcity').show();
+                // $("input#register-rcountry").attr("placeholder","Please enter your country");
+                // $("input#register-rstate").attr("placeholder","Please enter your state");
+                // $("input#register-rcity").attr("placeholder","Please enter your city");
+                $('.js-register.register-button').attr("disabled", false);
+              } 
+            };
+          })(this)
+        });
+      }
+    };
+
+</script>

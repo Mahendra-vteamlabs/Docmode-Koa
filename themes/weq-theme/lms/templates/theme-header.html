@@ -1,0 +1,271 @@
+## mako
+<%namespace name='static' file='static_content.html'/>
+<%namespace file='main.html' import="login_query"/>
+<%!
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.markup import HTML
+
+# App that handles subdomain specific branding
+import branding
+# app that handles site status messages
+from status.status import get_site_status_msg
+
+from lms.djangoapps.ccx.overrides import get_current_ccx
+%>
+<!--DELETED CONTENT BETWEEN THIS-->
+
+<!--DELETED CONTENT BETWEEN THIS-->
+## Provide a hook for themes to inject branding on top.
+<%block name="navigation_top" />
+
+<%block>
+<%
+try:
+    course_id = course.id.to_deprecated_string()
+except:
+    # can't figure out a better way to get at a possibly-defined course var
+    course_id = None
+site_status_msg = get_site_status_msg(course_id)
+%>
+% if site_status_msg:
+<div class="site-status">
+  <div class="inner-wrapper">
+    <span class="white-error-icon"></span>
+    <p>${site_status_msg}</p>
+  </div>
+</div>
+% endif
+</%block>
+  
+<%
+site_domain = static.get_value('site_domain', settings.SITE_NAME)
+site_protocol = 'https' if settings.HTTPS == 'on' else 'http'
+home_url = site_protocol +'://'+ site_domain
+%>
+<header>
+        <nav class="navbar navbar-default menu-navigation" id="menu-bar">
+            <div id="header_container_id" class="container header-container">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="menulines navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                        <!-- <span class="sr-only">Menu</span> -->
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/">
+                        <img src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/Docmode-Themes/198x61logo.jpg" alt="">
+                    </a>
+                    <button id="mob_search_btn" data-toggle="collapse" data-target="#search_box" class="collapsed" aria-expanded="false"><i class="fa fa-search"></i></button>
+                    % if user.is_authenticated:
+                        <a href="#" id="join-sign-btn" class="btn btn-success join_btn">${user.username}</a>
+                    %else:
+                        <a href="/login?next=${request.path}" id="join-sign-btn" class="btn btn-success join_btn">Join / Sign In</a>
+                    %endif
+				</div>
+                <!-- Collect the nav links, forms, and other content for toggling -->
+				<!-- WEQ added menu--->
+				<form id="search_box" class="navbar-form navbar-left" action="/courses">
+				   <div class="input-group">
+					<input type="text" class="form-control" placeholder="Search" name="search_query" id="seach_term">
+                    <ul id="search_result"></ul>
+					<div class="input-group-btn search_icon">
+					<button class="btn btn-default" type="submit">
+						<i class="glyphicon glyphicon-search"></i>
+					</button>
+					</div>
+				   </div>
+				</form>
+
+                <div id="collapse-id" class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="dropdown browse_btn">
+                		   <a class="dropdown-toggle" data-toggle="dropdown" href="#">Browse
+                		   <span class="caret"></span></a>
+                		   <ul class="dropdown-menu browse_list">
+                  			   <li><a href="${marketing_link('COURSES')}">Courses</a></li>
+                               <li><a href="${marketing_link('LECTURES')}">Lectures</a></li>
+                               <li><a href="${marketing_link('ASSOC')}">Our Partners</a></li>
+                               <!-- <li><a href="/case_studies/">Case Studies</a></li> -->
+                               <li><a href="${marketing_link('SUBJECTS')}">Topics</a></li>
+                               <!-- <li><a href="${marketing_link('RESEARCH')}">Research</a></li> -->                                        
+        			       </ul>
+                        </li> 
+                    </ul>
+
+	            <!-- WEQ added right menu--->
+		    <ul class="nav navbar-nav navbar-right">
+      			<li><a href="/about">About</a></li>
+      			<!-- <li><a href="#">Find a Doctor</a></li>
+                <li><a href="/forums/">Forum</a></li> -->
+                % if user.is_authenticated:
+                    %if request.user.is_staff:
+                        <li><a target="_blank" href="/docmode/analytics">Docmode Analytics</a>
+                                </li>
+                    %endif
+                    <div class="pull-right btn-custom dropdown user_dropdown">
+                            <button class="btn btn-primary dropdown-toggle join_btn">${user.username}
+                            <span class="caret"></span></button>
+                            <ul class="dropdown-menu user_list_menu">
+                                <%block name="navigation_dropdown_menu_links" >
+                                <li><a href="${reverse('dashboard')}">${_("Dashboard")}</a></li>
+                                <li><a href="${reverse('account_settings')}">${_("Account Settings")}</a></li>
+                                <li><a href="${reverse('learner_profile', kwargs={'username': user.username})}">${_("My Profile")}</a></li>
+                                </%block>
+                                <li><a href="${reverse('logout')}" role="menuitem">${_("Sign Out")}</a></li>
+                            </ul>
+                    </div>
+                %else:
+                    <li><a href="/login?next=${request.path}" class="btn btn-success join_btn">Join / Sign In</a></li>
+                %endif
+    		</ul>
+
+                    <!-- <form class="navbar-form navbar-left">
+                        <div class="form-group search-block">
+                            <input type="text" class="search-text" placeholder="Search for courses or topics">
+                            <button type="submit" class="search-btn"></button>
+                        </div>
+                    </form> -->
+                    % if user.is_authenticated:
+                        
+                    %else:
+                        <div class="pull-right btn-custom">
+                        % if not settings.FEATURES['DISABLE_LOGIN_BUTTON']:
+                            % if course and settings.FEATURES.get('RESTRICT_ENROLL_BY_REG_METHOD') and course.enrollment_domain:
+                                <a href="${reverse('course-specific-register', args=[course.id.to_deprecated_string()])}${login_query()}" class="btn btn-default" >sign up</a>
+                            %else:
+                                <!--<a href="/register?next=${request.path}" class="btn btn-default" >sign up</a>-->
+                            %endif
+                        %endif
+                        % if not settings.FEATURES['DISABLE_LOGIN_BUTTON']:
+                            % if course and settings.FEATURES.get('RESTRICT_ENROLL_BY_REG_METHOD') and course.enrollment_domain:
+                                <a href="${reverse('course-specific-login', args=[course.id.to_deprecated_string()])}" class="btn btn-secondary">Log in</a>
+                             %else:
+                                <!--<a href="/login?next=${request.path}" class="btn btn-secondary" >Log in</a>-->
+                            %endif
+                        %endif
+                        </div>
+                    % endif
+                </div>
+                <!-- /.navbar-collapse -->
+            </div>
+            <div id="mobile-menu-id" class="mobile-menubar mob-menu">
+                <a href="" class="close-mob-menu"><i class="fa fa-times"></i></a>
+                % if user.is_authenticated:
+                    <ul>
+                        <li><a href="${reverse('dashboard')}">Dashboard</a></li>
+                        <li><a href="${reverse('account_settings')}">Account Settings</a></li>
+                        <li><a href="${reverse('learner_profile', kwargs={'username': user.username})}">My Profile</a></li>
+                        <li><a href="${marketing_link('COURSES')}">courses</a></li>
+                        <li><a href="/lectures">lectures</a></li>
+                        <!-- <li><a href="/case_studies/">case studies</a></li> -->
+                        <li><a href="/subjects/">topics</a></li>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/assoc/">OUR PARTNERS</a></li>
+                        <!-- <li><a href="/privacy">PRIVACY POLICY</a></li>
+                        <li><a href="/tos">TERMS OF USE</a></li> -->
+                        <li><a href="/contact">CONTACT US</a></li>
+                        <li><a href="${reverse('logout')}">Sign Out</a></li>
+                    </ul>
+                %else: 
+                    <ul>
+                        <li><a href="${marketing_link('COURSES')}">courses</a></li>
+                        <li><a href="/lectures">lectures</a></li>
+                        <!-- <li><a href="/case_studies/">case studies</a></li> -->
+                        <li><a href="/subjects/">topics</a></li>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/assoc/">OUR PARTNERS</a></li>
+                        <!-- <li><a href="/privacy">PRIVACY POLICY</a></li>
+                        <li><a href="/tos">TERMS OF USE</a></li> -->
+                        <li><a href="/contact">CONTACT US</a></li>
+                    </ul>
+                %endif
+            </div>
+            <!-- /.container-fluid -->
+        </nav>
+        <div class="navbar-secondary">
+            <div class="container">
+                <!-- <div class="collapse navbar-collapse"> -->
+                    <ul class="nav navbar-nav clearfix">
+                        <li>
+                            <a href="/">home</a>
+                        </li>
+                        <li>
+                            <a href="${marketing_link('COURSES')}">courses</a>
+                        </li>
+                        <li>
+                            <a href="/lectures">lectures</a>
+                        </li>
+                        <li>
+                            <a href="/assoc/">Our Partners</a>
+                        </li>
+                        <!-- <li>
+                            <a href="/case_studies/">case studies</a>
+                        </li> -->
+                        <li>
+                            <a href="/subjects/">topics</a>
+                        </li>
+                        <!-- <li>
+                            <a href="/research/">RESEARCH</a>
+                        </li> -->
+                    </ul>
+                <!-- </div> -->
+            </div>
+        </div>
+    </header>
+
+<script type="text/javascript">
+  
+  function showm(){
+    document.getElementById("hmenu").style.display = "block";
+  }
+</script>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        //check if the browser width is less than or equal to the large dimension of an mobile
+        console.log($(window).width());
+        if ($(window).width() < 375) {
+            $("#search_box").addClass('collapse');      
+        }
+    
+    $( "#seach_term" ).keyup(function() {
+        var search_value = $("#seach_term").val();
+        
+        document.getElementById("search_result").style.padding = "10px 0px 10px 0px";
+        document.getElementById("search_result").style.border = "1px solid #eee";
+
+        if (search_value.length >= 3) {
+            $.ajax({
+                method:'GET',
+                url:'/search_term/',
+                dataType:'html',
+                data:{
+                search_term : search_value
+                }, 
+                success:function(data) {   
+                    $('#search_result').empty();
+                    $.each(JSON.parse(data), function(key, value) {
+                        $("#search_result").append('<li><a href="/courses/'+value.course_id+'/about">'+value.course_name+'</a></li>');
+                    });
+                }
+            });
+        } else {
+            $('#search_result').empty();
+            document.getElementById("search_result").style.padding = "0px 0px 0px 0px";
+            document.getElementById("search_result").style.border = "0px";
+        }
+
+        return false; 
+    });
+
+
+});
+
+</script>
+
+
+
+

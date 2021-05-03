@@ -52,7 +52,7 @@
             if (syncLearnerProfileData && enterpriseName) {
                 aboutSectionMessageType = 'info';
                 aboutSectionMessage = HtmlUtils.interpolateHtml(
-                    gettext('Your profile settings are managed by {enterprise_name}. Contact your administrator or {link_start}edX Support{link_end} for help.'),  // eslint-disable-line max-len
+                    gettext('Your profile settings are managed by {enterprise_name}. Contact your administrator or {link_start}Docmode Support{link_end} for help.'),  // eslint-disable-line max-len
                     {
                         enterprise_name: enterpriseName,
                         link_start: HtmlUtils.HTML(
@@ -303,7 +303,7 @@
             // Add the social link fields
             socialFields = {
                 title: gettext('Social Media Links'),
-                subtitle: gettext('Optionally, link your personal accounts to the social media icons on your edX profile.'),  // eslint-disable-line max-len
+                subtitle: gettext('Optionally, link your personal accounts to the social media icons on your Docmode profile.'),  // eslint-disable-line max-len
                 fields: []
             };
 

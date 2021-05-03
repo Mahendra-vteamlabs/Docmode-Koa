@@ -1,0 +1,486 @@
+<div class="js-form-feedback" aria-live="assertive" tabindex="-1">
+</div>
+
+<% if ( context.createAccountOption !== false && !context.syncLearnerProfileData && !(context.enterpriseName && context.currentProvider) ) { %>
+<div style="text-align:center;">
+    <span class="text" style="font-size:25px;color:#9598c9;font-weight:bold;"><%- gettext("Enter your email id") %></span>
+    
+</div>
+<% } %>
+
+<% // Hide SSO related messages if we are not in the SSO pipeline.  %>
+<% if (context.enterpriseName && context.currentProvider) { %>
+    <% if (context.pipelineUserDetails && context.pipelineUserDetails.email) { %>
+        <h2><%- gettext("Sign in to continue learning as {email}").replace("{email}", context.pipelineUserDetails.email) %></h2>
+    <% } else { %>
+        <h2><%- gettext("Sign in to continue learning") %></h2>
+    <% } %>
+    <p>
+        <%- gettext("You already have an edX account with your {enterprise_name} email address.").replace(/{enterprise_name}/g, context.enterpriseName) %>
+        <% if (context.syncLearnerProfileData) {
+            %><%- gettext("Going forward, your account information will be updated and maintained by {enterprise_name}.").replace(/{enterprise_name}/g, context.enterpriseName) %>
+        <% } %>
+        <%- gettext("You can view your information or unlink from {enterprise_name} anytime in your Account Settings.").replace(/{enterprise_name}/g, context.enterpriseName) %>
+    </p>
+    <p><%- gettext("To continue learning with this account, sign in below.") %></p>
+<% } %>
+
+<form id="login" class="login-form" tabindex="-1" method="POST">
+
+    <p class="sr">
+        <% if ( context.providers.length > 0 && !context.currentProvider || context.hasSecondaryProviders ) { %>
+            <%- gettext("Sign in here using your email address and password, or use one of the providers listed below.") %>
+        <% } else { %>
+            <%- gettext("Sign in here using your email address and password.") %>
+        <% } %>
+        <%- gettext("If you do not yet have an account, use the button below to register.") %>
+    </p>
+
+
+    <div class="form-field email-email">
+        <label for="login-email">
+            <span class="label-text">Email</span>
+                <span id="login-email-required-label" class="label-required hidden">     
+                </span>
+                <span class="icon fa" id="login-email-validation-icon" aria-hidden="true">
+                </span>       
+        </label>
+        <input id="login-email" type="email" name="email" class="input-block " aria-describedby="login-email-desc login-email-validation-error" minlength="3" maxlength="254" required="" placeholder="username@domain.com" value="" onchange="emailid_validation();">
+        
+
+        <span id="login-email-validation-error" class="tip error" aria-live="assertive" style="display: none;">
+            <span class="sr-only">ERROR: </span>
+            <span id="login-email-validation-error-msg"></span>
+        </span>
+        <span id="login-email-validation" class="tip error" aria-live="assertive">
+            <span id="login-email-validation-msg"></span>
+        </span>
+         <span class="tip tip-input" id="login-email-desc" style="display: none;">The email address you used to register with Docmode Development</span>
+    
+    </div>
+
+    <button type="button" class="action action-primary login-with-otp-button">
+        <a href="javascript:void(0)" style="color:#FFF !important; text-decoration:none;"><%- gettext("Sign in With OTP") %></a>
+    </button>
+
+    <div> <br> <span><%- gettext("or") %>  <span></div> 
+    <div class="form-field password-password">
+        <label for="login-password">
+            <span class="label-text">Password</span>
+            
+                <span id="login-password-required-label" class="label-required hidden">
+                    
+                </span>
+                <span class="icon fa" id="login-password-validation-icon" aria-hidden="true"></span>   
+        </label>    
+        <input id="login-password" type="password" name="password" class="input-block " maxlength="75" required="" value="">
+        <span id="login-password-validation-error" class="tip error" aria-live="assertive" style="display: none;">
+            <span class="sr-only">ERROR: </span>
+            <span id="login-password-validation-error-msg"></span>
+        </span>
+        <button type="button" class="forgot-password field-link">Forgot password?</button>
+    
+    </div>
+    <div class="form-field checkbox-remember">
+        <input id="login-remember" type="checkbox" name="remember" class="input-block checkbox" value="false">
+            <label for="login-remember">
+                <span class="label-text">Remember me</span>        
+            </label>
+        <span id="login-remember-validation-error" class="tip error" aria-live="assertive" style="display: none;">
+            <span class="sr-only">ERROR: </span>
+            <span id="login-remember-validation-error-msg"></span>
+        </span>
+    </div>
+
+    <button type="submit" class="action action-primary action-update js-login login-button"><%- gettext("Sign in") %></button>
+
+
+    <% if ( context.providers.length > 0 && !context.currentProvider || context.hasSecondaryProviders ) { %>
+    <div class="login-providers">
+        <div class="section-title lines">
+            <h3>
+                <span class="text"><%- gettext("or sign in with") %></span>
+            </h3>
+        </div>
+        <button type="button" class="button button-primary button-oa2-facebook-oauth2 login-provider login-oa2-google-oauth2 login-with-otp-button">
+            <div class="icon fa fa-envelope" aria-hidden="true">
+                        
+                    </div>
+                    <span aria-hidden="true">OTP</span>
+            <a href="javascript:void(0)" style="color:#FFF !important; text-decoration:none;"><%- gettext("Sign in With OTP") %></a>
+        </button>
+        <% _.each( context.providers, function( provider ) {
+            if ( provider.loginUrl ) { %>
+                <button type="button" class="button button-primary button-<%- provider.id %> login-provider login-<%- provider.id %>" data-provider-url="<%- provider.loginUrl %>">
+                    <div class="icon <% if ( provider.iconClass ) { %>fa <%- provider.iconClass %><% } %>" aria-hidden="true">
+                        <% if ( provider.iconImage ) { %>
+                            <img class="icon-image" src="<%- provider.iconImage %>" alt="<%- provider.name %> icon" />
+                        <% } %>
+                    </div>
+                    <span aria-hidden="true"><%- provider.name %></span>
+                    <span class="sr"><%- _.sprintf( gettext("Sign in with %(providerName)s"), {providerName: provider.name} ) %></span>
+                </button>
+            <% }
+        }); %>
+
+        <% if ( context.hasSecondaryProviders ) { %>
+            <button type="button" class="button-secondary-login form-toggle" data-type="institution_login">
+                <%- gettext("Use my institution/campus credentials") %>
+            </button>
+        <% } %>
+    </div>
+    <% } %>
+</form>
+<form id="invite_student" method="post">
+    <div class="modal-content-parent">
+        <div class="modal-content-desktop">
+            <div class="b-regulatory-disclosure" id="otp_validation">
+                <div class="b-regulatory-disclosure__header">
+                  <h1 class="disclosure_heading">Log in with OTP</h1>
+                </div>
+                <div class="disclosure_lable">
+                    <ul>
+                        <li>
+                            <a href="javascript:void(0)" id="mobile_label" class="active">Mobile</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" id="email_label" >Email</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="disclosure__table email">
+                    <input type="text" class="email_id input_box" placeholder="Enter email address.">
+                </div>
+                <div class="disclosure__table mobile">
+                    <i class="country-code">+91</i>
+                    <input type="text" class="mobile_num input_box" placeholder="Enter mobile number.">
+                </div>
+                <div class="disclosure__table">
+                    <input type="text" class="email_id otp" placeholder="Enter OTP" hidden>
+                </div>            
+                <div id="timer" hidden></div>
+                <p class="resend-div"><a href="javascript:void(0)" id="resend-otp-new" class="resend-otp-new disclosure__btn" hidden>Click here for resend OTP</a></p>
+                <p class="error-div"></p>
+                <div class="disclosure_footer">
+                    <button class="disclosure__btn otp-btn">Send OTP</button>
+                </div>
+                <div class="disclosure_footer">
+                    <a href="/register?next=/oauth2/authorize/confirm" style="padding: 20px;" class="disclosure__btn reg-btn" hidden>Register</a>
+                </div>
+                <div class="disclosure_footer">
+                    <button class="disclosure__btn verify_otp" hidden>Submit</button>
+                </div>
+                <div class="disclosure__close"><i class="fa fa-times"></i></div>
+            </div>
+            <div class="b-regulatory-disclosure" id="data_confirmation" style="display:none;">
+                <div class="b-regulatory-disclosure__header">
+                  <h1 class="disclosure_heading">You have successfuly loggedin</h1>
+                </div>
+                <div class="disclosure__table">
+                    <div class="disclosure_lable">
+                        <p id="confirm_emailid"></p>
+                    </div>
+                </div>
+                <div class="disclosure__table">
+                    <div class="disclosure_lable">
+                        <span class="label-text">Mobile</span>
+                    </div>
+                    <input type="text" class="email_id confirm_mobile_num" id="confirm_mobile">
+                </div>
+                <p class="error_msg"></p>
+                <div class="disclosure_footer">
+                    <button class="disclosure__btn confirm_mobile">Submit</button>
+                </div>
+            </div>
+            <div class="b-regulatory-disclosure email_validation" id="email_validation" style="display:none;">
+                <div class="b-regulatory-disclosure__header">
+                    <div id="email_vlidation_error_msg"></div>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    $(document).ready(function(){  
+        $('body').keydown(function(e) {
+            if(e.keyCode == 27) {
+                $('.modal-content-parent').removeClass("visible");
+            }
+        });
+        
+    });
+
+    $(".login-with-otp-button").click(function(e){
+        if (!$(".disclosure__table.email").hasClass("hidden")){
+            $(".disclosure__table.email").addClass("hidden")
+        }
+        if (!$(".email_validation").hasClass("hidden")){
+            $(".email_validation").addClass("hidden")
+        }
+        var emailid = document.getElementById("login-email").value;
+        if(emailid.length == 0) {
+            document.getElementById("otp_validation").style.display="block";
+        }
+        $(".modal-content-parent").addClass("visible");
+        e.stopPropagation();
+    });
+
+    $(".disclosure__close").click(function(e){
+        $(".modal-content-parent").removeClass("visible");
+        e.stopPropagation();
+    });
+
+    $(document).click(function(e) {
+        if ($(e.target).is('.modal-content-parent')){
+            $(".modal-content-parent").removeClass("visible");
+        }
+    });
+
+
+
+    $("#email_label").click(function() {
+        $(".error-div").empty()
+        $(".disclosure__btn.reg-btn").hide();
+        $(".disclosure__btn.otp-btn").removeClass("hidden");
+        $(this).addClass("active")
+        $("#mobile_label").removeClass("active")
+        $(".disclosure__table.email").removeClass("hidden")
+        if (!$(".disclosure__table.mobile").hasClass("hidden")){
+            $(".disclosure__table.mobile").addClass("hidden")
+        }
+        
+        $(".verify_otp").attr("hidden",true);
+        $(".otp").attr("hidden",true);
+        $(".input_box").prop( "disabled", false );
+        $('.otp-btn').attr("disabled", false);
+        $("#timer").attr("hidden",true);
+        clearInterval(timer);
+        seconds=120;
+        document.getElementById("timer").innerHTML="120 seconds remaining";
+    });
+
+    $("#mobile_label").click(function() {
+        $(".error-div").empty()
+        $(".disclosure__btn.reg-btn").hide();
+        $(".disclosure__btn.otp-btn").removeClass("hidden");
+        $(this).addClass("active")
+        $("#email_label").removeClass("active")
+        $(".disclosure__table.mobile").removeClass("hidden")
+        if (!$(".disclosure__table.email").hasClass("hidden")){
+            $(".disclosure__table.email").addClass("hidden")
+        }
+        $(".verify_otp").attr("hidden",true);
+        $(".otp").attr("hidden",true);
+        $(".input_box").prop( "disabled", false );
+        $('.otp-btn').attr("disabled", false);
+        $("#timer").attr("hidden",true);
+        clearInterval(timer);
+        seconds=120;
+        document.getElementById("timer").innerHTML="120 seconds remaining";
+    });
+
+    var seconds=120;
+    var timer;
+    function myFunction() {
+        if(seconds < 120) {
+            document.getElementById("timer").innerHTML = seconds + " seconds remaining";
+        }
+        if (seconds >0 ) {
+            seconds--;
+        } else {
+            clearInterval(timer);
+            document.getElementById("resend-otp-new").removeAttribute("hidden");
+            document.getElementById("timer").setAttribute("hidden", true);
+            seconds=120;
+            document.getElementById("timer").innerHTML="120 seconds remaining";
+        }
+    }
+    document.getElementById("timer").innerHTML="120 seconds remaining"; 
+
+    $(function(){
+        $('.verify_otp').click(function(e) {
+            e.preventDefault();
+            var otp = $('.otp').val()
+            var email_id = $('.email_id').val();
+            if (email_id != ""){
+                var data = {'email':email_id, 'otp':otp, 'web':true,'redirect_url':window.location.href}
+            }else{
+                var mobile_no = $('.mobile_num').val();
+                var intRegex = /[0-9 -()+]+$/;
+                if(intRegex.test(mobile_no)){
+                    if (mobile_no.length != 10){
+                        $('.mobile_num').val("");
+                        $(".error-div").html("Please enter valid number")
+                        return false;
+                    }
+                    else{
+                        var data = {'mobile_number':mobile_no, 'otp':otp, 'web':true,'redirect_url':window.location.href}
+                    }
+                }
+            }
+            if(otp!=''){
+                $.ajax({
+                    type: "POST",
+                    url: "/api/mobile/verify/otp/",
+                    data: data,
+                    success: function(data) {
+                        if (data.status != 200){
+                            
+                            $(".error-div").html(data.message)
+                        }else{
+                            
+                            if(data.phone == '') {
+                                $(".error_msg").empty();
+                                document.getElementById("otp_validation").style.display="none";
+                                document.getElementById("data_confirmation").style.display="block";
+                                document.getElementById("confirm_emailid").innerHTML="Your emailid is "+data.email;
+
+                            } else {
+                                window.location.href = data.redirect_url;
+                            }
+                        }
+                    }
+                });
+            }else{
+                $(".error-div").html("Please enter the OTP.")
+            }
+
+        })
+        $('.otp-btn, .resend-otp-new').click(function(e) {
+            e.preventDefault();
+            $('.otp-btn').attr("disabled", true);
+            if(!document.getElementById("resend-otp-new").hasAttribute("hidden")){
+                document.getElementById("resend-otp-new").setAttribute("hidden", true);
+            }
+            if ($(".mobile_num").is(':visible')){
+                var mobile_no = $('.mobile_num').val();
+                var intRegex = /[0-9 -()+]+$/;
+                if(intRegex.test(mobile_no)){
+                    if (mobile_no.length != 10){
+                        $('.mobile_num').val("");
+                        $(".error-div").html("Please enter valid Mobile number")
+                        return false;
+                    }
+                    else{
+                        var data = {'mobile_no':mobile_no}
+                    }
+                }else{
+                    $(".error-div").html("Please enter Mobile number")
+                    return false;
+                }
+            }else{
+               var email_id = $('.email_id').val();
+                if (email_id!=""){
+                    var data = {'email':email_id}
+                } else{
+                    $(".error-div").html("Please enter the Email Address.")
+                    return false;
+                } 
+            }
+            $.ajax({
+                type: "POST",
+                url: "/api/mobile/request/otp/",
+                data: data,
+                dataType: 'json',
+                success: function(res) {
+                    if (res.status != 200){
+                        if (res.error == "err2"){
+                            $(".error-div").html(res.message)
+                            $("#mobile_label").removeClass("active")
+                            $("#email_label").addClass("active")
+                            $(".disclosure__table.email").removeClass("hidden")
+                            $(".disclosure__table.mobile").addClass("hidden")
+                        }else if (res.error == "err1"){
+                            $(".disclosure__btn.otp-btn").addClass("hidden");
+                            $(".disclosure__btn.reg-btn").show();
+                            $(".error-div").html(res.message)
+                        }else{
+                            $(".error-div").html(res.message)
+                        }
+                    }else{
+                        $(".error-div").empty()
+                        $(".otp").removeAttr("hidden");
+                        $(".disclosure__btn.otp-btn").addClass("hidden");
+                        $(".verify_otp").removeAttr("hidden");
+                        $(".input_box").prop( "disabled", true );
+                        $("#timer").removeAttr("hidden");
+                        timer = window.setInterval(function() {
+                            myFunction();
+                        }, 1000);
+                    }
+                }
+            });
+        });
+
+        $('.confirm_mobile').click(function(e) {
+            e.preventDefault();
+                var mobile_no = $('.confirm_mobile_num').val();
+                var intRegex = /[0-9 -()+]+$/;
+                if(intRegex.test(mobile_no)){
+                    if (mobile_no.length != 10){
+                        $('.confirm_mobile_num').val("");
+                        $(".error_msg").html("Please enter valid number")
+                        return false;
+                    }
+                    else{
+                        var data = {'mobile_number':mobile_no}
+                    }
+                }
+            if(mobile_no !=''){
+                $.ajax({
+                    type: "GET",
+                    url: "/account/settings",
+                    data: data,
+                    success: function(data) {
+                        if(data.status != 200){
+                            $(".error_msg").html(data.msg);
+                        } else {
+                            $(".error_msg").html(data.msg);
+                            setTimeout(function(){window.location.href=window.location.href}, 3000);
+                        }
+                    }
+                });
+            }else{
+                $(".error_msg").html("Please enter the Mobile number.")
+            }
+
+        });
+    });
+
+    function emailid_validation(){
+        var emailid = document.getElementById("login-email").value;
+        $.ajax({
+            type: "GET",
+            url: "/search_term/",
+            data: {
+                emailid : emailid,
+                email_validation :1
+            },
+            success: function(data) {
+                if(data.status != 200){
+                    current_url = window.location.href;
+                    redirect_url = current_url.split("login");
+                    $(".modal-content-parent").addClass("visible");
+                    document.getElementById("otp_validation").style.display="none";
+                    $(".email_validation").removeClass("hidden");
+                    document.getElementById("email_validation").style.display="block";
+                    document.getElementById("email_validation").innerHTML = '<h1 class="disclosure_heading">This email id is not registered! <br/>Please <a style="color:#4fb3d0;" href="https://iae.learn.docmode.org/register' + redirect_url[1] +'"> click  here to register</a>.</h1>';
+                    document.getElementById("login-email").value = "";
+                } else {
+
+                    //$(".modal-content-parent").addClass("visible");
+                    document.getElementById("email_validation").style.display="none";
+                    document.getElementById("otp_validation").style.display="block";
+                    //$("#mobile_label").removeClass("active");
+                    //$(".disclosure__table.mobile").addClass("hidden")
+                    //$("#email_label").addClass("active");
+                    document.getElementById('login-email-validation').style.display = "block";
+                    document.getElementById('login-email-validation-msg').innerHTML="You can now login with otp or using password";
+                    console.log(data);
+                }
+            }
+        });
+    }
+
+</script>

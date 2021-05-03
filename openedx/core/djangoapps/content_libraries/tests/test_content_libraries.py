@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.test.utils import override_settings
 from mock import patch
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 
 from openedx.core.djangoapps.content_libraries.tests.base import ContentLibrariesRestApiTest, elasticsearch_test
 from openedx.core.djangoapps.content_libraries.constants import VIDEO, COMPLEX, PROBLEM, CC_4_BY, ALL_RIGHTS_RESERVED

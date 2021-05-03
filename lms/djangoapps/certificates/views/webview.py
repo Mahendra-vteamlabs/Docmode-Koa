@@ -52,6 +52,9 @@ from common.djangoapps.util import organizations_helpers as organization_api
 from common.djangoapps.util.date_utils import strftime_localized
 from common.djangoapps.util.views import handle_500
 
+#Added by Mahendra
+from lms.djangoapps.reg_form.models import extrafields
+
 log = logging.getLogger(__name__)
 _ = translation.ugettext
 
@@ -301,12 +304,17 @@ def _update_context_with_user_info(context, user, user_certificate):
     """
     Updates context dictionary with user related info.
     """
+    user_type = extrafields.objects.get(user_id=user)
     user_fullname = user.profile.name
     context['username'] = user.username
     context['course_mode'] = user_certificate.mode
     context['accomplishment_user_id'] = user.id
     context['accomplishment_copy_name'] = user_fullname
     context['accomplishment_copy_username'] = user.username
+    if user_type.user_type == 'dr':
+        context['accomplishment_usertype'] = 'Dr.'
+    else:
+        context['accomplishment_usertype'] = ''
 
     context['accomplishment_more_title'] = _(u"More Information About {user_name}'s Certificate:").format(
         user_name=user_fullname

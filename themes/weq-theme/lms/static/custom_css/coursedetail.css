@@ -1,0 +1,288 @@
+.clearfix {
+  clear: both
+}
+
+.coursesDetail h2 {
+  color: #333333;
+  font-size: 28px;
+  padding-left: 0;
+  font-weight: 600;
+  text-align: left;
+}
+
+.coursesDetail p {
+  color: #333333;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.coursesDetail span {
+  display: block;
+  font-size: 12px;
+  margin-top: 25px;
+}
+
+.coursesDetail .enroll {
+  width: 130px;
+  height: 36px;
+  background-color: #07b256;
+  border: solid 1px #07b256;
+  color: #fff;
+  text-transform: uppercase;
+  padding: 7px 7px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.coursesDetail .share {
+  width: 96.6px;
+  height: 36px;
+  background-color: #ffffff;
+  border: solid 1px #b6348e;
+  font-size: 14px;
+  font-weight: bold;
+  color: #b6348e;
+  padding: 7px 7px;
+  margin-left: 10px;
+}
+
+.coursesDetail .share span {
+  display: inline-block;
+  ;
+}
+
+.offerby span {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.4px;
+  text-align: left;
+  color: #000000;
+  display: block;
+}
+
+.social-shareCont {
+  padding-left: 120px;
+  display: none;
+  margin-top: 4px;
+}
+
+.social-shareCont li {
+  width: 122px;
+  list-style-type: none;
+  padding: 2px 2px;
+}
+
+.social-shareCont li a,
+.social-shareCont li a:hover {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.facebook {
+  background: #3B5998;
+}
+
+.twitter {
+  background: #00ACED;
+}
+
+.facebook span,
+.twitter span {
+  margin-top: 0;
+  display: inline-block;
+}
+
+.coursesDetail .share:hover+.social-shareCont {
+  display: block;
+  position: absolute;
+  left: 21px;
+}
+
+.keyfact {
+  padding: 5px 21px;
+  background: #FAFAFB;
+}
+
+.keyfact ul {
+  padding-left: 0;
+}
+
+.keyfact h3 {
+  opacity: 0.6;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.4px;
+  text-align: left;
+  color: #b6348e;
+  text-transform: uppercase;
+}
+
+.keyfact li {
+  opacity: 0.8;
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: left;
+  color: #333333;
+  list-style-type: none;
+  background: url(../edx-bootstrap-theme-master/images/clock.jpg) 0px 3px;
+  background-repeat: no-repeat;
+  padding-left: 35px;
+}
+
+.keyfact li span {
+  display: block;
+  opacity: 0.56;
+  font-size: 16px;
+  text-align: left;
+  color: #333333;
+}
+
+.aboutCourse h2 {
+  color: #30529a;
+  font-weight: 600;
+  font-size: 24px;
+  text-align: left;
+}
+
+.aboutCourse span {
+  color: #b6348e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.instructorSec h2 {
+  font-size: 24px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.instructCont {
+  margin-top: 15px;
+}
+
+.instructCont h2 {
+  color: #333333;
+  font-size: 18px;
+  padding-left: 0;
+  font-weight: 600;
+  text-align: left;
+  margin-top: 0;
+}
+
+.instructCont img {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  float: left;
+  margin-right: 15px;
+}
+
+.instructtext {
+  width: 80%;
+  float: left;
+}
+
+.instructCont span {
+  display: block;
+  color: #b6348e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.whatLearn h2 {
+  text-align: left;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.ratingSec h2 {
+  text-align: left;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.ratingSec .ratingbox {
+  width: 45%;
+  float: left;
+  margin-right: 10px;
+  background: #FAFAFB;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.reviewUser img {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  float: left;
+  margin-right: 15px;
+}
+
+.reviewUser .reviewtext {
+  float: left;
+}
+
+.reviewUser .reviewtext h3 {
+  color: #b6348e;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.reviewUser .reviewtext SPAN {
+  display: block;
+  color: #b6348e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.whatLearn ul {
+  padding-left: 20px;
+}
+
+.coursesbyharvad h2 {
+  text-align: left;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.coursesbyharvad .card {
+  width: 30%;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.rating {
+  unicode-bidi: bidi-override;
+  direction: rtl;
+  text-align: left;
+}
+
+.rating p {
+  display: inline-block;
+}
+
+.rating>span {
+  display: inline-block;
+  position: relative;
+  width: 1.1em;
+  font-size: 18px;
+}
+
+.rating>span:hover,
+.rating>span:hover~span {
+  color: transparent;
+}
+
+.rating>span:hover:before,
+.rating>span:hover~span:before {
+  content: "\2605";
+  position: absolute;
+  left: 0;
+  color: gold;
+  font-size: 18px;
+}

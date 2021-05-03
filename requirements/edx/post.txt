@@ -1,0 +1,5 @@
+pypandoc==1.5
+pyfcm==1.5.1
+django-crontab==0.7.1
+pyotp==2.2.7
+django-ckeditor==5.9.0

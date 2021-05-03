@@ -49,6 +49,9 @@ from xmodule.split_test_module import get_split_user_partitions
 from .runner import TaskProgress
 from .utils import upload_csv_to_report_store
 
+#Added by Mahendra
+from lms.djangoapps.reg_form.views import getuserfullprofile, userdetails
+
 TASK_LOG = logging.getLogger('edx.celery.task')
 
 ENROLLED_IN_COURSE = 'enrolled'
@@ -439,13 +442,13 @@ class CourseGradeReport(object):
         Returns a list of all applicable column headers for this grade report.
         """
         return (
-            ["Student ID", "Email", "Username"] +
+            ["Student ID", "Email", "Name", "Username","State", "City"] +
             self._grades_header(context) +
             (['Cohort Name'] if context.cohorts_enabled else []) +
             [u'Experiment Group ({})'.format(partition.name) for partition in context.course_experiments] +
             (['Team Name'] if context.teams_enabled else []) +
-            ['Enrollment Track', 'Verification Status'] +
-            ['Certificate Eligible', 'Certificate Delivered', 'Certificate Type'] +
+            ['Enrollment Track'] +
+            ['Certificate Eligible', 'Certificate Delivered'] +
             ['Enrollment Status']
         )
 
@@ -659,7 +662,7 @@ class CourseGradeReport(object):
             enrollment_mode,
             user_is_verified=user.id in bulk_enrollments.verified_users,
         )
-        return [enrollment_mode, verification_status]
+        return [enrollment_mode]
 
     def _user_certificate_info(self, user, context, course_grade, bulk_certs):
         """
@@ -689,12 +692,16 @@ class CourseGradeReport(object):
                 collected_block_structure=context.course_structure,
                 course_key=context.course_id,
             ):
+                #Added by Mahendra
+                user_fullname = getuserfullprofile(user.id)
+                user_extra_info = userdetails(user.id)
                 if not course_grade:
                     # An empty gradeset means we failed to grade a student.
                     error_rows.append([user.id, user.username, text_type(error)])
                 else:
+                    #Updated by Mahendra
                     success_rows.append(
-                        [user.id, user.email, user.username] +
+                        [user.id, user.email, user_fullname.name, user.username,user_extra_info.rstate, user_extra_info.rcity] +
                         self._user_grades(course_grade, context) +
                         self._user_cohort_group_names(user, context) +
                         self._user_experiment_group_names(user, context) +

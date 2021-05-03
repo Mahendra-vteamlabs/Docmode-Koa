@@ -76,4 +76,5 @@ def send_message(comment, site):
         'thread_commentable_id': thread.commentable_id,
         'site_id': site.id
     }
-    tasks.send_ace_message.apply_async(args=[context])
+    #Updated by Mahendra
+    tasks.send_ace_message(context)

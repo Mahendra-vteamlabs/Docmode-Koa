@@ -10,7 +10,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django_mysql.models import ListCharField
 from oauth2_provider.settings import oauth2_settings
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 from pytz import utc
 
 from openedx.core.djangolib.markup import HTML

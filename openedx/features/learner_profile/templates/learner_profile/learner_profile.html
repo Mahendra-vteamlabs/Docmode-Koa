@@ -1,79 +1,1934 @@
 ## mako
-
 <%page expression_filter="h"/>
-<%inherit file="/main.html" />
-<%def name="online_help_token()"><% return "profile" %></%def>
+    <%inherit file="/main.html" />
+        <%def name="online_help_token()"><% return "profile" %></%def>
 <%namespace name='static' file='/static_content.html'/>
-
-<%!
-import json
-from django.urls import reverse
-from django.utils.translation import ugettext as _
-from openedx.core.djangolib.js_utils import dump_js_escaped_json
-from openedx.core.djangolib.markup import HTML
-%>
-
+    <%!
+        import json
+        import re
+        from six import text_type
+        from datetime import datetime
+        from django.urls import reverse
+        from django.utils.translation import ugettext as _
+        from django.template.context_processors import csrf
+        from django.utils.html import strip_tags
+        from openedx.core.djangolib.js_utils import dump_js_escaped_json
+        from openedx.core.djangolib.markup import HTML
+        from common.djangoapps.organizations.models import Organization
+        from lms.djangoapps.specialization.views import specializationName
+        from lms.djangoapps.course_extrainfo.views import course_ctype_number
+        from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+        %>
 <%block name="pagetitle">${_("Learner Profile")}</%block>
-
 <%block name="bodyclass">view-profile</%block>
-
 <%block name="headextra">
-<%static:css group='style-course'/>
+    <%static:css group='style-course'/>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.css" rel="stylesheet"/>
+        <style>
+              #map {
+                width: 100%;
+                height: 400px;
+                background-color: grey;
+              }
+            @media only screen and (max-device-width: 767px) and (min-device-width: 220px) and (orientation: landscape){
+                .profession {
+                    margin-top: unset !important;
+                    padding-left: 120px !important;
+                }
+            }
+            @media only screen and (max-device-width: 767px) and (min-device-width: 220px){
+                .profession {
+                    margin-top: unset !important;
+                    padding-left: 120px !important;
+                }
+            }
+        
+            @media only screen and (max-device-width: 767px) and (min-device-width: 320px){
+                .feature_media h2 {
+                    text-align: unset !important;
+                }
+            }
+        
+            @media only screen and (max-device-width: 767px) and (min-device-width: 320px){
+                .research_papers h2 {
+                    text-align: unset !important;
+                }
+            }
+            .owl-dots{
+                display: none !important;
+            }
+        
+            .play-intro {
+                position: absolute;
+            left: 35%;
+            top: 35%;
+            width: 54px;
+            height: 53px;
+            background-image: linear-gradient(-90deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.75));
+            border-radius: 50%;
+            box-shadow: 0 1px 12px 0 rgba(0, 0, 0, 0.4);
+            }
+        
+            #certificate-slider1 .item {
+                margin-left: 20px;
+            }
+        
+            
+            #certificate-slider1 .cert_assoc_logo { float: left; width: 34%; position:absolute; top: 40px;left: 16%;}
+            #certificate-slider1 .cert_title {float: left; font-size: 12px; width: 35%; color: #3c393a;font-weight: 800;text-align: left;margin-left: -17px;position: absolute;top: 36px;right: 40px;}
+            #certificate-slider1 .cert_grey_line{float: left;width: 55%;margin: 0px auto;padding-top: 6px;position: absolute;top: 105px;left: 22%;}
+        
+            #certificate-slider1 .cert_compltd{color: #5c5c5e;text-align: center;font-size: 12px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 121px;left: 130px;font-weight: 700;font-style: italic;}
+        
+            #certificate-slider1 .cert_compltd_date{color: #B5328E;text-align: center;font-size: 11px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 135px;left: 142px;font-weight: 700;}
+        
+            #certificate-slider1 .cert_sign1{float: left;width: 45px;margin: 0px auto;padding-top: 6px;position: absolute;top: 155px;left: 23%;}
+        
+            #certificate-slider1 .cert_medalion{float: left;width: 40px;margin: 0px auto;padding-top: 6px;position: absolute;top: 144px;left: 44%;}
+        
+            #certificate-slider1 .cert_sign2{float: left;width: 45px;margin: 0px auto;padding-top: 6px;position: absolute;top: 155px;right: 82px;}
+        
+            @media only screen and (max-device-width: 1199px) and (min-device-width: 992px){
+                #certificate-slider1 .cert_assoc_logo { float: left; width: 34%; position:absolute; top: 35px;left: 18%;}
+            #certificate-slider1 .cert_title {float: left; font-size: 12px; width: 34%; color: #3c393a;font-weight: 800;text-align: left;margin-left: -17px;position: absolute;top: 29px;right: 35px;}
+            #certificate-slider1 .cert_compltd{color: #5c5c5e;text-align: center;font-size: 9px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 95px;left: 107px;font-weight: 700;font-style: italic;}
+            #certificate-slider1 .cert_compltd_date{color: #B5328E;text-align: center;font-size: 9px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 107px;left: 115px;font-weight: 700;}
+            #certificate-slider1 .cert_sign1{float: left;width: 62px;margin: 0px auto;padding-top: 6px;position: absolute;top: 130px;left: 22%;}
+            #certificate-slider1 .cert_medalion{float: left;width: 40px;margin: 0px auto;padding-top: 6px;position: absolute;top: 115px;left: 46%;}
+            #certificate-slider1 .cert_sign2{float: left;width: 62px;margin: 0px auto;padding-top: 6px;position: absolute;top: 130px;right: 50px;}
+            }
+        
+            @media only screen and (max-device-width: 991px) and (min-device-width: 768px){
+                #certificate-slider1 .cert_assoc_logo { float: left; width: 34%; position:absolute; top: 40px;left: 17%;}
+                #certificate-slider1 .cert_title {float: left; font-size: 12px; width: 35%; color: #3c393a;font-weight: 800;text-align: left;margin-left: -17px;position: absolute;top: 36px;right: 40px;}
+                #certificate-slider1 .cert_grey_line{float: left;width: 55%;margin: 0px auto;padding-top: 6px;position: absolute;top: 105px;left: 22%;}
+                #certificate-slider1 .cert_compltd{color: #5c5c5e;text-align: center;font-size: 9px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 121px;left: 135px;font-weight: 700;font-style: italic;}
+                #certificate-slider1 .cert_compltd_date{color: #B5328E;text-align: center;font-size: 9px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 135px;left: 142px;font-weight: 700;}
+                #certificate-slider1 .cert_sign1{float: left;width: 62px;margin: 0px auto;padding-top: 6px;position: absolute;top: 155px;left: 24%;}
+                #certificate-slider1 .cert_medalion{float: left;width: 40px;margin: 0px auto;padding-top: 6px;position: absolute;top: 144px;left: 45%;}
+                #certificate-slider1 .cert_sign2{float: left;width: 62px;margin: 0px auto;padding-top: 6px;position: absolute;top: 155px;right: 80px;}
+            }
+        
+            @media only screen and (max-device-width: 767px) and (min-device-width: 480px){
+                #certificate-slider1 .cert_assoc_logo { float: left; width: 34%; position:absolute; top: 25px;left: 20%;}
+                #certificate-slider1 .cert_title {float: left; font-size: 9px; width: 31%; color: #3c393a;font-weight: 800;text-align: left;margin-left: -17px;position: absolute;top: 15px;right: 33px;}
+                #certificate-slider1 .cert_grey_line{float: left;width: 55%;margin: 0px auto;padding-top: 6px;position: absolute;top: 67px;left: 22%;}
+                #certificate-slider1 .cert_compltd{color: #5c5c5e;text-align: center;font-size: 9px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 80px;left: 82px;font-weight: 700;font-style: italic;}
+                #certificate-slider1 .cert_compltd_date{color: #B5328E;text-align: center;font-size: 9px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 90px;left: 90px;font-weight: 700;}
+                #certificate-slider1 .cert_sign1{float: left;width: 50px;margin: 0px auto;padding-top: 6px;position: absolute;top: 100px;left: 22%;}
+                #certificate-slider1 .cert_medalion{float: left;width: 27px;margin: 0px auto;padding-top: 6px;position: absolute;top: 92px;left: 47%;}
+                #certificate-slider1 .cert_sign2{float: left;width: 50px;margin: 0px auto;padding-top: 6px;position: absolute;top: 100px;right: 40px;}
+            }
+        
+            @media only screen and (max-device-width: 479px) and (min-device-width: 310px){
+                #certificate-slider1 .cert_assoc_logo { float: left; width: 26%; position:absolute; top: 36px;left: 18%;}
+                #certificate-slider1 .cert_title {float: left; font-size: 10px; width: 33%; color: #3c393a;font-weight: 800;text-align: left;margin-left: -17px;position: absolute;top: 20px;right: 40px;}
+                #certificate-slider1 .cert_grey_line{float: left;width: 55%;margin: 0px auto;padding-top: 6px;position: absolute;top: 105px;left: 22%;}
+                #certificate-slider1 .cert_compltd{color: #5c5c5e;text-align: center;font-size: 9px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 95px;left: 121px;font-weight: 700;font-style: italic;}
+                #certificate-slider1 .cert_compltd_date{color: #B5328E;text-align: center;font-size: 9px;padding: 0;line-height: normal;/* padding-top: 13px; */line-height: 0px;position: absolute;top: 105px;left: 132px;font-weight: 700;}
+                #certificate-slider1 .cert_sign1{float: left;width: 62px;margin: 0px auto;padding-top: 6px;position: absolute;top: 130px;left: 22%;}
+                #certificate-slider1 .cert_medalion{float: left;width: 40px;margin: 0px auto;padding-top: 6px;position: absolute;top: 115px;left: 46%;}
+                #certificate-slider1 .cert_sign2{float: left;width: 62px;margin: 0px auto;padding-top: 6px;position: absolute;top: 130px;right: 50px;}
+            }
+        
+        </style>
+        <script src="https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js"></script>
 </%block>
-
 <div class="message-banner" aria-live="polite"></div>
 <main id="main" aria-label="Content" tabindex="-1">
-    <div class="wrapper-profile">
-        <div class="profile ${'profile-self' if own_profile else 'profile-other'}">
-            <div class="wrapper-profile-field-account-privacy">
-                % if own_profile and records_url:
-                    <div class="wrapper-profile-records">
-                        <a href="${records_url}">
-                            <button class="btn profile-records-button">${_("View My Records")}</button>
-                        </a>
-                    </div>
-                % endif
-            </div>
+<div class="wrapper-profile">
+<!----------------------New UI added by WEQ nisha and rahul--------------------------------->
+<section class="profile-view">
+<div class="container">
+<div class="row">
+<div class="col-md-12 col-sm-12 col-xs-12">
+<ul class="breadcrums">
+<li>
+<a href="/">Home / </a>
+</li>
+<li>
+<a >My Profile </a>
+</li>
+</ul>
+</div>
+</div> 
+<div class="profile-wrap">
+<div class="row">
+<div class="col-md-3 col-sm-3 col-xs-12">
+<div class="doctor-img profile-image-field"></div>
+</div>
+<div class="col-md-9 col-sm-9 col-xs-12">
+<div class="profile-details">
+<div class="all-heading">
+<% 
+    specz_name = specializationName(userprofile_extrainfo.specialization_id) 
+    %>
+<h1>
+    %if userprofile_extrainfo.user_type == 'dr':
+    Dr. 
+    %endif
+    ${userprofile.name}, 
+    %if specz_name:
+    ${specz_name}
+    %endif
+</h1>
+<!-- <span><a href="#" class="p-blogs">2 Blogs</a></span>
+    <a href="#">(Claim your profile)</a> -->
+</div>
+</div>
+</div>
+<div class="col-md-12 col-sm-12 col-xs-12 blue-border">
+    <div class="profile-details profile-more-details">
+        <p id="view_education" class="profession">${userprofile_extrainfo.education}
             % if own_profile:
-                <div class="profile-header">
-                    <h2 class="header">${_("My Profile")}</h2>
-                    <div class="subheader">
-                        ${_('Build out your profile to personalize your identity on {platform_name}.').format(
-                            platform_name=platform_name,
-                        )}
-                    </div>
+            <i class="icon fa fa-pencil" onclick="edit_extraprofile('education');" style="cursor: pointer;"></i>
+            %endif
+        </p>
+        <p class="profession" id="update_education" style="display: none;"> <span class="col-sm-12" >
+            <input id="education" aria-describedby="u-field-message-help-name" type="text" name="input" value="${userprofile_extrainfo.education}" onchange="useraddupdate('education');" style="width:100%;">
+            </span>
+        </p>
+        <h3 id="educationmsg"></h3>
+        <hr>
+        <!-- <div class="level-img">
+            <img src="${static.url('images/weq-images/908872P.svg')}" alt=""> 
+            <span>Level Name</span>
+            </div>                                   
+            <button href="#moreDetails" data-toggle="collapse" class="plusBtn"><i class="fa fa-plus"></i></button> -->
+        <!-- <p id="moreDetails" class="profession-text collapse"><div class="profile-about-editor wrapper-profile-bio"></div></p> -->
+        <div class="edu_box">
+            <div class="edu_details">
+                % if own_profile:
+                <div class="add-del-btn">
+                    <a class="add-icon" href="#" data-toggle="modal" data-target="#about_form"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
                 </div>
-            % endif
-            <div class="wrapper-profile-sections account-settings-container">
-                <div class="ui-loading-indicator">
-                    <p><span class="spin"><span class="icon fa fa-refresh" aria-hidden="true"></span></span> <span class="copy">${_("Loading")}</span></p>
-                </div>
-                <div class="wrapper-profile-section-container-one is-hidden">
-                    <div class="wrapper-profile-section-one">
-                        <div class="profile-image-field">
+                % endif
+                %if userprofile_extrainfo.user_long_description:
+                <p>${userprofile_extrainfo.user_long_description |n}</p>
+                %else:
+                <p>Tell us something about yourself</p>
+                %endif
+                <div class="modal fade" id="about_form" data-backdrop="static"
+                    data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">About</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" action="/about_add/" enctype="multipart/form-data" autocomplete="off">
+                                    <div class="form-group">
+                                        <textarea class="form-control" id="user_long_description" rows="3" name="user_long_description" >
+                                                                    %if userprofile_extrainfo.user_long_description:
+                                                                        <p>${userprofile_extrainfo.user_long_description |n}</p>
+                                                                    %else:
+                                                                        <p>Tell us something about yourself</p>
+                                                                    %endif
+                                                                </textarea>
+                                    </div>
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                    <input type="submit" value="Submit" >
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                </div> -->
                         </div>
-                        <div class="profile-section-one-fields">
-                        </div>
                     </div>
-                    <div class="ui-loading-error is-hidden">
-                        <span class="fa fa-exclamation-triangle message-error" aria-hidden="true"></span>
-                        <span class="copy">${_("An error occurred. Try loading the page again.")}</span>
-                    </div>
-                </div>
-                <div class="wrapper-profile-section-container-two is-hidden">
-                    <div class="wrapper-profile-bio"></div>
-                    % if achievements_fragment:
-                        ${HTML(achievements_fragment.body_html())}
-                    % endif
                 </div>
             </div>
         </div>
     </div>
+</div>
+</div>
+<div id="mobile_link_list" class="row">
+    <div class="col-xs-12">
+        <div class="profile_alink">
+            <a href="#certificates_id">Certificates</a>  
+            <a href="#education_id">Education</a>
+            <a href="#contact_id">Contact </a>
+        </div>
+    </div>
+</div>
+</div>                  
+</div>
+</section>
+<!--  <section class="reputation-wrap-sec">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="reputation-wrap">
+                    <h2>Reputation <img src="${static.url('images/weq-images/information-circular-button.svg')}" alt=""></h2>
+                    <span class="hide-btn"><a href="">Hide Section <img src="${static.url('images/weq-images/switch-pink.svg')}" alt=""></a></span>
+                    <div class="reputation-card">
+                        <div class="row">
+                            <div class="col-md-6 col-sm-6 col-xs-6">
+                                <p class="rank">Platform Rank</p>
+                                <p class="reputation-num">2,100 <span>+23</span></p>
+                                <p class="reputation-text">Top 20% this month</p>
+                            </div>
+                            <div class="col-md-6 col-sm-6 col-xs-6">
+                                <p class="rank">Verified Responses</p>
+                                <p class="reputation-num">21 </p>
+                                <p class="reputation-text">Better than 20% of users</p>
+                            </div>
+                            <div class="col-md-6 col-sm-6 col-xs-6">
+                                <p class="rank">Impact</p>
+                                <p class="reputation-num">428 <span>+12</span></p>
+                                <p class="reputation-text">Profile viewed</p>
+                            </div>
+                            <div class="col-md-6 col-sm-6 col-xs-6">
+                                <p class="rank">Reviews & Recommendations</p>
+                                <p class="reputation-num">12</p>
+                                <p class="reputation-text">Average 4 star rating</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="proud-moments-wrap">
+                    <h2>Proud Moments</h2>                                
+                    <p>Prof. Fock is a Adj Professor of Duke-NUS Graduate Medical School Singapore and Clinical Professor, Faculty of Medicine, National University of Singapore<span id="dots">...</span><span id="more">. His administrative duties include Chief Risk Officer of Changi General Hospital (CGH). He has been Master Academy of Medicine (2008 – 2010).</span></p>
+                    <button onclick="readMore()" id="readBtn">Read More</button>
+                    
+                    <h2>Latest Awards</h2>
+                    <span class="rank"><img src="${static.url('images/weq-images/Group-51.svg')}" alt=""></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section> -->
+<div class="medical_philosophy">
+    <h3>Medical Philosophy 
+        % if own_profile:
+        <i class="icon fa fa-pencil" onclick="edit_extraprofile('medical_philosophy');" style="cursor: pointer;"></i>
+        %endif
+    </h3>
+    <div class="white_line"></div>
+    <p id="view_medical_philosophy">${userprofile_extrainfo.medical_philosophy}</p>
+    <p> <span class="col-sm-12" id="update_medical_philosophy" style="display: none;">
+        <input id="medical_philosophy" class="col-md-12" aria-describedby="u-field-message-help-name" type="text" name="input" value="${userprofile_extrainfo.medical_philosophy}" onchange="useraddupdate('medical_philosophy');" >
+        </span>
+    </p>
+    <h3 id="medical_philosophymsg"></h3>
+</div>
+%if request.user.is_staff :
+<!-- <section class="docmode_certificates">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Healthcare Awareness Videos</h2>
+            </div>
+        </div>  
+        <div class="row">
+            <div id="awareness-videos-slider" class="profile-slide owl-carousel owl-theme">
+            % for awareness_video in awareness_videos:   
+                <%
+        video_image_url = awareness_video.video_url.split("=")
+        video_url = video_image_url[0].split("watch")
+        iframe_video_url = video_url[0]+'/embed/'+video_image_url[1]
+        %>
+                <div class="item">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="course_wrap_sec profile_courses">
+                            <a href="${awareness_video.video_url}">
+                                <a href="#" data-toggle="modal" data-target="#healthcare_aware_videos" onclick="view_awareness_videos('${iframe_video_url}');">
+                                <div class="card">
+                                    <div class="play-intro">
+                                        <img src="https://docmode.org/wp-content/uploads/2019/09/icons8-play-40.png" alt="">
+                                    </div>
+                                    <div class="card-img">
+                                        <img src="https://img.youtube.com/vi/${video_image_url[1]}/hqdefault.jpg" alt="${video_image_url}">
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            %endfor
+            </div>                          
+        </div>
+    </div>
+    </section> -->
+%endif
+<section id="certificates_id" class="docmode_certificates">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="certificates_title">
+                    <h2>Certification for Continuing Medical Education <img src="${static.url('images/weq-images/information-circular-button.svg')}" alt=""></h2>
+                    <!-- <a href="#"><span><i class="fa fa-upload" aria-hidden="true"></i> Upload</span>
+                        </a> -->
+                    <!-- <div class="upload-btn">
+                        <label for="file-input"><i class="fa fa-upload"></i> Upload</label>
+                        <input id="file-input" type="file" />
+                        </div> -->
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div id="certificate-slider1" class="owl-carousel owl-theme slider-owl">
+                    % for certificate in course_certificates:
+                    <%
+                        certificate_url = certificate['download_url']
+                        course = certificate['course_key']
+                        courseid = CourseOverview.objects.get(id=course)
+                        cert_org = Organization.objects.get(short_name=courseid.display_org_with_default)
+                        course_name = (courseid.display_name_with_default[:55]) if len(courseid.display_name_with_default) > 40 else courseid.display_name_with_default
+                        dateStr = certificate['created'].strftime("%b %d, %Y ")
+                        ctype_numb = course_ctype_number(courseid.id)
+                        %>
+                    <div class="item" style="box-shadow: 0px 0px 10px #00000033;">
+                        <a href="${certificate_url}" target="_blank">
+                            <ul style="list-style: none;padding: 0;margin: 0;    float: left;    border-image-source: url(https://s3-ap-southeast-1.amazonaws.com/docmode.co/DocMode-CartificateIMG/border_small.png); border-image-width: 15px 40px;    border: 1px solid #eaeaea;">
+                                <li>
+                                    <img src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/website-images/border_image.png" style="position: relative;">
+                                    <img src="${cert_org.logo}" class="cert_assoc_logo">
+                                    <h1 class="cert_title">${course_name}</h1>
+                                    <img class="cert_grey_line" src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/DocMode-CartificateIMG/Grey-Line.png">
+                                    %if ctype_numb == '1':
+                                    <p class="cert_compltd">Course Completed</p>
+                                    <p class="cert_compltd_date">${dateStr}</p>
+                                    <img class="cert_sign1" src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/website-images/Signatory-Image.png">
+                                    <img class="cert_medalion" src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/website-images/Medal-Courses.png">
+                                    %elif ctype_numb == '2':
+                                    <p class="cert_compltd">Lecture Completed</p>
+                                    <p class="cert_compltd_date">${dateStr}</p>
+                                    <img class="cert_sign1" src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/website-images/Signatory-Image.png">
+                                    <img class="cert_medalion" src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/website-images/Medal-Lectures.png">
+                                    %endif
+                                    <img class="cert_sign2" src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/website-images/Signatory-Image.png">
+                                </li>
+                            </ul>
+                        </a>
+                    </div>
+                    %endfor                                     
+                </div>
+                <!-- <div class="mobile_certificate">
+                    <label for="file-input"><i class="fa fa-upload"></i> Upload</label>
+                    <input id="file-input" type="file" />                               
+                    </div> -->
+            </div>
+        </div>
+    </div>
+</section>
+%if instructor_courses:
+<section class="enrolled_courses">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Courses & lectures Delivered</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div id="instructor-course-delivered-slider" class="profile-slide owl-carousel owl-theme">
+                % for course in instructor_courses:   
+                <%
+                    if course.start is not None:
+                        course_date_string = course.start.strftime('%Y-%m-%dT%H:%M:%S%z')
+                    else:
+                        course_date_string = ''
+                    association_name = Organization.objects.get(short_name=course.display_org_with_default)
+                    data = association_name.name 
+                    info = (data[:8] + '...') if len(data) > 15 else data
+                    ctype_numb = course_ctype_number(course.id)
+                    if ctype_numb == '1':
+                        ctype = 'Course'
+                    elif ctype_numb == '2':
+                        ctype = 'Lecture'
+                    else:
+                        ctype = 'Case Study'
+                    %>    
+                <div class="item">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="course_wrap_sec profile_courses">
+                            <a href="${reverse('about_course', args=[text_type(course.id)])}">
+                                <div class="card">
+                                    <div class="card-img">
+                                        <img src="${course.course_image_url}" alt="${course.display_name_with_default}">
+                                    </div>
+                                    <div class="card-text">
+                                        <!--added by nisha start-->
+                                        <span class="course-author"><i class="fa fa-user-o" aria-hidden="true"></i> ${info}</span>
+                                        <span class="course-time"><i class="fa fa-clock-o" aria-hidden="true"></i> <time class="localized_datetime" itemprop="startDate" data-format="shortDate" data-datetime="${course_date_string}"></time></span>
+                                        <!--added by nisha end-->
+                                        <h4 style="height: auto;">${course.display_name_with_default}</h4>
+                                        <button type="button" class="btn btn-default enroll_btn">View</button>
+                            <a href="" class="book_tag">${ctype}</a>
+                            <!--added by nisha end-->
+                            </div>
+                            </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                %endfor
+            </div>
+        </div>
+    </div>
+</section>
+%endif
+<section class="enrolled_courses">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Courses & lectures enrolled in</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div id="profile-course-slider" class="profile-slide owl-carousel owl-theme">
+                % for course in courses:  
+                %if course not in instructor_courses: 
+                <%
+                    if course.start is not None:
+                        course_date_string = course.start.strftime('%Y-%m-%dT%H:%M:%S%z')
+                    else:
+                        course_date_string = ''
+                    association_name = Organization.objects.get(short_name=course.display_org_with_default)
+                    data = association_name.name 
+                    info = (data[:8] + '...') if len(data) > 15 else data
+                    ctype_numb = course_ctype_number(course.id)
+                    if ctype_numb == '1':
+                        ctype = 'Course'
+                    elif ctype_numb == '2':
+                        ctype = 'Lecture'
+                    else:
+                        ctype = 'Case Study'
+                    %>    
+                <div class="item">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="course_wrap_sec profile_courses">
+                            <a href="${reverse('about_course', args=[text_type(course.id)])}">
+                                <div class="card">
+                                    <div class="card-img">
+                                        <img src="${course.course_image_url}" alt="${course.display_name_with_default}">
+                                    </div>
+                                    <div class="card-text">
+                                        <!--added by nisha start-->
+                                        <span class="course-author"><i class="fa fa-user-o" aria-hidden="true"></i> ${info}</span>
+                                        <span class="course-time"><i class="fa fa-clock-o" aria-hidden="true"></i> <time class="localized_datetime" itemprop="startDate" data-format="shortDate" data-datetime="${course_date_string}"></time></span>
+                                        <!--added by nisha end-->
+                                        <h4 style="height: auto;">${course.display_name_with_default}</h4>
+                                        <button type="button" class="btn btn-default enroll_btn">View</button>
+                            <a href="" class="book_tag">${ctype}</a>
+                            <!--added by nisha end-->
+                            </div>
+                            </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                %endif
+                %endfor
+            </div>
+        </div>
+    </div>
+</section>
+<!-- <section class="services_offers">
+    <div>
+        <h2>Services Dr. Pallav Offers <img src="${static.url('images/weq-images/information-circular-button.svg')}" alt=""></h2>
+    </div>
+    <div class="dr_offers">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-6 col-xs-12 col-sm-6">
+                <h3>Specialties</h3>
+                <ul>
+                    <li>Psychology</li>
+                    <li>EEG Analysis</li>
+                    <li>Anaesthetist</li>
+                    <li>Psychology</li>
+                </ul>
+            </div>
+            <div class="col-md-6 col-xs-12 col-sm-6">
+                <h3>General Services</h3>
+                <ul>
+                    <li>EEG Analysis</li>
+                    <li>Anaesthetist</li>
+                    <li>Psychology</li>
+                    <li>EEG Analysis</li>
+                    <li>Anaesthetist</li>
+                </ul>
+            </div>
+        </div>
+        </div>
+    
+    </div>
+    </section> -->
+%if experience_data:
+<section id="experience_id" class="education_wrap">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-sm-8 col-xs-10">
+                <h2>Experience</h2>
+            </div>
+            % if own_profile:
+            <div class="col-md-4 col-sm-4 col-xs-2">
+                <a class="add-btn" href="#" data-toggle="modal" data-target="#exp_form">Add</a>
+            </div>
+            %endif
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="edu_box">
+                    %for exp in experience_data :
+                    <% descrip = re.escape(exp.description) %>
+                    <div class="edu_details">
+                        % if own_profile:
+                        <div class="add-del-btn">
+                            <a class="add-icon" href="#" data-toggle="modal" data-target="#exp_edit_form" onclick="exp_edit_modal_data('${exp.year}','${exp.institution_name}','${descrip}','${exp.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
+                            <a class="delete-icon" href="#" data-toggle="modal" data-target="#exp_del_form" onclick="exp_deactivate('${exp.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/delete.png" title="Delete"></a>
+                        </div>
+                        %endif
+                        <span class="edu_icon"><img src="${static.url('images/weq-images/college-graduation.svg')}" alt=""></span>
+                        <h3>${exp.year}</h3>
+                        <h4>${exp.institution_name}</h4>
+                        <p>${exp.description}</p>
+                    </div>
+                    %endfor
+                    <div class="modal fade" id="exp_del_form" data-backdrop="static"
+                        data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Experience Details</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/experience/new/" enctype="multipart/form-data" method="POST" autocomplete="off">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                        <input type="hidden" name="deactivate" value="1">
+                                        <input type="hidden" name="exp_number" id="exp_number" value="">
+                                        <div class="form-group" style="text-align: center;">
+                                            <label for="exampleFormControlFile1" style="text-align: center;">Are you sure want to delete this?</label>
+                                            <button type="submit" class="btn btn-primary">Ok</button>
+                                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                    </div> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="exp_form" data-backdrop="static"
+                        data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Experience Details</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/experience/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Year</label>
+                                            <input type="text" class="form-control" id="exp_year" placeholder="year to year" name="year" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Institution Name</label>
+                                            <input type="text" class="form-control" id="institution_name" placeholder="Example input" name="institution_name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="exampleFormControlTextarea1">Description</label>
+                                            <textarea class="form-control" id="description" rows="3" name="description" ></textarea>
+                                        </div>
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                        <input type="hidden" name="exp_add" value="1">
+                                        <input type="submit" value="Submit" >
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="exp_edit_form" data-backdrop="static"
+                        data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Edit Experience Details</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/experience/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Year</label>
+                                            <input type="text" class="form-control" id="edit_exp_year" placeholder="1234 to 1234" name="year" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Institution Name</label>
+                                            <input type="text" class="form-control" id="edit_exp_institution_name" placeholder="" name="institution_name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="exampleFormControlTextarea1">Description</label>
+                                            <textarea class="form-control" id="edit_exp_description" rows="3" name="description" ></textarea>
+                                        </div>
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                        <input type="hidden" name="exp_edit" value="1">
+                                        <input type="hidden" name="exp_edit_number" id="exp_edit_number" value="">
+                                        <input type="submit" value="Submit" >
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+%endif
+%if education_data or own_profile:
+<section id="education_id" class="education_wrap">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-sm-8 col-xs-10">
+                <h2>Education</h2>
+            </div>
+            % if own_profile:
+            <div class="col-md-4 col-sm-4 col-xs-2">
+                <a class="add-btn" href="#" data-toggle="modal" data-target="#edu_form">Add</a>
+            </div>
+            %endif
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="edu_box">
+                    %for edu in education_data :
+                    <% descrip = re.escape(edu.description) %>
+                    <div class="edu_details">
+                        % if own_profile:
+                        <div class="add-del-btn">
+                            <a class="add-icon" href="#" data-toggle="modal" data-target="#edu_edit_form" onclick="edu_edit_modal_data('${edu.year}','${edu.institution_name}','${descrip}','${edu.certificate_path}','${edu.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
+                            <a class="delete-icon" href="#" data-toggle="modal" data-target="#edu_del_form" onclick="edu_deactivate('${edu.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/delete.png" title="Delete"></a>
+                        </div>
+                        %endif
+                        <span class="edu_icon"><img src="${static.url('images/weq-images/college-graduation.svg')}" alt=""></span>
+                        <h3>${edu.year}</h3>
+                        <h4>${edu.institution_name}</h4>
+                        <p>${edu.description}</p>
+                    </div>
+                    %endfor
+                    <div class="modal fade" id="edu_del_form" data-backdrop="static"
+                        data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Education Details</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/education/new/" enctype="multipart/form-data" method="POST" autocomplete="off">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                        <input type="hidden" name="deactivate" value="1">
+                                        <input type="hidden" name="edu_number" id="edu_number" value="">
+                                        <div class="form-group" style="text-align: center;">
+                                            <label for="exampleFormControlFile1" style="text-align: center;">Are you sure want to delete this?</label>
+                                            <button type="submit" class="btn btn-primary">Ok</button>
+                                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                    </div> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="edu_form" data-backdrop="static"
+                        data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Education Details</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/education/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Year</label>
+                                            <input type="text" class="form-control" id="year" placeholder="Example input" name="year">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Institution Name</label>
+                                            <input type="text" class="form-control" id="institution_name" placeholder="Example input" name="institution_name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="exampleFormControlTextarea1">Description</label>
+                                            <textarea class="form-control" id="description" rows="3" name="description" ></textarea>
+                                        </div>
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                        <input type="hidden" name="edu_add" value="1">
+                                        <div class="form-group">
+                                            <label for="exampleFormControlFile1">Certificate upload</label>
+                                            <input type="file" class="form-control-file" name="certificate_path" id="certificate_path" >
+                                        </div>
+                                        <input type="submit" value="Submit" >
+                                    </form>
+                                </div>
+                                <!-- <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                    </div> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="edu_edit_form" data-backdrop="static"
+                        data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Edit Education Details</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/education/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Year</label>
+                                            <input type="text" class="form-control" id="edit_year" placeholder="Example input" name="year">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="formGroupExampleInput">Institution Name</label>
+                                            <input type="text" class="form-control" id="edit_institution_name" placeholder="Example input" name="institution_name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="exampleFormControlTextarea1">Description</label>
+                                            <textarea class="form-control" id="edit_description" rows="3" name="description" ></textarea>
+                                        </div>
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                        <input type="hidden" name="edu_edit" value="1">
+                                        <input type="hidden" name="edu_edit_number" id="edu_edit_number" value="">
+                                        <div class="form-group">
+                                            <label for="exampleFormControlFile1">Certificate Image</label>
+                                            <input type="file" class="form-control-file" name="certificate_path" id="certificate_path">
+                                            <img src="" id="edit_certificate_path"/>
+                                        </div>
+                                        <input type="submit" value="Submit" >
+                                    </form>
+                                </div>
+                                <!-- <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                    </div> -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+%endif
+%if award_data or own_profile:
+<section class="education_wrap">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-sm-8 col-xs-10">
+                <h2>Awards & Achievements</h2>
+            </div>
+            % if own_profile:
+            <div class="col-md-4 col-sm-4 col-xs-2">
+                <a class="add-btn" href="#" data-toggle="modal" data-target="#award_add_form">Add</a>
+            </div>
+            %endif
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="edu_box">
+                    %for award in award_data :
+                    <div class="edu_details">
+                        % if own_profile:
+                        <div class="add-del-btn">
+                            <a class="add-icon" href="#" data-toggle="modal" data-target="#award_edit_form" onclick="award_edit_modal_data('${award.year}','${award.title}','${award.award_image_path}','${award.id}');">
+                            <img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
+                            <a class="delete-icon" href="#" data-toggle="modal" data-target="#award_del_form" onclick="award_deactivate('${award.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/delete.png" title="Delete"></a>
+                        </div>
+                        %endif
+                        <span class="edu_icon"><img src="${static.url('images/weq-images/cup.svg')}" alt=""></span>
+                        <h4 class="awards-heading">${award.year}</h4>
+                        <h4>${award.title}</h4>
+                    </div>
+                    %endfor
+                </div>
+                <div class="modal fade" id="award_del_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Delete</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/award/new/" enctype="multipart/form-data" method="POST" autocomplete="off">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                    <input type="hidden" name="deactivate" value="1">
+                                    <input type="hidden" name="award_number" id="award_number" value="">
+                                    <div class="form-group" style="text-align: center;">
+                                        <label for="exampleFormControlFile1" style="text-align: center;">Are you sure want to delete this?</label>
+                                        <button type="submit" class="btn btn-primary">Ok</button>
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                </div> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="award_add_form" data-backdrop="static"
+                    data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Award Add Form</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/award/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Year</label>
+                                        <input type="text" class="form-control" id="award_year" placeholder="" name="award_year">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Title</label>
+                                        <input type="text" class="form-control" id="award_title" placeholder="Example input" name="award_title">
+                                    </div>
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                    <input type="hidden" name="award_add" value="1">
+                                    <div class="form-group">
+                                        <label for="exampleFormControlFile1">Award image</label>
+                                        <input type="file" class="form-control-file" name="award_path" id="award_path" >
+                                    </div>
+                                    <input type="submit" value="Submit" >
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                </div> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="award_edit_form" data-backdrop="static"
+                    data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Award edit form</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/award/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Year</label>
+                                        <input type="text" class="form-control" id="edit_award_year" placeholder="Example input" name="edit_award_year">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Title</label>
+                                        <input type="text" class="form-control" id="edit_award_title" placeholder="Example input" name="edit_award_title">
+                                    </div>
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                    <input type="hidden" name="award_edit" value="1">
+                                    <input type="hidden" name="award_edit_number" id="edit_award_number" value="">
+                                    <div class="form-group">
+                                        <label for="exampleFormControlFile1">Award Image</label>
+                                        <input type="file" class="form-control-file" name="edit_award_path" id="edit_award_path">
+                                        <img src="" id="award_Image"/>
+                                    </div>
+                                    <input type="submit" value="Submit" >
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+%endif
+%if research_data or own_profile:
+<section class="research_papers">
+    <div class="container">
+        <div class="row view_top">
+            <div class="col-md-8 col-sm-8 col-xs-10">
+                <h2>Research Papers <img src="${static.url('images/weq-images/information-circular-button.svg')}" alt=""></h2>
+            </div>
+            <div class="col-md-4 col-sm-4 col-xs-2">
+                <!-- <a class="papers_view_all" href="#">View all</a> -->
+                % if own_profile:
+                <a class="add-btn" href="#" data-toggle="modal" data-target="#research_add_form">Add</a>
+                %endif
+            </div>
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="research_papers_list">
+                    %for research in research_data :
+                    <% research_descrip = re.escape(research.description) %>
+                    <div class="paper_list row">
+                        <div class="col-md-8 col-sm-9 col-xs-12">
+                            <h3><a href="${research.extarnal_link}" target="_blank">${research.title}</a></h3>
+                            <p>${research.description}</p>
+                        </div>
+                        <div class="col-md-4 col-sm-3 col-xs-12">
+                            <ul>
+                                % if own_profile:
+                                <li><a href="#" data-toggle="modal" data-target="#research_edit_form" onclick="research_edit_modal_data('${research.title}','${research_descrip}','${research.pdf_path}','${research.id}','${research.extarnal_link}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" alt=""></a></li>
+                                <li><a href="#" data-toggle="modal" data-target="#research_del_form" onclick="research_deactivate('${research.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/delete.png" alt=""></a></li>
+                                %endif
+                                %if research.pdf_path != 'not uploaded':
+                                <li><a href="#" data-toggle="modal" data-target="#researchModal" onclick=" show_pdf('${research.pdf_path}');"><img src="${static.url('images/weq-images/file.svg')}" alt="${research.pdf_path}"></a></li>
+                                <li><a href="${research.pdf_path}" download="pdf_file"><img src="${static.url('images/weq-images/download.svg')}" alt="${research.pdf_path}"></a></li>
+                                %endif
+                                <!-- <li><a href="${research.extarnal_link}" target="_blank"><img src="${static.url('images/weq-images/linkout.svg')}" alt=""></a></li> -->
+                            </ul>
+                        </div>
+                    </div>
+                    %endfor
+                </div>
+                <div class="modal fade" id="research_del_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Research </h4>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/research_papers/new/" enctype="multipart/form-data" method="POST" autocomplete="off">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                    <input type="hidden" name="deactivate" value="1">
+                                    <input type="hidden" name="research_number" id="research_number" value="">
+                                    <div class="form-group" style="text-align: center;">
+                                        <label for="exampleFormControlFile1" style="text-align: center;">Are you sure want to delete this?</label>
+                                        <button type="submit" class="btn btn-primary">Ok</button>
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                </div> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="research_add_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Research Add Form</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/research_papers/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Title</label>
+                                        <input type="text" class="form-control" id="research_title" placeholder="" name="research_title"required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Short Description</label>
+                                        <textarea class="form-control" id="research_description" placeholder="Example input" name="research_description"></textarea>
+                                    </div>
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                    <input type="hidden" name="research_add" value="1">
+                                    <div class="form-group">
+                                        <label for="exampleFormControlFile1">Research Pdf upload</label>
+                                        <input type="file" class="form-control-file" name="research_pdf_path" id="research_pdf_path">
+                                    </div>
+                                    <h4>OR</h4>
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Research Paper link</label>
+                                        <input type="text" class="form-control" id="research_link" placeholder="" name="research_link">
+                                    </div>
+                                    <input type="submit" value="Submit" >
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                </div> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="research_edit_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Research Edit form</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/research_papers/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Title</label>
+                                        <input type="text" class="form-control" id="edit_research_title" placeholder="Example input" name="edit_research_title" required="">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Description</label>
+                                        <textarea class="form-control" id="edit_research_description" placeholder="Example input" name="edit_research_description" ></textarea>
+                                    </div>
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                    <input type="hidden" name="research_papers_edit" value="1">
+                                    <input type="hidden" name="edit_research_number" id="edit_research_number" value="">
+                                    <div class="form-group">
+                                        <label for="exampleFormControlFile1">Research Pdf Upload</label>
+                                        <input type="file" class="form-control-file" name="edit_research_pdf_path" id="edit_research_pdf_path">
+                                    </div>
+                                    <h4>OR</h4>
+                                    <div class="form-group">
+                                        <label for="formGroupExampleInput">Research Paper link</label>
+                                        <input type="text" class="form-control" id="edit_research_link" placeholder="Example input" name="edit_research_link">
+                                    </div>
+                                    <input type="submit" value="Submit" >
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                                </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+%endif
+%if featured_data or own_profile:
+<section class="feature_media">
+    <div class="container">
+        <div class="row view_top">
+            <div class="col-md-8 col-sm-8 col-xs-10">
+                <h2>Featured in media <img src="${static.url('images/weq-images/information-circular-button.svg')}" alt=""></h2>
+            </div>
+            <div class="col-md-4 col-sm-4 col-xs-2">
+                <!-- <a class="papers_view_all" href="#">View all</a> -->
+                % if own_profile:
+                <a class="add-btn " href="#" data-toggle="modal" data-target="#featured_add_form">Add</a>
+                %endif
+            </div>
+        </div>
+        <div class="row">
+            %for featured in featured_data:
+            <%
+                title = (featured.title[:70] + '..') if len(featured.title) > 70 else featured.title
+                %>
+            <div class="col-md-6">
+                <div class="card card-default">
+                    % if own_profile:
+                    <span class="mediacard-close">
+                    <a href="#" data-toggle="modal" data-target="#featured_del_form" onclick="featured_deactivate('${featured.id}');"><i class="fa fa-times" ></i></a>
+                    </span>
+                    <span class="mediacard-edit"><a href="" data-toggle="modal" data-target="#featured_edit_form" onclick='featured_edit_modal_data("${featured.title}","${featured.media_name}","${featured.media_link}","${featured.img}","${featured.id}");'><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit_img.png"></a></span>
+                    %endif
+                    <a href="" data-toggle="modal" data-target="#popmyModal" class="card-link" onclick="show('${featured.id}','${featured.media_link}');">
+                        <span class="card-img">
+                        <img src="${featured.img}" alt="">
+                        </span>
+                        <span class="card-body">
+                            <span class="h3 heading">${title}</span>
+                            <p>${featured.media_name}</p>
+                        </span>
+                    </a>
+                </div>
+            </div>
+            %endfor
+            <div class="modal fade" id="featured_del_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Modal Header</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/featured_media/new/" enctype="multipart/form-data" method="POST" autocomplete="off">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                <input type="hidden" name="deactivate" value="1">
+                                <input type="hidden" name="featured_number" id="featured_number" value="">
+                                <div class="form-group" style="text-align: center;">
+                                    <label for="exampleFormControlFile1" style="text-align: center;">Are you sure want to delete this?</label>
+                                    <button type="submit" class="btn btn-primary">Ok</button>
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                            </div> -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="featured_add_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Featured Add Form</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/featured_media/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Title</label>
+                                    <input type="text" class="form-control" id="featured_title" placeholder="" name="featured_title">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Media House</label>
+                                    <input type="text" class="form-control" id="featured_medianame" placeholder="Example input" name="featured_medianame">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Link</label>
+                                    <input type="text" class="form-control" id="featured_medialink" placeholder="Example input" name="featured_medialink">
+                                </div>
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                <input type="hidden" name="featured_add" value="1">
+                                <div class="form-group">
+                                    <label for="exampleFormControlFile1">Research Pdf upload</label>
+                                    <input type="file" class="form-control-file" name="featured_img" id="featured_img">
+                                </div>
+                                <input type="submit" value="Submit" >
+                            </form>
+                        </div>
+                        <!-- <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                            </div> -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="featured_edit_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Edit</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/featured_media/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Title</label>
+                                    <input type="text" class="form-control" id="edit_featured_title" placeholder="Example input" name="edit_featured_title">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Media name</label>
+                                    <input type="text" class="form-control" id="edit_featured_medianame" placeholder="Example input" name="edit_featured_medianame">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Media link</label>
+                                    <input type="text" class="form-control" id="edit_featured_medialink" placeholder="Example input" name="edit_featured_medialink">
+                                </div>
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                <input type="hidden" name="featured_edit" value="1">
+                                <input type="hidden" name="edit_featured_number" id="edit_featured_number" value="">
+                                <div class="form-group">
+                                    <label for="exampleFormControlFile1">Research Pdf Upload</label>
+                                    <input type="file" class="form-control-file" name="edit_featured_img" id="edit_featured_img">
+                                    <img src="" id="edit_featured_img_url"/>
+                                </div>
+                                <input type="submit" value="Submit" >
+                            </form>
+                        </div>
+                        <!-- <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                            </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+%endif
+%if clinic_hospital_data or own_profile:
+<section id="contact_id" class="dr_pallav">
+    <div class="container">
+        <div class="row view_top">
+            <div class="col-md-8 col-sm-8 col-xs-10">
+                <h2>Contact
+                    %if userprofile_extrainfo.user_type == 'dr':
+                    Dr. 
+                    %endif
+                    ${userprofile.name}
+                </h2>
+            </div>
+            <div class="col-md-4 col-sm-4 col-xs-2">
+                % if own_profile:
+                <a class="add-btn " href="#" data-toggle="modal" data-target="#clinic_add_form">Add</a>
+                %endif
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="google_map">
+                    <div id="map" style="width: 100%;height: 350px"></div>
+                    <br/>
+                    <!-- <img src="${static.url('images/weq-images/googlemap.png')}" alt=""> -->
+                    %for clinic in clinic_hospital_data:
+                    <input type="hidden" id="address" name="address[]" value="${clinic.address_line1}${clinic.address_line2}${clinic.address_line3}">
+                    %endfor
+                </div>
+                <script type="text/javascript" src="https://maps.google.com/maps/api/js?key=AIzaSyDQUh3L4Gfjc-QOrpQAIUm7MG6hR1RX6Bo&sensor=false"></script> 
+                <script type="text/javascript"> 
+                    $(document).ready(function () {
+                        var infowindow = new google.maps.InfoWindow();
+                        var latlng = new google.maps.LatLng(21.0000, 78.0000);
+                        
+                            var geocoder = new google.maps.Geocoder(); 
+                            var map = new google.maps.Map(document.getElementById('map'), {
+                                zoom: 6,
+                                center: latlng
+                            });
+                            var bounds = new google.maps.LatLngBounds();
+                           setTimeout(geocodeAddress(geocoder, map),100);
+                        
+                      
+                      
+                      function geocodeAddress(geocoder, resultsMap) {
+                        var values = $("input[name='address[]']").map(function(){return $(this).val();}).get();
+                        for (count = 0; count < values.length; count++) {
+                            geocoder.geocode({'address': values[count]}, function(results, status) {
+                              if (status === 'OK') {
+                                    var p = results[0].geometry.location;
+                                    var lat=p.lat();
+                                    var lng=p.lng();
+                                    createMarker(results[0].formatted_address,lat,lng);
+                                    
+                              } else {
+                                alert('Geocode was not successful for the following reason: ' + status);
+                              }
+                            });
+                            
+                        }
+                    }
+                    
+                    function createMarker(add,lat,lng) {
+                       var contentString = add;
+                    
+                       var marker = new google.maps.Marker({
+                         position: new google.maps.LatLng(lat,lng),
+                         map: map,
+                               });
+                    
+                      google.maps.event.addListener(marker, 'click', function() {
+                         infowindow.setContent(contentString); 
+                         infowindow.open(map,marker);
+                       });
+                    
+                       
+                      bounds.extend(marker.position);
+                    }
+                    });
+                </script>  
+            </div>
+        </div>
+        <div class="row address_row">
+            %for clinic in clinic_hospital_data:
+            <% 
+                address1 = re.escape(clinic.address_line1)
+                address2 = re.escape(clinic.address_line2)
+                address3 = re.escape(clinic.address_line3)
+                %>
+            <div class="col-md-4 col-sm-4 col-xs-12" style="min-height: 210px;">
+                <div class="et_pb_blurb_content">
+                    <div class="et_pb_main_blurb_image">
+                        <span class="et_pb_image_wrap">
+                        <i class="fa fa-map-marker" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <div class="et_pb_blurb_container">
+                        <h3 class="et_pb_module_header">${clinic.clinic_hospital_name}</h3>
+                        <span>${clinic.timings}</span>
+                        <span>${clinic.timing_2}</span>
+                        <span>${clinic.timing_3}</span>
+                        <span>${clinic.timing_4}</span>
+                        <div class="et_pb_blurb_description">
+                            <p>${clinic.address_line1}</p>
+                            <p>${clinic.address_line2}</p>
+                            <p>${clinic.address_line3}</p>
+                            <ul>
+                                <li onclick="show_phone_number(${clinic.id});" style="cursor: pointer;">Phone</li>
+                                <!-- <li><a href="#">Direction</a></li> -->
+                                %if clinic.website:
+                                <li><a href="http://${clinic.website}" target="_blank">Website</a></li>
+                                %endif
+                            </ul>
+                            <p id="user_phone_${clinic.id}" style="display: none;">${clinic.phone_number}</p>
+                        </div>
+                        % if own_profile:
+                        <div class="contact-btns">
+                            <a class="add-icon" href="#" data-toggle="modal" data-target="#clinic_edit_form" onclick="clinic_edit_modal_data('${clinic.clinic_hospital_name}','${address1}','${address2}','${address3}','${clinic.phone_number}','${clinic.website}','${clinic.timings}','${clinic.timing_2}','${clinic.timing_3}','${clinic.timing_4}','${clinic.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/edit.png" title="Edit"></a>
+                            <a class="delete-icon" href="#" data-toggle="modal" data-target="#clinic_del_form" onclick="clinic_deactivate('${clinic.id}');"><img src="https://docmode-org-uploads.s3-ap-southeast-1.amazonaws.com/delete.png" title="Delete"></a>
+                        </div>
+                        %endif
+                    </div>
+                </div>
+            </div>
+            %endfor
+            <div class="modal fade" id="clinic_del_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Delete</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/clinic_hospital_address/new/" enctype="multipart/form-data" method="POST" autocomplete="off">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                <input type="hidden" name="deactivate" value="1">
+                                <input type="hidden" name="del_clinic_hospital_number" id="del_clinic_hospital_number" value="">
+                                <div class="form-group" style="text-align: center;">
+                                    <label for="exampleFormControlFile1" style="text-align: center;">Are you sure want to delete this?</label>
+                                    <button type="submit" class="btn btn-primary">Ok</button>
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                            </div> -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="clinic_add_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Contact Add Form</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/clinic_hospital_address/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Clinic/Hospital Name</label>
+                                    <input type="text" class="form-control" id="clinic_hospital_name" placeholder="" name="clinic_hospital_name" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Address Line1</label>
+                                    <textarea class="form-control" id="clinic_hospital_address_line1"  name="clinic_hospital_address_line1" required></textarea >
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Address Line2</label>
+                                    <textarea class="form-control" id="clinic_hospital_address_line2"  name="clinic_hospital_address_line2" required></textarea >
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Address Line3</label>
+                                    <textarea class="form-control" id="clinic_hospital_address_line3"  name="clinic_hospital_address_line3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Phone number</label>
+                                    <input type="text" class="form-control" id="clinic_hospital_phone"  name="clinic_hospital_phone" required="">
+                                </div>
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                <input type="hidden" name="clinic_hospital_add" value="1">
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Website</label>
+                                    <input type="text" class="form-control" id="clinic_hospital_website" placeholder="Example input" name="clinic_hospital_website">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Timing 1</label>
+                                    <input type="text" class="form-control"  placeholder="Example input" name="clinic_hospital_timing_1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Timing 2</label>
+                                    <input type="text" class="form-control"  placeholder="Example input" name="clinic_hospital_timing_2">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Timing 3</label>
+                                    <input type="text" class="form-control"  placeholder="Example input" name="clinic_hospital_timing_3">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Timing 4</label>
+                                    <input type="text" class="form-control"  placeholder="Example input" name="clinic_hospital_timing_4">
+                                </div>
+                                <input type="submit" value="Submit" >
+                            </form>
+                        </div>
+                        <!-- <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                            </div> -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="clinic_edit_form" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Edit</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/clinic_hospital_address/new/" enctype="multipart/form-data"  method="POST" autocomplete="off">
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Clinic/Hospital Name</label>
+                                    <input type="text" class="form-control" id="edit_clinic_hospital_name" placeholder="" name="edit_clinic_hospital_name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Address Line1</label>
+                                    <textarea class="form-control" id="edit_clinic_hospital_address_line1" placeholder="Example input" name="edit_clinic_hospital_address_line1"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Address Line2</label>
+                                    <textarea class="form-control" id="edit_clinic_hospital_address_line2" placeholder="Example input" name="edit_clinic_hospital_address_line2"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Address Line3</label>
+                                    <textarea class="form-control" id="edit_clinic_hospital_address_line3" placeholder="Example input" name="edit_clinic_hospital_address_line3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Phone number</label>
+                                    <input type="text" class="form-control" id="edit_clinic_hospital_phone" placeholder="Example input" name="edit_clinic_hospital_phone">
+                                </div>
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                                <input type="hidden" name="clinic_hospital_edit" value="1">
+                                <input type="hidden" name="clinic_hospital_number" id="clinic_hospital_number" value="">
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Website</label>
+                                    <input type="text" class="form-control" id="edit_clinic_hospital_website" placeholder="Example input" name="edit_clinic_hospital_website">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Timing 1</label>
+                                    <input type="text" class="form-control" id="edit_clinic_hospital_timing_1" placeholder="Example input" name="edit_clinic_hospital_timing_1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Timing 2</label>
+                                    <input type="text" class="form-control" id="edit_clinic_hospital_timing_2" placeholder="Example input" name="edit_clinic_hospital_timing_2">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Timing 3</label>
+                                    <input type="text" class="form-control" id="edit_clinic_hospital_timing_3" placeholder="Example input" name="edit_clinic_hospital_timing_3">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formGroupExampleInput">Timing 4</label>
+                                    <input type="text" class="form-control" id="edit_clinic_hospital_timing_4" placeholder="Example input" name="edit_clinic_hospital_timing_4">
+                                </div>
+                                <input type="submit" value="Submit" >
+                            </form>
+                        </div>
+                        <!-- <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                            </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        % if not own_profile :
+        <div class="row impressed_row">
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <p class="impressed">Impressed with 
+                    %if userprofile_extrainfo.user_type == 'dr':
+                    Dr.
+                    %endif
+                    ${userprofile.name}?
+                </p>
+            </div>
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <ul class="share_icon">
+                    <li><a href="#">Connect</a></li>
+                    <li><span><i class="fa fa-share-alt" aria-hidden="true"></i> Share Profile</span></li>
+                </ul>
+            </div>
+        </div>
+        %endif
+    </div>
+</section>
+%endif
+</div>
+</div>
+<div class="modal" id="popmyModal" data-backdrop="static"
+    data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body" id="modalp">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="researchModal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Pdf View</h4>
+            </div>
+            <div class="modal-body">
+                <iframe src="" id="pdf_view" width="100%" height="450" frameborder="0" scrolling="no"></iframe>
+            </div>
+            <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                </div> -->
+        </div>
+    </div>
+</div>
+<script>
+    function show (id,link){
+        var id = id;
+        var link = link;
+      
+    // cross domain ajax call will fail, need more work to set up CORS
+    //  $.get("http://textmechanic.com", function(data) {
+    //    $("#myModal").html(data).foundation("open");
+    //  });
+    
+      $("#modalp")
+        .html('<object width="100%" height="350px;" type="text/html" data="'+ link +'" ></object>')
+        .foundation("open");
+        return false;
+    }
+    
+    function show_pdf(link){
+        var link = link;
+        document.getElementById('pdf_view').src = link;
+        }
+</script>
 </main>
-
+<div class="modal fade" id="healthcare_aware_videos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <iframe id="iframeYoutube_healthcare_videos" width="100%" height="315" src="" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+            </div>
+            <div class="modal-footer" id="closebtn_healthcare">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="stop_video();">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    //script for read more
+    function readMore() {
+      var dots = document.getElementById("dots");
+      var moreText = document.getElementById("more");
+      var btnText = document.getElementById("readBtn");
+    
+      if (dots.style.display === "none") {
+        dots.style.display = "inline";
+        btnText.innerHTML = "Read More"; 
+        moreText.style.display = "none";
+      } else {
+        dots.style.display = "none";
+        btnText.innerHTML = "Read Less"; 
+        moreText.style.display = "inline";
+      }
+    }
+    
+    function view_awareness_videos(videourl){
+          /* Get iframe src attribute value i.e. YouTube video url
+          and store it in a variable */
+          var url = ""+videourl+"?autoplay=1&rel=0";
+          
+          /* Remove iframe src attribute on page load to
+          prevent autoplay in background */
+          $("#iframeYoutube_healthcare_videos").attr('src', '');
+          
+          /* Assign the initially stored url back to the iframe src
+          attribute when modal is displayed */
+          
+          $("#iframeYoutube_healthcare_videos").attr('src', url);
+          
+          /* Assign empty url value to the iframe src attribute when
+          modal hide, which stop the video playing */
+          $("#healthcare_aware_videos").modal('show');
+      }
+    
+    function stop_video(){
+        $('#iframeYoutube_healthcare_videos').attr('src', '');
+    }
+    
+    $(document).ready(function(){
+    
+    // Toggle plus minus icon on show hide of collapse element
+    $(".profession-text.collapse").on('show.bs.collapse', function(){
+        $(this).parent().find(".fa-plus").removeClass("fa-plus").addClass("fa-minus");
+    }).on('hide.bs.collapse', function(){
+        $(this).parent().find(".fa-minus").removeClass("fa-minus").addClass("fa-plus");
+    });
+    
+    
+    //certificate slider
+    
+        var certificate = $("#certificate-slider");
+    
+        certificate.owlCarousel({
+            loop:true,
+            margin:20,
+            nav: true,
+            navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+                '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+            responsiveClass:true,
+            responsive:{
+                0:{
+                    items:1,
+                    nav:true
+                },
+                600:{
+                    items:2,
+                    nav:false
+                },
+                1000:{
+                    items:3,
+                    nav:true,
+                    loop:false
+                }
+            }
+    
+          });
+    
+    
+        var certificate = $("#certificate-slider1");
+    
+        certificate.owlCarousel({
+            loop:true,
+            margin:20,
+            nav: true,
+            navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+                '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+            responsiveClass:true,
+            responsive:{
+                0:{
+                    items:1,
+                    nav:true
+                },
+                600:{
+                    items:2,
+                    nav:false
+                },
+                1000:{
+                    items:3,
+                    nav:true,
+                    loop:false
+                }
+            }
+    
+          });
+    
+        // Instructor course/lectures delivered
+        var instrucorSlider= $("#instructor-course-delivered-slider");
+    
+        instrucorSlider.owlCarousel({
+            loop:true,
+            margin:10,
+            nav: true,
+            navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+                '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+            responsiveClass:true,
+            responsive:{
+                0:{
+                    items:1,
+                    nav:true
+                },
+                600:{
+                    items:2,
+                    nav:false
+                },
+                1000:{
+                    items:4,
+                    nav:true,
+                    loop:false
+                }
+            }
+    
+        });
+    
+        //profile course slider
+    
+        var profileSlider= $("#profile-course-slider");
+    
+        profileSlider.owlCarousel({
+            loop:true,
+            margin:10,
+            nav: true,
+            navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+                '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+            responsiveClass:true,
+            responsive:{
+                0:{
+                    items:1,
+                    nav:true
+                },
+                600:{
+                    items:2,
+                    nav:false
+                },
+                1000:{
+                    items:4,
+                    nav:true,
+                    loop:false
+                }
+            }
+    
+        });
+    
+        var awareness_slider = $("awareness-videos-slider");
+        awareness_slider.owlCarousel({
+            loop:true,
+            margin:10,
+            nav: true,
+            navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+                '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+            responsiveClass:true,
+            responsive:{
+                0:{
+                    items:1,
+                    nav:true
+                },
+                600:{
+                    items:2,
+                    nav:false
+                },
+                1000:{
+                    items:4,
+                    nav:true,
+                    loop:false
+                }
+            }
+    
+        });
+    
+    });
+    
+</script>
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js"></script>
 <%block name="js_extra">
-<%static:require_module module_name="learner_profile/js/learner_profile_factory" class_name="LearnerProfileFactory">
-    var options = ${data | n, dump_js_escaped_json};
-    LearnerProfileFactory(options);
-</%static:require_module>
+    <%static:require_module module_name="learner_profile/js/learner_profile_factory" class_name="LearnerProfileFactory">
+        var options = ${data | n, dump_js_escaped_json};
+        LearnerProfileFactory(options);
+    </%static:require_module>
 </%block>
+<%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
+    DateUtilFactory.transform(iterationKey=".localized_datetime");
+</%static:require_module_async>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>
+<script type="text/javascript">
+    function edu_deactivate(edu_number){
+        document.getElementById('edu_number').value=edu_number;
+    }
+    
+    function exp_deactivate(edu_number){
+        document.getElementById('exp_number').value=edu_number;
+    }
+    
+    $("#year").datepicker( {
+        format: " yyyy", // Notice the Extra space at the beginning
+        viewMode: "years", 
+        minViewMode: "years"
+    });
+    
+    function exp_edit_modal_data(year,institution_name,description,edit_number){
+        document.getElementById('edit_exp_year').value=year;
+        document.getElementById('edit_exp_description').value=description;
+        document.getElementById('edit_exp_institution_name').value=institution_name;
+        document.getElementById('exp_edit_number').value=edit_number;
+    }
+    
+    function edu_edit_modal_data(year,institution_name,description,certificate_path,edit_number){
+        document.getElementById('edit_year').value=year;
+        document.getElementById('edit_description').value=description;
+        document.getElementById('edit_institution_name').value=institution_name;
+        document.getElementById('edit_certificate_path').src=certificate_path;
+        document.getElementById('edu_edit_number').value=edit_number;
+    }
+    
+    function award_deactivate(award_number){
+        document.getElementById('award_number').value=award_number;
+    }
+    
+    $("#award_year").datepicker( {
+        format: " yyyy", // Notice the Extra space at the beginning
+        viewMode: "years", 
+        minViewMode: "years"
+    });
+    
+    function award_edit_modal_data(year,title,certificate_path,edit_number){
+        document.getElementById('edit_award_year').value=year;
+        document.getElementById('edit_award_title').value=title;
+        document.getElementById('award_Image').src=certificate_path;
+        document.getElementById('edit_award_number').value=edit_number;
+    }
+    
+    function research_deactivate(award_number){
+        document.getElementById('research_number').value=award_number;
+    }
+    
+    function research_edit_modal_data(title,description,pdf_path,edit_number,research_link){
+        document.getElementById('edit_research_title').value=title;
+        document.getElementById('edit_research_description').value=description;
+        document.getElementById('edit_research_number').value=edit_number;
+        document.getElementById('edit_research_link').value=research_link;
+    }
+    
+    function featured_deactivate(award_number){
+        document.getElementById('featured_number').value=award_number;
+    }
+    
+    function featured_edit_modal_data(title,medianame,medialink,img,edit_number){
+        document.getElementById('edit_featured_title').value=title;
+        document.getElementById('edit_featured_medianame').value=medianame;
+        document.getElementById('edit_featured_medialink').value=medialink;
+        document.getElementById('edit_featured_img_url').src=img;
+        document.getElementById('edit_featured_number').value=edit_number;
+    }
+    
+    function clinic_deactivate(award_number){
+        document.getElementById('del_clinic_hospital_number').value=award_number;
+    }
+    
+    function clinic_edit_modal_data(name,address_line1,address_line2,address_line3,phone,website,timing_1,timing_2,timing_3,timing_4,number){
+        document.getElementById('edit_clinic_hospital_name').value=name;
+        document.getElementById('edit_clinic_hospital_address_line1').value=address_line1;
+        document.getElementById('edit_clinic_hospital_address_line2').value = address_line2;
+        document.getElementById('edit_clinic_hospital_address_line3').value = address_line3;
+        document.getElementById('edit_clinic_hospital_website').value = website;
+        document.getElementById('edit_clinic_hospital_phone').value = phone;
+        document.getElementById('edit_clinic_hospital_timing_1').value = timing_1;
+        document.getElementById('edit_clinic_hospital_timing_2').value = timing_2;
+        document.getElementById('edit_clinic_hospital_timing_3').value = timing_3;
+        document.getElementById('edit_clinic_hospital_timing_4').value = timing_4;
+        document.getElementById('clinic_hospital_number').value = number;
+    }
+    
+    function edit_extraprofile(val){
+        document.getElementById("view_"+val).style.display="none";
+        document.getElementById("update_"+val).style.display="block";
+    }
+    
+    function useraddupdate(val) {
+        var values = {};
+        values[val] = document.getElementById(val).value;
+        
+        $.ajax({
+            method:'GET',
+            url:'',
+            dataType:'html',
+            data : values,
+            success:function(data){
+                $('#'+val+'msg').html(data),
+                setTimeout(function() { $('#'+val+'msg').remove(); }, 2000);
+                if(data == ' Updated succesfully') {
+                    document.getElementById("update_"+val).style.display="none";
+                    document.getElementById("view_"+val).innerHTML=values[val];
+                    document.getElementById("view_"+val).style.display="block";
+                } else {
+                    $('#'+val+'msg').html("Could not be updated now"),
+                    setTimeout(function() { $('#'+val+'msg').hide(); }, 2000);
+                }
+            }
+    
+        });
+        
+    }
+    
+    function edit(val){
+        document.getElementById(val).style.display="none";
+        document.getElementById("update_"+val).style.display="block";
+    }
+    
+    function show_phone_number(val){
+        document.getElementById("user_phone_"+val).style.display="block";
+    }
+    
+    $(document).ready(function(){
+        $("span input").focusout(function(){
+            $("#update_medical_philosophy").hide();
+            $("#view_medical_philosophy").show();
+        });
+        $(".profession input").focusout(function(){
+            $("#update_education").hide();
+            $("#view_education").show();
+        });
+    
+    });
+    CKEDITOR.replace('user_long_description');
+</script>

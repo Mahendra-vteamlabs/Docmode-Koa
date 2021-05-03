@@ -47,6 +47,8 @@ from common.djangoapps.student.models import (
 )
 from common.djangoapps.util.password_policy_validators import normalize_password
 
+# from zerobounce import ZeroBounceAPI
+
 # Enumeration of per-course verification statuses
 # we display on the student dashboard.
 VERIFY_STATUS_NEED_TO_VERIFY = "verify_need_to_verify"
@@ -635,6 +637,27 @@ def do_create_account(form, custom_form=None):
     if errors:
         raise ValidationError(errors)
 
+    # Added by Mahendra
+    # zba = ZeroBounceAPI('af8e53a08b7a4a9ab3cc98584fd3a734') 
+    # chck_valid_email = form.cleaned_data["email"]
+    # zerobounce_resp = zba.validate(chck_valid_email)
+    # #log.info("zerobounce %s",zerobounce_resp)
+    # if zerobounce_resp.status == 'Valid' :
+    #     proposed_username = form.cleaned_data["username"]
+    #     user = User(
+    #         username=proposed_username,
+    #         email=form.cleaned_data["email"],
+    #         is_active=False
+    #     )
+    #     user.set_password(form.cleaned_data["password"])
+    #     registration = Registration()
+    # else:
+    #     raise AccountValidationError(
+    #         _("Invalid email "+chck_valid_email+" please input correct email id."),
+    #         field="email"
+    #     )
+
+
     proposed_username = form.cleaned_data["username"]
     user = User(
         username=proposed_username,
@@ -723,3 +746,91 @@ def get_resume_urls_for_enrollments(user, enrollments):
             url_to_block = ''
         resume_course_urls[enrollment.course_id] = url_to_block
     return resume_course_urls
+
+
+def custom_do_create_account(form, custom_form=None):
+    """
+    Given cleaned post variables, create the User and UserProfile objects, as well as the
+    registration for this user.
+
+    Returns a tuple (User, UserProfile, Registration).
+
+    Note: this function is also used for creating test users.
+    """
+    # Check if ALLOW_PUBLIC_ACCOUNT_CREATION flag turned off to restrict user account creation
+    if not configuration_helpers.get_value(
+            'ALLOW_PUBLIC_ACCOUNT_CREATION',
+            settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True)
+    ):
+        raise PermissionDenied()
+
+    errors = {}
+    errors.update(form.errors)
+    if custom_form:
+        errors.update(custom_form.errors)
+
+    if errors:
+        raise ValidationError(errors)
+
+    proposed_username = form.cleaned_data["username"]
+    user = User(
+        username=proposed_username,
+        email=form.cleaned_data["email"],
+        is_active=False
+    )
+    user.set_password(form.cleaned_data["password"])
+    registration = Registration()
+    # TODO: Rearrange so that if part of the process fails, the whole process fails.
+    # Right now, we can have e.g. no registration e-mail sent out and a zombie account
+    try:
+        with transaction.atomic():
+            user.save()
+            if custom_form:
+                custom_model = custom_form.save(commit=False)
+                custom_model.user = user
+                custom_model.save()
+    except IntegrityError:
+        # Figure out the cause of the integrity error
+        # TODO duplicate email is already handled by form.errors above as a ValidationError.
+        # The checks for duplicate email/username should occur in the same place with an
+        # AccountValidationError and a consistent user message returned (i.e. both should
+        # return "It looks like {username} belongs to an existing account. Try again with a
+        # different username.")
+        if User.objects.filter(username=user.username):
+            raise AccountValidationError(
+                USERNAME_EXISTS_MSG_FMT.format(username=proposed_username),
+                field="username"
+            )
+        elif email_exists_or_retired(user.email):
+            raise AccountValidationError(
+                _("An account with the Email '{email}' already exists.").format(email=user.email),
+                field="email"
+            )
+        else:
+            raise
+
+    # add this account creation to password history
+    # NOTE, this will be a NOP unless the feature has been turned on in configuration
+    password_history_entry = PasswordHistory()
+    password_history_entry.create(user)
+
+    registration.register(user)
+
+    profile_fields = [
+        "name", "level_of_education", "gender", "mailing_address", "city", "country", "goals",
+        "year_of_birth"
+    ]
+    profile = UserProfile(
+        user=user,
+        **{key: form.cleaned_data.get(key) for key in profile_fields}
+    )
+    extended_profile = form.cleaned_extended_profile
+    if extended_profile:
+        profile.meta = json.dumps(extended_profile)
+    try:
+        profile.save()
+    except Exception:
+        log.exception("UserProfile creation failed for user {id}.".format(id=user.id))
+        raise
+
+    return user, profile, registration

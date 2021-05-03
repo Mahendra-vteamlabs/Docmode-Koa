@@ -1,0 +1,250 @@
+<div class="js-form-feedback" aria-live="assertive" tabindex="-1">
+</div>
+
+<% if ( context.createAccountOption !== false && !context.syncLearnerProfileData && !(context.enterpriseName && context.currentProvider) ) { %>
+<div class="toggle-form">
+    <span class="text"><%- gettext("First time here?") %></span>&nbsp;&nbsp;&nbsp;
+    <a href="/register?next=/oauth2/authorize/confirm"  class="btn action action-primary" data-type="register" style="color:#000;background-color:#f1c73ac2;"><%- gettext("Create an Account.") %></a>
+</div>
+<% } %>
+
+<% // Hide SSO related messages if we are not in the SSO pipeline.  %>
+<% if (context.enterpriseName && context.currentProvider) { %>
+    <% if (context.pipelineUserDetails && context.pipelineUserDetails.email) { %>
+        <h2><%- gettext("Sign in to continue learning as {email}").replace("{email}", context.pipelineUserDetails.email) %></h2>
+    <% } else { %>
+        <h2><%- gettext("Sign in to continue learning") %></h2>
+    <% } %>
+    <p>
+        <%- gettext("You already have an edX account with your {enterprise_name} email address.").replace(/{enterprise_name}/g, context.enterpriseName) %>
+        <% if (context.syncLearnerProfileData) {
+            %><%- gettext("Going forward, your account information will be updated and maintained by {enterprise_name}.").replace(/{enterprise_name}/g, context.enterpriseName) %>
+        <% } %>
+        <%- gettext("You can view your information or unlink from {enterprise_name} anytime in your Account Settings.").replace(/{enterprise_name}/g, context.enterpriseName) %>
+    </p>
+    <p><%- gettext("To continue learning with this account, sign in below.") %></p>
+<% } else { %>
+    <h2><%- gettext("Sign In") %></h2>
+<% } %>
+
+<form id="login" class="login-form" tabindex="-1" method="POST">
+
+    <p class="sr">
+        <% if ( context.providers.length > 0 && !context.currentProvider || context.hasSecondaryProviders ) { %>
+            <%- gettext("Sign in here using your email address and password, or use one of the providers listed below.") %>
+        <% } else { %>
+            <%- gettext("Sign in here using your email address and password.") %>
+        <% } %>
+        <%- gettext("If you do not yet have an account, use the button below to register.") %>
+    </p>
+
+    <div class="form-field email-email">
+        <label for="login-email">
+            <span class="label-text">Email</span>
+                <span id="login-email-required-label" class="label-required hidden">     
+                </span>
+                <span class="icon fa" id="login-email-validation-icon" aria-hidden="true">
+                </span>       
+        </label>
+        <input id="login-email" type="email" name="email" class="input-block " aria-describedby="login-email-desc login-email-validation-error" minlength="3" maxlength="254" required="" placeholder="username@domain.com" value="" onchange="emailid_validation();">
+        
+
+        <span id="login-email-validation-error" class="tip error" aria-live="assertive" style="display: none;">
+            <span class="sr-only">ERROR: </span>
+            <span id="login-email-validation-error-msg"></span>
+        </span>
+        <span id="login-email-validation" class="tip error" aria-live="assertive">
+            <span id="login-email-validation-msg"></span>
+        </span>
+         <span class="tip tip-input" id="login-email-desc" style="display: none;">The email address you used to register with Docmode Development</span>
+    
+    </div>
+
+    <div class="form-field password-password">
+        <label for="login-password">
+            <span class="label-text">Password</span>
+            
+                <span id="login-password-required-label" class="label-required hidden">
+                    
+                </span>
+                <span class="icon fa" id="login-password-validation-icon" aria-hidden="true"></span>   
+        </label>    
+        <input id="login-password" type="password" name="password" class="input-block " maxlength="75" required="" value="">
+        <span id="login-password-validation-error" class="tip error" aria-live="assertive" style="display: none;">
+            <span class="sr-only">ERROR: </span>
+            <span id="login-password-validation-error-msg"></span>
+        </span>
+        <button type="button" class="forgot-password field-link">Forgot password?</button>
+    
+    </div>
+    <div class="form-field checkbox-remember">
+        <input id="login-remember" type="checkbox" name="remember" class="input-block checkbox" value="false">
+            <label for="login-remember">
+                <span class="label-text">Remember me</span>        
+            </label>
+        <span id="login-remember-validation-error" class="tip error" aria-live="assertive" style="display: none;">
+            <span class="sr-only">ERROR: </span>
+            <span id="login-remember-validation-error-msg"></span>
+        </span>
+    </div>
+
+    <button type="submit" class="action action-primary action-update js-login login-button" style="color:#000;background-color:#f1c73ac2;"><%- gettext("Sign in") %></button>
+
+    <% if ( context.providers.length > 0 && !context.currentProvider || context.hasSecondaryProviders ) { %>
+    <div class="login-providers">
+        <div class="section-title lines">
+            <h3>
+                <span class="text"><%- gettext("or sign in with") %></span>
+            </h3>
+        </div>
+
+        <% _.each( context.providers, function( provider ) {
+            if ( provider.loginUrl ) { %>
+                <button type="button" class="button button-primary button-<%- provider.id %> login-provider login-<%- provider.id %>" data-provider-url="<%- provider.loginUrl %>">
+                    <div class="icon <% if ( provider.iconClass ) { %>fa <%- provider.iconClass %><% } %>" aria-hidden="true">
+                        <% if ( provider.iconImage ) { %>
+                            <img class="icon-image" src="<%- provider.iconImage %>" alt="<%- provider.name %> icon" />
+                        <% } %>
+                    </div>
+                    <span aria-hidden="true"><%- provider.name %></span>
+                    <span class="sr"><%- _.sprintf( gettext("Sign in with %(providerName)s"), {providerName: provider.name} ) %></span>
+                </button>
+            <% }
+        }); %>
+
+        <% if ( context.hasSecondaryProviders ) { %>
+            <button type="button" class="button-secondary-login form-toggle" data-type="institution_login">
+                <%- gettext("Use my institution/campus credentials") %>
+            </button>
+        <% } %>
+    </div>
+    <% } %>
+</form>
+<form id="invite_student" method="post">
+    <div class="modal-content-parent">
+        <div class="modal-content-desktop">
+            <div class="b-regulatory-disclosure" id="otp_validation">
+                <div class="b-regulatory-disclosure__header">
+                  <h1 class="disclosure_heading">Log in with OTP</h1>
+                </div>
+                <div class="disclosure_lable">
+                    <ul>
+                        <li>
+                            <a href="javascript:void(0)" id="mobile_label" class="active">Mobile</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" id="email_label" >Email</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="disclosure__table email">
+                    <input type="text"  class="email_id input_box" placeholder="Enter email address." id="txtvalue"><br>
+                </div>
+                <div class="disclosure__table mobile">
+                    <i class="country-code">+91</i>
+                    <input type="text" id="myDIV" class="mobile_num input_box" placeholder="Enter mobile number." onkeyup="check_phonenumber();" onkeypress="return isNumber(event)" minlength="10" maxlength="10"><br>
+                    
+                </div>
+                <div  class="disclosure__table mobile">
+                    <p class="disclosure__table mobile1">This mobile number is associated with multiple email id's. Please select an email to continue <br> 
+                    <select id="arr" onchange="GetSelectedText()"></select>
+                     </p></div>
+                <div class="disclosure__table">
+                    <input type="text" class="email_id otp" placeholder="Enter OTP" hidden>
+                </div>            
+                <div id="timer" hidden></div>
+                <p class="resend-div"><a href="javascript:void(0)" id="resend-otp-new" class="resend-otp-new disclosure__btn" hidden>Click here for resend OTP</a></p>
+                <p class="error-div"></p>
+                <div class="disclosure_footer">
+                    <button class="disclosure__btn otp-btn" id="hide">Send OTP</button>
+                </div>
+                <div class="disclosure_footer">
+                    <a href="/register?next=/oauth2/authorize/confirm" style="padding: 20px;" class="disclosure__btn reg-btn" hidden>Register</a>
+                </div>
+                <div class="disclosure_footer">
+                    <button class="disclosure__btn verify_otp" hidden>Submit</button>
+                </div>
+                <div class="disclosure__close"><i class="fa fa-times"></i></div>
+            </div>
+            <div class="b-regulatory-disclosure" id="data_confirmation" style="display:none;">
+                <div class="b-regulatory-disclosure__header">
+                  <h1 class="disclosure_heading">You have successfuly loggedin</h1>
+                </div>
+                <div class="disclosure__table">
+                    <div class="disclosure_lable">
+                        <p id="confirm_emailid"></p>
+                    </div>
+                </div>
+                <div class="disclosure__table">
+                    <div class="disclosure_lable">
+                        <span class="label-text">Mobile</span>
+                    </div>
+                    <input type="text" class="email_id confirm_mobile_num" id="confirm_mobile">
+                </div>
+                <p class="error_msg"></p>
+                <div class="disclosure_footer">
+                    <button class="disclosure__btn confirm_mobile">Submit</button>
+                </div>
+            </div>
+            <div class="b-regulatory-disclosure email_validation" id="email_validation" style="display:none;">
+                <div class="b-regulatory-disclosure__header">
+                    <div id="email_vlidation_error_msg"></div>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+</form> 
+<script type="text/javascript">
+
+    $(document).ready(function(){  
+        $('body').keydown(function(e) {
+            if(e.keyCode == 27) {
+                $('.modal-content-parent').removeClass("visible");
+            }
+        });
+        
+    });
+
+    $(document).click(function(e) {
+        if ($(e.target).is('.modal-content-parent')){
+            $(".modal-content-parent").removeClass("visible");
+        }
+    });
+
+    function emailid_validation(){
+        var emailid = document.getElementById("login-email").value;
+        $.ajax({
+            type: "GET",
+            url: "/search_term/",
+            data: {
+                emailid : emailid,
+                email_validation :1
+            },
+            success: function(data) {
+                if(data.status != 200){
+                    current_url = window.location.href;
+                    redirect_url = current_url.split("login");
+                    $(".modal-content-parent").addClass("visible");
+                    document.getElementById("otp_validation").style.display="none";
+                    $(".email_validation").removeClass("hidden");
+                    document.getElementById("email_validation").style.display="block";
+                    document.getElementById("email_validation").innerHTML = '<h1 class="disclosure_heading">This email id is not registered! <br/>Please <a style="color:#4fb3d0;" href="https://iae.learn.docmode.org/register' + redirect_url[1] +'"> click  here to register</a>.</h1>';
+                    document.getElementById("login-email").value = "";
+                } else {
+
+                    //$(".modal-content-parent").addClass("visible");
+                    document.getElementById("email_validation").style.display="none";
+                    document.getElementById("otp_validation").style.display="block";
+                    //$("#mobile_label").removeClass("active");
+                    //$(".disclosure__table.mobile").addClass("hidden")
+                    //$("#email_label").addClass("active");
+                    document.getElementById('login-email-validation').style.display = "block";
+                    document.getElementById('login-email-validation-msg').innerHTML="You can now login using password";
+                    console.log(data);
+                }
+            }
+        });
+    }
+
+</script>

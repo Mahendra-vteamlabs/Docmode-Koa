@@ -1,0 +1,233 @@
+## mako
+<%namespace name='static' file='static_content.html'/>
+<%!
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+%>
+<%
+	check_loggedin = request.user.id
+%>
+    <footer id="footer" class="midnight-blue">
+        <div class="footer-top">
+            <div class="container footer-container">
+                <div class="row">
+					<div class="col-md-3 col-sm-5 col-xs-12">
+						<div class="social_links">
+							<a href="https://www.facebook.com/Docmode" target="_blank"><i class="fa fa-facebook"></i></a>
+							<a href="https://www.twitter.com/@docmode1" target="_blank"><i class="fa fa-twitter"></i></a>
+							<a href="https://in.linkedin.com/company/docmode" target="_blank"><i class="fa fa-linkedin"></i></a>
+							<a href="https://www.instagram.com/doc_mode/" target="_blank"><i class="fa fa-instagram"></i></a>
+						</div>
+					</div>
+					<div class="col-md-9 col-sm-7 col-xs-12">	
+						<p class="docmode">#BeDocMode</p>					
+					</div>
+				</div>
+				
+				<div id="desktop-footer">
+					<div class="row">
+						<div class="col-md-3 col-sm-3 col-xs-12">
+							<h4 class="footer-title">Trending Topics</h4>
+							<ul class="footer-list">
+								<li><a href="${marketing_link('SUBJECTS')}brain-disorders" title="Brain Disorders">Brain Disorders </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}heart-diseases" title="Heart Diseases">Heart Diseases </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}hypertension" title="Hypertension">Hypertension </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}infectious-diseases" title="Infectious diseases">Infectious Diseases </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}ophthalmology" title="Ophthalmology">Ophthalmology </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}women-health" title="Women Health">Women Health</a></li>
+								<li><a href="${marketing_link('SUBJECTS')}Nephrology" title="Nephrology">Nephrology </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}Other" title="Other">Other </a></li>
+							</ul>
+							<p><a href="${marketing_link('SUBJECTS')}" title="All Topics"><u>All Topics</u></a></p>
+						</div>	
+						<div class="col-md-3 col-sm-3 col-xs-12">
+							<h4 class="footer-title">Other Pages</h4>
+							<ul class="footer-list">
+								<li><a href="${marketing_link('ROOT')}" title="Home">Home </a></li>
+								<li><a href="${marketing_link('ABOUT')}" title="About Us">About Us </a></li>
+								<li><a href="${marketing_link('TOS')}" title="Terms and Conditions">Terms and Conditions </a></li>
+								<li><a href="${marketing_link('PRIVACY')}" title="Privacy">Privacy </a></li>
+								<li><a href="${marketing_link('COOKIES')}" title="Cookies">Cookies </a></li>
+								<!-- <li><a href="#" title="Disclaimer">Disclaimer </a></li> -->
+								<li><a href="${marketing_link('BLOG')}" title="Blog">Blog </a></li>
+								<li><a href="https://docmode.org/media-center/" title="Media Center">Media Center </a></li>
+							</ul>
+							%if not check_loggedin:                          
+								<p><a href="/login"><u>Login/Sign Up</u></a></p>		
+							%else:
+								<p><a href="/courses"><u>Explore Courses</u></a></p>				
+							%endif
+						</div>	
+						<div class="col-md-3 col-sm-3 col-xs-12">
+							<div class="contact_details">
+								<h4 class="footer-title">Contact Us</h4>
+								<p>Docmode Health Technologies Pvt. Ltd.<br>
+								Office No: 201, Kalpataru Plaza<br>
+								Chincholi Bunder Rd, Nadiyawala Colony 2 <br>
+								Malad West, Mumbai-400064<br>
+								Maharashtra.
+								</p>
+								<p><a href="tel:022 4973 6375" title="022 4973 6375">022 4973 6375</a></p>
+								<p><a href="tel:+91 81042 82077" title="+91 81042 82077">+91 81042 82077</a></p>
+								<p><a href="https://goo.gl/maps/iDqY2k1pYtB2" target="_blank" title="Map and directions"><u>Map and directions</u></a></p>
+							</div>
+						</div>	
+						<div class="col-md-3 col-sm-3 col-xs-12">
+							<div class="complies-text footer_honcode">
+                        		<p><a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;"><img src="https://www.honcode.ch/HONcode/Seal/HONConduct282455_s.gif" style="border:0px; width: 50px; height: 70px; margin-bottom: 10px;" title="This website is certified by Health On the Net Foundation. Click to verify." alt="This website is certified by Health On the Net Foundation. Click to verify."></a><br>This site complies with the <a href="http://www.healthonnet.org/HONcode/Conduct.html" onclick="window.open(this.href); return false;" style="color: #337ab7;">HONcode standard for trustworthy health</a> information:<a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;" style="color: #337ab7;">verify here.</a></p>
+                    		</div>
+                    		<div class="complies-text footer_honcode">
+                    			<script src="https://d20iczrsxk7wft.cloudfront.net/botwverified/badge.js?id=13564100"></script>
+                    		</div>
+						</div>	
+					</div>		
+				</div>
+				
+				<div id="mobile-footer" class="mobile-footer-ls">
+					<div class="row">
+						<div class="col-xs-12">
+							<button class="accordion">Trending Topics</button>
+							<div class="panel">
+							  <ul class="footer-list">
+								<li><a href="${marketing_link('SUBJECTS')}brain-disorders" title="Brain Disorders">Brain Disorders </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}heart-diseases" title="Heart Diseases">Heart Diseases </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}hypertension" title="Hypertension">Hypertension </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}infectious-diseases" title="Infectious diseases">Infectious Diseases </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}ophthalmology" title="Ophthalmology">Ophthalmology </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}women-health" title="Women Health">Women Health</a></li>
+								<li><a href="${marketing_link('SUBJECTS')}Nephrology" title="Nephrology">Nephrology </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}Other" title="Other">Other </a></li>
+							  </ul>
+							%if not check_loggedin:                          
+								<p><a href="/login"><u>Login/Sign Up</u></a></p>		
+							%else:
+								<p><a href="/courses"><u>Explore Courses</u></a></p>				
+							%endif
+							</div>
+
+							<button class="accordion">Other Pages</button>
+							<div class="panel">
+							  <ul class="footer-list">
+								<li><a href="${marketing_link('ROOT')}" title="Home">Home </a></li>
+								<li><a href="${marketing_link('ABOUT')}" title="About Us">About Us </a></li>
+								<li><a href="${marketing_link('TOS')}" title="Terms and Conditions">Terms and Conditions </a></li>
+								<li><a href="${marketing_link('PRIVACY')}" title="Privacy">Privacy </a></li>
+								<li><a href="${marketing_link('COOKIES')}" title="Cookies">Cookies </a></li>
+								<!-- <li><a href="#" title="Disclaimer">Disclaimer </a></li> -->
+								<li><a href="${marketing_link('BLOG')}" title="Blog">Blog </a></li>
+								<li><a href="/media-center/" title="Feedback">Media Center</a></li>
+							  </ul>
+							  <p><a href="#" title="All Topics"><u>Login/Sign Up</u></a></p>
+							</div>
+
+							<button class="accordion">Contact Us</button>
+							<div class="panel">
+							 <p>Docmode Health Technologies Pvt. Ltd.<br>
+								Office No: 201, Kalpataru Plaza<br>
+								Chincholi Bunder Rd, Nadiyawala Colony 2 <br>
+								Malad West, Mumbai-400064<br>
+								Maharashtra.
+								</p>
+								<p><a href="tel:022 4973 6375" title="022 4973 6375">022 4973 6375</a></p>
+								<p><a href="tel:+91 81042 82077" title="+91 81042 82077">+91 81042 82077</a></p>
+								
+								<p><a href="https://goo.gl/maps/iDqY2k1pYtB2" target="_blank" title="Map and directions"><u>Map and directions</u></a></p>
+							</div>	
+							<div class="complies-text footer_honcode">
+                        		<p><a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;"><img src="https://www.honcode.ch/HONcode/Seal/HONConduct282455_s.gif" style="border:0px; width: 50px; height: 72px;margin-bottom: 10px;" title="This website is certified by Health On the Net Foundation. Click to verify." alt="This website is certified by Health On the Net Foundation. Click to verify."></a><br>This site complies with the <a href="http://www.healthonnet.org/HONcode/Conduct.html" onclick="window.open(this.href); return false;" style="color: #337ab7;">HONcode standard for trustworthy health</a> information:<a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;" style="color: #337ab7;">verify here.</a></p>
+                    		</div> 
+                    		<div class="complies-text footer_honcode">
+                    			<script src="https://d20iczrsxk7wft.cloudfront.net/botwverified/badge.js?id=13564100"></script>
+                    		</div>
+                    		<!-- <div class="complies-text">
+                        		<p><a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;"><img src="https://www.honcode.ch/HONcode/Seal/HONConduct282455_s.gif" style="border:0px; width: 50px; height: 72px; float: left; margin: 2px;" title="This website is certified by Health On the Net Foundation. Click to verify." alt="This website is certified by Health On the Net Foundation. Click to verify."></a>This site complies with the <a href="http://www.healthonnet.org/HONcode/Conduct.html" onclick="window.open(this.href); return false;" style="color: #337ab7;">HONcode standard for trustworthy health</a> information:<a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;" style="color: #337ab7;">verify here.</a></p>
+                    		</div>  -->
+						</div>
+					</div>
+				</div>
+				
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container bottom-container">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <p>&copy; 2021. DocMode Health Technologies Pvt. Ltd. All rights reserved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <div class="modal fade" id="youtube" data-backdrop="static"
+   data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+
+                    <iframe id="iframeYoutube" width="100%" height="315" src="https://www.youtube.com/embed/-S0kLcw105Q" frameborder="0" allowfullscreen ></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Start of docmode Zendesk Widget script -->
+  <script>/*<![CDATA[*/window.zE||(function(e,t,s){var n=window.zE=window.zEmbed=function(){n._.push(arguments)}, a=n.s=e.createElement(t),r=e.getElementsByTagName(t)[0];n.set=function(e){ n.set._.push(e)},n._=[],n.set._=[],a.async=true,a.setAttribute("charset","utf-8"), a.src="https://static.zdassets.com/ekr/asset_composer.js?key="+s, n.t=+new Date,a.type="text/javascript",r.parentNode.insertBefore(a,r)})(document,"script","6737e8cc-282d-45a3-bf96-efeef5654740");/*]]>*/</script>
+<!-- End of docmode Zendesk Widget script -->
+<!---mobile footer added by nisha--->
+<script type="text/javascript">
+	function modalclose() {
+        $('#iframeYoutube').attr('src', '');
+    }
+
+    function modalvideoplay() { 
+          var url = "https://www.youtube.com/embed/-S0kLcw105Q?autoplay=1";
+          document.getElementById("iframeYoutube").src = url;
+        }
+
+    function myAccordian(){
+	/*************script added by nisha course accordian******************/ 
+    var acc = document.getElementsByClassName("accordionGroup");
+      var i;
+        for (i = 0; i < acc.length; i++) {
+          acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+            if (panel.style.maxHeight){
+              panel.style.maxHeight = null;
+            } else {
+              panel.style.maxHeight = panel.scrollHeight + "px";
+            } 
+          });
+        }
+    }
+
+$(document).ready(function(){
+
+	function footerAcc(){
+	/*************script added by nisha mobile footer accordian******************/ 
+	    var acc = document.getElementsByClassName("accordion");
+		var i;
+
+		for (i = 0; i < acc.length; i++) {
+		  acc[i].addEventListener("click", function() {
+		    this.classList.toggle("active");
+		    var panel = this.nextElementSibling;
+		    if (panel.style.maxHeight){
+		      panel.style.maxHeight = null;
+		    } else {
+		      panel.style.maxHeight = panel.scrollHeight + "px";
+		    } 
+		  });
+		}
+    }
+
+	setTimeout(
+      function () {
+        footerAcc();
+    }, 2000);
+
+});
+</script>
+

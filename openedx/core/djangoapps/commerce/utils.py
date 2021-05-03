@@ -15,10 +15,15 @@ def create_tracking_context(user):
     """ Assembles attributes from user and request objects to be sent along
     in E-Commerce API calls for tracking purposes. """
     context_tracker = tracker.get_tracker().resolve_context()
-
+    # Updated by Mahendra
+    from lms.djangoapps.reg_form.views import userdetails
+    ucountry = userdetails(user.id)
+    usercountry = ucountry.rcountry
     return {
         'lms_user_id': user.id,
         'lms_ip': context_tracker.get('ip'),
+        'lms_client_id': context_tracker.get('client_id'),
+        'lms_user_country': usercountry,
     }
 
 

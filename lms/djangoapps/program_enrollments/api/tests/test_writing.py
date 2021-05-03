@@ -14,7 +14,7 @@ from uuid import UUID
 import ddt
 from django.core.cache import cache
 from opaque_keys.edx.keys import CourseKey
-from organizations.tests.factories import OrganizationFactory
+from common.djangoapps.organizations.tests.factories import OrganizationFactory
 
 from common.djangoapps.course_modes.models import CourseMode
 from lms.djangoapps.program_enrollments.constants import ProgramCourseEnrollmentRoles

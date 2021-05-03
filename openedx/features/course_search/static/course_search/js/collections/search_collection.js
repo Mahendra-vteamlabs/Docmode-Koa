@@ -53,6 +53,20 @@
                     success: function(self) {
                         self.errorMessage = '';  // eslint-disable-line no-param-reassign
                         self.trigger('search');
+                        if (self.totalCount > 0){
+                            dataLayer.push({
+                                'event': 'Searches',
+                                'searchTerm':self.searchTerm,
+                                'searchResult':'success',
+                            });
+                        }else{
+                            dataLayer.push({
+                                'event': 'Searches',
+                                'searchTerm':self.searchTerm,
+                                'searchResult':'fail',
+                            });
+                        }
+
                     },
                     error: function(self, response) {
                         self.errorMessage = self.extractErrorMessage(response);

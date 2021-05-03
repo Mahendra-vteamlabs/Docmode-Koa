@@ -15,7 +15,6 @@ from django.utils.translation import ugettext_lazy
 from edx_django_utils.cache import RequestCache
 from opaque_keys.edx.django.models import CourseKeyField
 
-from lms.djangoapps.courseware.courses import get_course_by_id
 from openedx.core.djangoapps.course_groups.cohorts import (
     CourseCohort,
     get_course_cohorts,
@@ -37,6 +36,7 @@ def move_to_verified_cohort(sender, instance, **kwargs):  # pylint: disable=unus
     If the learner has changed modes, update assigned cohort iff the course is using
     the Automatic Verified Track Cohorting MVP feature.
     """
+    from lms.djangoapps.courseware.courses import get_course_by_id
     course_key = instance.course_id
     verified_cohort_enabled = VerifiedTrackCohortedCourse.is_verified_track_cohort_enabled(course_key)
     verified_cohort_name = VerifiedTrackCohortedCourse.verified_cohort_name_for_course(course_key)

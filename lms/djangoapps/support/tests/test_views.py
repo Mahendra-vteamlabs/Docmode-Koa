@@ -17,7 +17,7 @@ from django.db.models import signals
 from django.http import HttpResponse
 from django.urls import reverse
 from mock import patch
-from organizations.tests.factories import OrganizationFactory
+from common.djangoapps.organizations.tests.factories import OrganizationFactory
 from pytz import UTC
 from social_django.models import UserSocialAuth
 

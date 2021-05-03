@@ -1,4 +1,4 @@
 <div class="filters-inner">
-    <ul class="active-filters facet-list"></ul>
-    <button id="clear-all-filters" class="clear-filters flt-right discovery-button"><%- gettext('Clear All') %></button>
+    <ul class="active-filters facet-list" onclick="reset_myAccordian();"></ul>
+    <button id="clear-all-filters" class="clear-filters flt-right discovery-button" onclick="reset_myAccordian();"><%- gettext('Clear All') %></button>
 </div>

@@ -1115,11 +1115,18 @@ class VideoBlock(
 
         # Fall back to other video URLs in the video module if not found in VAL
         if not encoded_videos:
-            if all_sources:
-                encoded_videos["fallback"] = {
-                    "url": all_sources[0],
-                    "file_size": 0,  # File size is unknown for fallback URLs
-                }
+            # Added by Mahendra
+            if self.html5_sources:
+                video_url = self.html5_sources[0] if self.html5_sources else self.source
+                if video_url:
+                    if video_url.startswith('/asset'):
+                        lms_root_url = settings.LMS_ROOT_URL
+                        video_url = lms_root_url + video_url
+                    # fix for mobile video
+                    encoded_videos["mobile_low"] = {
+                        "url": video_url,
+                        "file_size": 0,  # File size is unknown for fallback URLs
+                    }
 
             # Include youtube link if there is no encoding for mobile- ie only a fallback URL or no encodings at all
             # We are including a fallback URL for older versions of the mobile app that don't handle Youtube urls

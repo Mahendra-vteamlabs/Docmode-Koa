@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.db.models import F
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 from edx_django_utils import monitoring as monitoring_utils
@@ -59,6 +60,10 @@ from common.djangoapps.student.models import (
 )
 from common.djangoapps.util.milestones_helpers import get_pre_requisite_courses_not_completed
 from xmodule.modulestore.django import modulestore
+
+#Added by Mahendra
+from lms.djangoapps.add_manager.models import user_view_counter, disclaimer_agreement_status
+
 
 log = logging.getLogger("edx.student")
 
@@ -492,6 +497,30 @@ def student_dashboard(request):
 
     """
     user = request.user
+
+    #Added by Mahendra
+    if request.is_ajax():
+        if request.method == 'GET' :
+            if user.is_authenticated():
+                if request.GET.get('disclaimer'):
+                    log.info(u'disclaimer %s', request.GET.get('disclaimer'))
+                    usr = request.user.id
+                    cid = request.GET.get('cid')
+                    disclaimer = disclaimer_agreement_status(course_id=cid, user_id=usr, status='1')
+                    disclaimer.save()
+                else:
+                    usr = request.user.id
+                    cid = request.GET.get('cid')
+                    view_counter = user_view_counter.objects.filter(course_id=cid, user=usr)
+                    if view_counter :
+                        update_counter = user_view_counter.objects.filter(
+                            course_id=cid,
+                            user=usr
+                        ).update(counter = F('counter')+1)
+                    else:
+                        countr = user_view_counter(user_id=usr, course_id=cid,counter=1)
+                        countr.save()
+
     if not UserProfile.objects.filter(user=user).exists():
         return redirect(reverse('account_settings'))
 
@@ -607,7 +636,7 @@ def student_dashboard(request):
             )
 
 
-# Disable lookup of Enterprise consent_required_course due to ENT-727
+    # Disable lookup of Enterprise consent_required_course due to ENT-727
     # Will re-enable after fixing WL-1315
     consent_required_courses = set()
     enterprise_customer_name = None
@@ -718,10 +747,17 @@ def student_dashboard(request):
     )
     courses_requirements_not_met = get_pre_requisite_courses_not_completed(user, courses_having_prerequisites)
 
+    site_domain = request.site
     if 'notlive' in request.GET:
-        redirect_message = _("The course you are looking for does not start until {date}.").format(
-            date=request.GET['notlive']
-        )
+        if 'viatris' in str(site_domain):
+            redirect_message = _("The webinar you are looking for does not start until {date}.").format(
+                date=request.GET['notlive']
+            )
+        else:
+            redirect_message = _("The course you are looking for does not start until {date}.").format(
+                date=request.GET['notlive']
+            )
+
     elif 'course_closed' in request.GET:
         redirect_message = _("The course you are looking for is closed for enrollment as of {date}.").format(
             date=request.GET['course_closed']

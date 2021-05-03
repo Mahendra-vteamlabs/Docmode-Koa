@@ -164,7 +164,7 @@
                     helpMessage: '',
                     persistChanges: true,
                     messagePosition: 'header',
-                    maxCharacters: 300
+                    maxCharacters: 10000
                 })
             ];
 

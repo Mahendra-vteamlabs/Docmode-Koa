@@ -973,3 +973,30 @@ COMPLETION_VIDEO_COMPLETE_PERCENTAGE = ENV_TOKENS.get('COMPLETION_VIDEO_COMPLETE
                                                       COMPLETION_VIDEO_COMPLETE_PERCENTAGE)
 COMPLETION_VIDEO_COMPLETE_PERCENTAGE = ENV_TOKENS.get('COMPLETION_BY_VIEWING_DELAY_MS',
                                                       COMPLETION_BY_VIEWING_DELAY_MS)
+
+ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER = ENV_TOKENS.get('ENABLE_COMBINED_LOGIN_REGISTRATION_FOOTER', False)
+
+#Added by Mahendra
+####################search filter custom ##############################
+ALL_LANGUAGES = ENV_TOKENS.get('ALL_LANGUAGES', ALL_LANGUAGES)
+LANGUAGE_MAP = {'terms': {lang: display for lang, display in ALL_LANGUAGES}, 'name': 'Language'}
+COURSE_DISCOVERY_MEANINGS = {
+    'subjects': {
+        'name': 'Topics',
+    },
+    'org': {
+        'name': 'Associations',
+    },
+    'coursetype': {
+        'name': 'Types'
+    }
+}
+COURSE_DISCOVERY_FILTERS = ["org", "subjects", "coursetype"]
+
+SMS_URL = ENV_TOKENS.get('SMS_URL', "http://bulkpush.mytoday.com/BulkSms/SingleMsgApi")
+SMS_FEEDID = ENV_TOKENS.get('SMS_FEEDID', 382110)
+SMS_USERNAME = ENV_TOKENS.get('SMS_USERNAME', 8767767003)
+SMS_PASSWORD = ENV_TOKENS.get('SMS_PASSWORD', "DocMode@123")
+SMS_SENDER_ID = ENV_TOKENS.get('SMS_SENDER_ID', "DOCMOD")
+SMS_TEMPLATE_ID = ENV_TOKENS.get('SMS_TEMPLATE_ID', 1107160654212979263)
+OTP_TOKEN = ENV_TOKENS.get('OTP_TOKEN', None)

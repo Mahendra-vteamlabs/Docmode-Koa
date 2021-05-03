@@ -7,7 +7,7 @@ import json
 from completion.test_utils import CompletionWaffleTestMixin
 from django.db import connections
 from django.test import TestCase, override_settings
-from organizations.models import Organization
+from common.djangoapps.organizations.models import Organization
 from rest_framework.test import APIClient
 from xblock.core import XBlock
 

@@ -149,6 +149,12 @@ def login_and_registration_form(request, initial_mode="login"):
     """
     # Determine the URL to redirect to following login/registration/third_party_auth
     redirect_to = get_next_url_for_login_page(request)
+    # if initial_mode == "register":
+    #     redirect_path = get_next_url_for_login_page(request)
+    #     redirect_to = string.replace(redirect_path, ' ', '+')
+    # else:
+    #     redirect_path = get_next_url_for_login_page(request)
+    #     redirect_to = string.replace(redirect_path, ' ', '+')
 
     # If we're already logged in, redirect to the dashboard
     # Note: We check for the existence of login-related cookies in addition to is_authenticated

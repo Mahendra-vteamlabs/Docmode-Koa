@@ -1,0 +1,17 @@
+
+<%! from django.utils.translation import ugettext as _ %>
+${_("Hello learners")}
+
+
+${_("At this time, for those enrolled, DocMode course {course_name} is available from your Dashboard "
+ "{add_link}, and the staff would like to officially welcome you to the event!").format(course_name=course_name,add_link=add_link)}
+
+
+${_("I hope you will all have a great time learning {course_name}! It may be challenging, it may be frustrating, "
+ "but it will be rewarding and you will learn a ton.").format(course_name=course_name)}
+
+
+
+${_("On behalf of the staff, welcome, good luck, and have fun!")}
+
+${_("Your {course_number} staff").format(course_number_course_number)}

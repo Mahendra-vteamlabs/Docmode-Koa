@@ -8,7 +8,7 @@ import pytest
 from django.core.cache import cache
 from edx_django_utils.cache import RequestCache
 from opaque_keys.edx.keys import CourseKey
-from organizations.tests.factories import OrganizationFactory
+from common.djangoapps.organizations.tests.factories import OrganizationFactory
 from social_django.models import UserSocialAuth
 from testfixtures import LogCapture
 
