@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext as _
 from django.views.decorators.http import require_http_methods
 from django_countries import countries
+from django.http import HttpResponse
 
 from common.djangoapps import third_party_auth
 from common.djangoapps.edxmako.shortcuts import render_to_response
@@ -76,17 +77,18 @@ def account_settings(request):
 
     #Added by Mahendra
     if request.is_ajax():
+        user_id = request.user.id
         if request.method == 'GET' :
             if 'mobile_number'in request.GET:
                 phone = request.GET.get('mobile_number')
                 try:
                     uphone = extrafields.objects.get(phone=phone)
-                    if uphone.user_id != usr:
+                    if uphone.user_id != user_id:
                         msg = {}
                         msg['msg'] = "Mobile number is associated with different account."
                         msg['status'] = 400
                 except ObjectDoesNotExist:
-                    gmember = extrafields.objects.filter(user_id=usr).update(phone=phone)
+                    gmember = extrafields.objects.filter(user_id=user_id).update(phone=phone)
                     msg = {}
                     msg['msg'] = 'Mobile number updated succesfully'
                     msg['status'] = 200
@@ -95,7 +97,12 @@ def account_settings(request):
                 extra_data = request.GET.get('extra_data')
                 speczid = request.GET.get('specz')
                 if extra_data != '' and speczid != 0:
-                    gmember = extrafields.objects.filter(user_id=usr).update(user_extra_data=extra_data,specialization_id=speczid)
+                    gmember = extrafields.objects.filter(
+                        user_id=user_id
+                    ).update(
+                        user_extra_data=extra_data,
+                        specialization_id=speczid
+                    )
                     if gmember:
                         msg = {}
                         msg['msg'] = 'IDAVL updated succesfully'
@@ -115,7 +122,7 @@ def account_settings(request):
                     vfield = key   
                 columname = vfield   
                 fieldvalue = vfields[key]
-                gmember = extrafields.objects.filter(user_id=usr).update(**{ columname: fieldvalue })
+                gmember = extrafields.objects.filter(user_id=user_id).update(**{ columname: fieldvalue })
                 msg = ' Updated succesfully'
                 return HttpResponse(msg)
 
