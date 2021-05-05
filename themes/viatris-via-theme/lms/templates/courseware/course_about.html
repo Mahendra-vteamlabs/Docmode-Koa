@@ -183,7 +183,7 @@ from pytz import UTC
                       <p> ${get_course_about_section(request, course, 'short_description')} 
                       </p>
                       <p>&nbsp;</p>
-                      %if user.is_authenticated() and registered:
+                      %if user.is_authenticated and registered:
                         %if show_courseware_link:
                           %if assoc_ad:
                             <a href="#" data-toggle="modal" class="enroll enrollBtn" data-target="#${popupid}" onclick="view_ad('${assoc_ad}','${popupid}');">
@@ -226,7 +226,7 @@ from pytz import UTC
                         <a href="#" class="enroll enrollBtn">${_("Enrollment not yet started.")}</a>
                       %elif can_add_course_to_cart:
                         <%
-                        if user.is_authenticated():
+                        if user.is_authenticated:
                           reg_href = "#"
                           reg_element_id = "add_to_cart_post"
                         else:

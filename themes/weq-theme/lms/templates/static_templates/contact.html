@@ -74,7 +74,7 @@
         <form action="/ask_us" method="post" class="register-form" id="contact">
         <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
         <input type="text" class="mat-input" name="check_spam" id="check_spam" placeholder="Check Spam">
-        %if user.is_authenticated():
+        %if user.is_authenticated:
         <%
           uname = getuserfullprofile(request.user)
           phonenum = userdetails(request.user)

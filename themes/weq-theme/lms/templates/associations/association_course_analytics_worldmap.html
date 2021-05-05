@@ -15,7 +15,7 @@ from lms.djangoapps.specialization.views import specializationName
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
 
-%if user.is_authenticated():
+%if user.is_authenticated:
     %if user.is_staff or org_admin == '1':
         <div class="container">
 	        <div class="row" style="padding-bottom: 10px;max-width: 100% !important;"> <!-- LOGO and COUNTS -->

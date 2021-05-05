@@ -85,7 +85,7 @@ from lms.djangoapps.associations.views import speczName, userType, orgName, cour
           <nav class="nav-wrapper" aria-label="Global">
             <ol class="left nav-global">
               <li class="nav-global-01">
-              %if user.is_authenticated():
+              %if user.is_authenticated:
                 %if grpmember == '1':
                   <button type="button" id="button" class="btn btn-info">Already a member </button>
                 %else:

@@ -84,7 +84,7 @@ class CourseOutlineFragmentView(EdxFragmentView):
         user = request.user
         if request.is_ajax():
             if request.method == 'GET' :
-                if user.is_authenticated():
+                if user.is_authenticated:
                     usr = request.user.id
                     cid = request.GET.get('cid')
                     view_counter = user_view_counter.objects.filter(course_id=cid,user=usr)

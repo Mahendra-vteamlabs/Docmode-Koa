@@ -60,7 +60,7 @@ home_url = site_protocol +'://'+ site_domain
                         <img src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/Docmode-Themes/198x61logo.jpg" alt="">
                     </a>
                     <button id="mob_search_btn" data-toggle="collapse" data-target="#search_box" class="collapsed" aria-expanded="false"><i class="fa fa-search"></i></button>
-                    % if user.is_authenticated():
+                    % if user.is_authenticated:
                         <a href="#" id="join-sign-btn" class="btn btn-success join_btn">${user.username}</a>
                     %else:
                         <a href="/login?next=${request.path}" id="join-sign-btn" class="btn btn-success join_btn">Join / Sign In</a>
@@ -101,7 +101,7 @@ home_url = site_protocol +'://'+ site_domain
       			<li><a href="/about">About</a></li>
       			<!-- <li><a href="#">Find a Doctor</a></li>
                 <li><a href="/forums/">Forum</a></li> -->
-                % if user.is_authenticated():
+                % if user.is_authenticated:
                     %if request.user.is_staff:
                         <li><a target="_blank" href="/docmode/analytics">Docmode Analytics</a>
                                 </li>
@@ -129,7 +129,7 @@ home_url = site_protocol +'://'+ site_domain
                             <button type="submit" class="search-btn"></button>
                         </div>
                     </form> -->
-                    % if user.is_authenticated():
+                    % if user.is_authenticated:
                         
                     %else:
                         <div class="pull-right btn-custom">
@@ -154,7 +154,7 @@ home_url = site_protocol +'://'+ site_domain
             </div>
             <div id="mobile-menu-id" class="mobile-menubar mob-menu">
                 <a href="" class="close-mob-menu"><i class="fa fa-times"></i></a>
-                % if user.is_authenticated():
+                % if user.is_authenticated:
                     <ul>
                         <li><a href="${reverse('dashboard')}">Dashboard</a></li>
                         <li><a href="${reverse('account_settings')}">Account Settings</a></li>

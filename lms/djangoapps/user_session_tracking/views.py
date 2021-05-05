@@ -106,7 +106,7 @@ def create_update_user_session(request):
     user = request.user
     if request.is_ajax():
         if request.method == "GET":
-            if user.is_authenticated():
+            if user.is_authenticated:
                 if "add" in request:
                     usr = request.user.id
                     course_id = request.GET.get("course_id")

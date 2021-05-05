@@ -202,7 +202,7 @@ from lms.djangoapps.reg_form.models import states
 
   </%block>
 
-%if user.is_authenticated():
+%if user.is_authenticated:
     %if user.is_staff or org_admin == '1' or sub_admin == '1':
         <div class="container">
 	        <div class="row" style="padding-bottom: 10px;max-width: 100% !important;"> <!-- LOGO and COUNTS -->

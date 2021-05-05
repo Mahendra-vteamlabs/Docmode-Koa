@@ -373,7 +373,7 @@ def association_about(request, organization_id):
 
             if request.is_ajax():
                 if request.method == "GET":
-                    if user.is_authenticated():
+                    if user.is_authenticated:
                         usr = request.user.id
                         usrmail = request.user.email
                         gid = request.GET.get("groupid")
@@ -670,7 +670,7 @@ def organization_analytics(request, organization_id):
     courses = OrganizationCourse.objects.all().filter(organization_id=organization_id)
     if request.is_ajax():
         if request.method == "GET":
-            if user.is_authenticated():
+            if user.is_authenticated:
                 cities = extrafields.objects.values("regstate").annotate(
                     dcount=Count("regstate")
                 )
@@ -2871,7 +2871,7 @@ class partner_details_api(DeveloperErrorViewMixin, APIView):
             association_dict["descrption"] = association.description
             association_dict["logo"] = str(association.logo)
             association_dict["org_promo_video"] = association.org_promo_video
-            if user.is_authenticated():
+            if user.is_authenticated:
                 if user.is_staff:
                     association_dict["is_staff"] = "staff"
                     association_dict["dashboard_url"] = (

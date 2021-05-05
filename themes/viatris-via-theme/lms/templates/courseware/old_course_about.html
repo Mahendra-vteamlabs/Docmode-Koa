@@ -197,7 +197,7 @@ from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_
                     <h2>${course.display_name_with_default_escaped}</h2>
                     <p> ${get_course_about_section(request, course, 'short_description')} 
                     </p>
-                    %if user.is_authenticated() and registered:
+                    %if user.is_authenticated and registered:
                       %if show_courseware_link:
                         <a href="/courses/${course.id}/${ctype}" class="enroll"> 
                         %if ctype_numb == '1':
@@ -236,7 +236,7 @@ from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_
                       <span class="register disabled">${_("Enrollment is Closed")}</span>
                     %elif can_add_course_to_cart:
                       <%
-                      if user.is_authenticated():
+                      if user.is_authenticated:
                         reg_href = "#"
                         reg_element_id = "add_to_cart_post"
                       else:

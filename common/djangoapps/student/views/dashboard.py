@@ -501,7 +501,7 @@ def student_dashboard(request):
     #Added by Mahendra
     if request.is_ajax():
         if request.method == 'GET' :
-            if user.is_authenticated():
+            if user.is_authenticated:
                 if request.GET.get('disclaimer'):
                     log.info(u'disclaimer %s', request.GET.get('disclaimer'))
                     usr = request.user.id

@@ -4,10 +4,10 @@ import json
 from django.utils.translation import ugettext as _
 from django.urls import reverse
 from django.conf import settings
+from django.core.context_processors import csrf
 from edxmako.shortcuts import marketing_link
 from openedx.core.lib.courses import course_image_url
-from associations.views import course_det
-from django.core.context_processors import csrf
+from lms.djangoapps.associations.views import course_det
 from lms.djangoapps.associations.views import speczName, userType, orgName
 %>
 
@@ -86,7 +86,7 @@ from lms.djangoapps.associations.views import speczName, userType, orgName
           <nav class="nav-wrapper" aria-label="Global">
             <ol class="left nav-global">
               <li class="nav-global-01">
-              %if user.is_authenticated():
+              %if user.is_authenticated:
                 %if grpmember == '1':
                   <button type="button" id="button" class="btn btn-info">Already a member </button>
                 %else:

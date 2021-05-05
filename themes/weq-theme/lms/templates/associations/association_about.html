@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.conf import settings
 from edxmako.shortcuts import marketing_link
 from openedx.core.lib.courses import course_image_url
-from associations.views import course_det
+from lms.djangoapps.associations.views import course_det
 from django.template.context_processors import csrf
 from lms.djangoapps.associations.views import speczName, userType, orgName
 %>
@@ -117,7 +117,7 @@ from lms.djangoapps.associations.views import speczName, userType, orgName
                     <h2>${assoc_name}</h2>
                     <p>${assoc_description}
                     </p>
-                    %if user.is_authenticated():
+                    %if user.is_authenticated:
                         %if gusr_staff == '1':
                           
                           <a href="/dashboard/${assoc_short_name}/">View Dashboard</a>
