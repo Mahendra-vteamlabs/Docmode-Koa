@@ -6,7 +6,7 @@ import uuid
 
 import jwt
 import provider.scope
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import QueryDict
 from django.test import TestCase
 

@@ -3,7 +3,7 @@ Trusted client tests.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .base import OAuth2TestCase
 from .util import normpath

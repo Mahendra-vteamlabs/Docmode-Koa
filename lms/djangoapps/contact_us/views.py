@@ -15,7 +15,7 @@ from django.http import (
 from django.template import RequestContext, Template, loader, context
 from django.shortcuts import redirect
 from django.http import HttpRequest
-from django.core.urlresolvers import reverse, resolve
+from django.urls import reverse, resolve
 from django.utils.translation import ugettext as _
 
 from django.views.decorators.http import require_http_methods
