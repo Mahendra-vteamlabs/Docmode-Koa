@@ -1,0 +1,261 @@
+<%!
+  import json
+  from datetime import datetime
+  from django.utils.translation import ugettext as _
+  from openedx.core.djangolib.js_utils import dump_js_escaped_json
+  from lms.djangoapps.associations.views import speczName, userType, orgName
+  from organizations.models import Organization
+%>
+<%inherit file="../main.html" />
+<%
+  course_discovery_enabled = settings.FEATURES.get('ENABLE_COURSE_DISCOVERY')
+%>
+
+<%namespace name='static' file='../static_content.html'/>
+
+% if course_discovery_enabled:
+<%block name="header_extras">
+  % for template_name in ["course_card", "filter_bar", "filter", "facet", "facet_option"]:
+  <script type="text/template" id="${template_name}-tpl">
+      <%static:include path="discovery/${template_name}.underscore" />
+  </script>
+  % endfor
+  <%static:require_module module_name="js/discovery/discovery_factory" class_name="DiscoveryFactory">
+    DiscoveryFactory(
+      ${course_discovery_meanings | n, dump_js_escaped_json},
+      getParameterByName('search_query'),
+      "${user_language}",
+      "${user_timezone}"
+    );
+  </%static:require_module>
+</%block>
+% endif
+<%block name="pagetitle">
+%if request.path == '/courses' :
+  ${_("Courses")}
+%else :
+    ${_("Lectures")}
+%endif
+</%block>
+<%block name="headextra">
+  <link href="${static.url("css/breadcrums.css")}" rel="stylesheet"> 
+  <link href="${static.url("css/course.css")}" rel="stylesheet"> 
+</%block>
+<main id="main" aria-label="Content" tabindex="-1">
+    <section class="find-courses find-course-wrap">
+      <section class="courses-container container-fluid"> <!-- added container-fluid class--->
+
+        <div class="video_wrap">  <!-- added wrap row--->
+          <div class="row video_banner_row"> <!---added class--->
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <ul class="breadcrums">
+                  <li>
+                      <a href="/">Home / </a>
+                  </li>
+                  <li>
+                      <a href="/courses">All Courses</a>
+                  </li>
+              </ul>
+            </div>
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="video-popup-content clearfix">
+                <div class="video-img">
+                    <a href="#" data-toggle="modal" data-target="#youtube">
+                        <img src="https://img.youtube.com/vi/-S0kLcw105Q/0.jpg" alt="demo">
+                        <div class="play-intro play-btn"><!-- <img src="https://s3.ap-south-1.amazonaws.com/student-verified-photos/icons8-play-40.png" style="margin-left: 0%;margin-top: 0%;"> -->
+                          <img src="${static.url('images/weq-images/play-button.svg')}" alt="">
+                        </div>
+                    </a>
+                </div>
+                <div class="video-content video-text">
+                    <h4>Learn how courses work on DocMode</h4>
+                    <p>Courses help you study a specific topic in 6-8 week engagements culminating in a certificate
+                        of participation from the Partner Watch the video to learn more!</p>
+                    <a href="#" class="close-content">x</a>
+                </div>
+            </div> 
+            </div>
+          </div>
+        </div>
+
+        <div class="container container_wrapper"> <!---added container class--->
+        % if course_discovery_enabled:
+        <div id="discovery-form" role="search" aria-label="course" class="wrapper-search-context">
+          <div id="discovery-message" class="search-status-label search-label-text"></div>
+          <form class="wrapper-search-input">
+            <label for="discovery-input" class="sr">${_('Search for a course')}</label>
+            <input id="discovery-input" class="discovery-input search-input" placeholder="${_('Search for a course')}" type="text"/>
+            <button type="submit" class="button postfix discovery-submit course-submit" title="${_('Search')}" onclick="reset_myAccordian();">
+              <i class="icon search-icon fa fa-search" aria-hidden="true"></i>
+              <div aria-live="polite" aria-relevant="all">
+                <div id="loading-indicator" class="loading-spinner hidden">
+                  <i class="icon fa fa-spinner fa-spin" aria-hidden="true"></i>
+                  <span class="sr">${_('Loading')}</span>
+                </div>
+              </div>
+            </button>
+          </form>
+        </div>
+
+        <div id="filter-bar" class="filters hide-phone is-collapsed">
+        </div>
+        % endif
+        % if course_discovery_enabled:
+          <aside aria-label="${_('Refine Your Search')}" class="search-facets phone-menu filter-sidebar">
+
+
+          <div class="filter-wrap">
+            <span class="left-align">Filter</span>
+            <span class="right-align">Reset Filters</span>
+          </div>
+
+         
+
+          <h2 class="header-search-facets">${_('Refine Your Search')}</h2>
+            
+            <!-- <section class="search-facets-lists">
+              
+            </section> -->
+
+
+            <div class="sidebar-filter">
+                <section class="search-facets-lists"></section>
+             </div>
+          
+          </aside>
+        % endif
+
+
+        <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
+          <!-- <div class="video-popup-content clearfix">
+              <div class="video-img">
+                  <a href="#" data-toggle="modal" data-target="#youtube">
+                      <img src="https://img.youtube.com/vi/-S0kLcw105Q/0.jpg" alt="demo" width="219.5px;" height="149px;">
+                      <div class="play-intro"><img src="https://s3.ap-south-1.amazonaws.com/student-verified-photos/icons8-play-40.png" style="margin-left: 0%;margin-top: 0%;"></div>
+                  </a>
+
+              </div>
+              <div class="video-content">
+                  <h4>Learn how courses work on DocMode</h4>
+                  <p>Courses help you study a specific topic in 6-8 week engagements culminating in a certificate
+                      of participation from the Partner Watch the video to learn more!</p>
+                  <a href="#" class="close-content">x</a>
+              </div>
+          </div> -->
+
+          
+
+
+          <ul class="courses-listing" id="discovery_data" style="display: none;">
+                      
+          </ul>
+          <br>
+          <div id="lectures_data">
+            % for course in lectures_list:   
+                                    <%
+                if course.start is not None:
+                    course_date_string = course.start.strftime('%Y-%m-%dT%H:%M:%S%z')
+                else:
+                    course_date_string = ''
+
+                association_name = Organization.objects.get(short_name=course.display_org_with_default)
+                data = association_name.name 
+                info = (data[:10] + '..') if len(data) > 10 else data
+                course_name = (course.display_name_with_default[:40] + '..') if len(course.display_name_with_default) > 50 else course.display_name_with_default
+            %>    
+                                    <div class="col-md-4 col-sm-12 col-xs-4">
+                                        <a href="/courses/${course.id}/about">
+                                            <div class="card" style="width: 269.41px;">
+                                            <div class="card-img">
+                                                <img src="${course.course_image_url}" alt="${course.display_name_with_default}">
+                                            </div> 
+                                            <div class="card-text">
+                                                <!--added by nisha start-->
+                                                <span class="course-author"><i class="fa fa-user-o" aria-hidden="true"></i>
+                                                ${info} <time class="localized_datetime" style="float: right;" itemprop="startDate" data-format="shortDate" data-datetime="${course_date_string}"></time></span>
+                                                
+                                                <!--added by nisha end-->
+                                                <h4>${course_name}</h4>
+                                                
+                                                
+                                                <!--added by nisha start-->
+                                                <button type="button" class="btn btn-default enroll_btn">View</button>
+                                                
+                                                <!--added by nisha end-->
+                                            </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                %endfor
+          </div>
+        </div> 
+              
+       </div> <!----end of container--->
+
+       <div class="course_load_more explore_btn">
+          <button type="button" class="btn btn-default">Load More</button>
+       </div>
+
+
+      </section>
+    </section>
+</main>
+
+
+<script type="text/javascript">
+
+    function hide_types() { 
+      document.getElementById("types").style.display = "none";  
+      document.getElementById("typescontent").style.display = "none";
+    }
+
+$("document").ready(function() {
+    hide_types();
+    /*************please donot remove the below code ******************/ 
+    // var url = window.location.href;
+    // setTimeout(function() {
+    //  if (url.includes("courses")) {
+    //    document.getElementById("filtercourses").click();        
+    //  } else {
+    //    document.getElementById("filterlectures").click();
+    //     var x = document.getElementById("discovery-message").textContent;
+    //     var res = x.split(" ");
+    //     document.getElementById("discovery-message").innerHTML = res[0]+' '+res[1]+' Lectures';
+    //  }      
+    // },500);
+
+
+/*************script added by nisha course accordian******************/ 
+  setTimeout(
+    function () {
+       myAccordian();
+    }, 2000); 
+});
+
+function reset_myAccordian(){
+  setTimeout(
+    function () {
+    hide_types();
+      if($("li").hasClass("active-filter")) {
+        document.getElementById("discovery_data").style.display="block";
+        document.getElementById("lectures_data").style.display="none";
+      } else {
+        document.getElementById("discovery_data").style.display="none";
+        document.getElementById("lectures_data").style.display="block";
+      }
+
+       myAccordian();
+       var url = window.location.href;
+        $(".accordionGroup").addClass("active");
+        $(".accordionContent").css("max-height", "max-content");
+        if (url.includes("lectures")) {
+          var x = document.getElementById("discovery-message").textContent;
+          var res = x.split(" ");
+          document.getElementById("discovery-message").innerHTML = res[0]+' '+res[1]+' Lectures';
+        }
+    }, 1000);
+}
+</script>
+<%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
+    DateUtilFactory.transform(iterationKey=".localized_datetime");
+</%static:require_module_async>

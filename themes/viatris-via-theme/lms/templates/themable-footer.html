@@ -1,0 +1,250 @@
+<!-- You can make changes to HTML templates by copying them to your theme directory in the appropriate place, and making the changes you need. Keep in mind that in the future if you upgrade the Open edX code, you may have to update the copied template in your theme also. -->
+
+## mako
+<%namespace name='static' file='static_content.html'/>
+<%!
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+%>
+<%
+	check_loggedin = request.user.id
+%>
+	
+<div style="position: relative; padding-bottom: 6rem;"><p style="float: right;margin-right: 20px;"><strong>For any queries</strong> <br><strong style="color: #4299d8;">Email to:<strong><a href="mailto:support@docmode.org" style="color: #4299d8;">support@docmode.org</a></strong></p></div>
+    <footer id="footer" class="midnight-blue" style="background: #000; color: #fff;font-size: 14px;position: relative;">
+        <div class="footer-top" style="display: none;">
+            <div class="container footer-container">
+                <div class="row">
+					<div class="col-md-3 col-sm-5 col-xs-12">
+						<div class="social_links">
+							<a href="https://www.facebook.com/Docmode" target="_blank"><i class="fa fa-facebook"></i></a>
+							<a href="https://www.twitter.com/@docmode1" target="_blank"><i class="fa fa-twitter"></i></a>
+							<a href="https://in.linkedin.com/company/docmode" target="_blank"><i class="fa fa-linkedin"></i></a>
+							<a href="https://www.instagram.com/doc_mode/" target="_blank"><i class="fa fa-instagram"></i></a>
+						</div>
+					</div>
+					<div class="col-md-9 col-sm-7 col-xs-12">	
+						<p class="docmode">#BeDocMode</p>					
+					</div>
+				</div>
+				
+				<div id="desktop-footer">
+					<div class="row">
+						<div class="col-md-3 col-sm-3 col-xs-12">
+							<h4 class="footer-title">Trending Topics</h4>
+							<ul class="footer-list">
+								<li><a href="${marketing_link('SUBJECTS')}brain-disorders" title="Brain Disorders">Brain Disorders </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}heart-diseases" title="Heart Diseases">Heart Diseases </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}hypertension" title="Hypertension">Hypertension </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}infectious-diseases" title="Infectious diseases">Infectious Diseases </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}ophthalmology" title="Ophthalmology">Ophthalmology </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}women-health" title="Women Health">Women Health</a></li>
+								<li><a href="${marketing_link('SUBJECTS')}Nephrology" title="Nephrology">Nephrology </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}Other" title="Other">Other </a></li>
+							</ul>
+							<p><a href="${marketing_link('SUBJECTS')}" title="All Topics"><u>All Topics</u></a></p>
+						</div>	
+						<div class="col-md-3 col-sm-3 col-xs-12">
+							<h4 class="footer-title">Other Pages</h4>
+							<ul class="footer-list">
+								<li><a href="${marketing_link('ROOT')}" title="Home">Home </a></li>
+								<li><a href="${marketing_link('ABOUT')}" title="About Us">About Us </a></li>
+								<li><a href="${marketing_link('TOS')}" title="Terms and Conditions">Terms and Conditions </a></li>
+								<li><a href="${marketing_link('PRIVACY')}" title="Privacy">Privacy </a></li>
+								<li><a href="${marketing_link('COOKIES')}" title="Cookies">Cookies </a></li>
+								<!-- <li><a href="#" title="Disclaimer">Disclaimer </a></li> -->
+								<li><a href="${marketing_link('BLOG')}" title="Blog">Blog </a></li>
+								<li><a href="https://docmode.org/media-center/" title="Media Center">Media Center </a></li>
+							</ul>
+							%if not check_loggedin:                          
+								<p><a href="/login"><u>Login/Sign Up</u></a></p>		
+							%else:
+								<p><a href="/courses"><u>Explore Courses</u></a></p>				
+							%endif
+						</div>	
+						<div class="col-md-3 col-sm-3 col-xs-12">
+							<div class="contact_details">
+								<h4 class="footer-title">Contact Us</h4>
+								<p>Docmode Health Technologies Pvt. Ltd.<br>
+								Office No: 201, Kalpataru Plaza<br>
+								Chincholi Bunder Rd, Nadiyawala Colony 2 <br>
+								Malad West, Mumbai-400064<br>
+								Maharashtra.
+								</p>
+								<p><a href="tel:022 4973 6375" title="022 4973 6375">022 4973 6375</a></p>
+								<p><a href="tel:+91 81042 82077" title="+91 81042 82077">+91 81042 82077</a></p>
+								<p><a href="https://goo.gl/maps/iDqY2k1pYtB2" target="_blank" title="Map and directions"><u>Map and directions</u></a></p>
+							</div>
+						</div>	
+						<div class="col-md-3 col-sm-3 col-xs-12">
+							<div class="complies-text footer_honcode">
+                        		<p><a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;"><img src="https://www.honcode.ch/HONcode/Seal/HONConduct282455_s.gif" style="border:0px; width: 50px; height: 70px; margin-bottom: 10px;" title="This website is certified by Health On the Net Foundation. Click to verify." alt="This website is certified by Health On the Net Foundation. Click to verify."></a><br>This site complies with the <a href="http://www.healthonnet.org/HONcode/Conduct.html" onclick="window.open(this.href); return false;" style="color: #337ab7;">HONcode standard for trustworthy health</a> information:<a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;" style="color: #337ab7;">verify here.</a></p>
+                    		</div>
+                    		<div class="complies-text footer_honcode">
+                    			<script src="https://d20iczrsxk7wft.cloudfront.net/botwverified/badge.js?id=13564100"></script>
+                    		</div>
+						</div>	
+					</div>		
+				</div>
+				
+				<div id="mobile-footer" class="mobile-footer-ls">
+					<div class="row">
+						<div class="col-xs-12">
+							<button class="accordion">Trending Topics</button>
+							<div class="panel">
+							  <ul class="footer-list">
+								<li><a href="${marketing_link('SUBJECTS')}brain-disorders" title="Brain Disorders">Brain Disorders </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}heart-diseases" title="Heart Diseases">Heart Diseases </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}hypertension" title="Hypertension">Hypertension </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}infectious-diseases" title="Infectious diseases">Infectious Diseases </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}ophthalmology" title="Ophthalmology">Ophthalmology </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}women-health" title="Women Health">Women Health</a></li>
+								<li><a href="${marketing_link('SUBJECTS')}Nephrology" title="Nephrology">Nephrology </a></li>
+								<li><a href="${marketing_link('SUBJECTS')}Other" title="Other">Other </a></li>
+							  </ul>
+							%if not check_loggedin:                          
+								<p><a href="/login"><u>Login/Sign Up</u></a></p>		
+							%else:
+								<p><a href="/courses"><u>Explore Courses</u></a></p>				
+							%endif
+							</div>
+
+							<button class="accordion">Other Pages</button>
+							<div class="panel">
+							  <ul class="footer-list">
+								<li><a href="${marketing_link('ROOT')}" title="Home">Home </a></li>
+								<li><a href="${marketing_link('ABOUT')}" title="About Us">About Us </a></li>
+								<li><a href="${marketing_link('TOS')}" title="Terms and Conditions">Terms and Conditions </a></li>
+								<li><a href="${marketing_link('PRIVACY')}" title="Privacy">Privacy </a></li>
+								<li><a href="${marketing_link('COOKIES')}" title="Cookies">Cookies </a></li>
+								<!-- <li><a href="#" title="Disclaimer">Disclaimer </a></li> -->
+								<li><a href="${marketing_link('BLOG')}" title="Blog">Blog </a></li>
+								<li><a href="/media-center/" title="Feedback">Media Center</a></li>
+							  </ul>
+							  <p><a href="#" title="All Topics"><u>Login/Sign Up</u></a></p>
+							</div>
+
+							<button class="accordion">Contact Us</button>
+							<div class="panel">
+							 <p>Docmode Health Technologies Pvt. Ltd.<br>
+								Office No: 201, Kalpataru Plaza<br>
+								Chincholi Bunder Rd, Nadiyawala Colony 2 <br>
+								Malad West, Mumbai-400064<br>
+								Maharashtra.
+								</p>
+								<p><a href="tel:022 4973 6375" title="022 4973 6375">022 4973 6375</a></p>
+								<p><a href="tel:+91 81042 82077" title="+91 81042 82077">+91 81042 82077</a></p>
+								
+								<p><a href="https://goo.gl/maps/iDqY2k1pYtB2" target="_blank" title="Map and directions"><u>Map and directions</u></a></p>
+							</div>	
+							<div class="complies-text footer_honcode">
+                        		<p><a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;"><img src="https://www.honcode.ch/HONcode/Seal/HONConduct282455_s.gif" style="border:0px; width: 50px; height: 72px;margin-bottom: 10px;" title="This website is certified by Health On the Net Foundation. Click to verify." alt="This website is certified by Health On the Net Foundation. Click to verify."></a><br>This site complies with the <a href="http://www.healthonnet.org/HONcode/Conduct.html" onclick="window.open(this.href); return false;" style="color: #337ab7;">HONcode standard for trustworthy health</a> information:<a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;" style="color: #337ab7;">verify here.</a></p>
+                    		</div> 
+                    		<div class="complies-text footer_honcode">
+                    			<script src="https://d20iczrsxk7wft.cloudfront.net/botwverified/badge.js?id=13564100"></script>
+                    		</div>
+                    		<!-- <div class="complies-text">
+                        		<p><a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;"><img src="https://www.honcode.ch/HONcode/Seal/HONConduct282455_s.gif" style="border:0px; width: 50px; height: 72px; float: left; margin: 2px;" title="This website is certified by Health On the Net Foundation. Click to verify." alt="This website is certified by Health On the Net Foundation. Click to verify."></a>This site complies with the <a href="http://www.healthonnet.org/HONcode/Conduct.html" onclick="window.open(this.href); return false;" style="color: #337ab7;">HONcode standard for trustworthy health</a> information:<a href="https://www.healthonnet.org/HONcode/Conduct.html?HONConduct282455" onclick="window.open(this.href); return false;" style="color: #337ab7;">verify here.</a></p>
+                    		</div>  -->
+						</div>
+					</div>
+				</div>
+				
+            </div>
+        </div>
+        ## please leave this link and use one of the logos provided
+    	<div class="footer-about-openedx">
+      		<h3 style="text-align: center; font-size: 30px;color: #fff;padding-top: 3%;"><strong style="font-weight:750;">Legal Notice</strong></h3>
+      		<p style="text-align: center; font-size: 14px; color:#fff;"><b>Viatris Inc.</b>
+                1000 Mylan Blvd.
+                Canonsburg, PA 15317
+                USA
+                Tel: +1 724.514.1800
+            </p>
+      		<div style="border-top: 1px solid #3b0e41;width: 80;margin-left: 10%;margin-right: 10%;">
+      			<div id="footer_css">
+        			<p style="font-size: 14px;margin-left:10%;">
+         
+         				<a href="https://www.viatris.com/en/privacy-policy" target="_blank" style="color: #fff;">Viatris Privacy Notice|</a>
+        				<a href="https://www.viatris.com/en/Cookie-Notice" target="_blank" style="color: #fff; ">Viatris Cookie Notice</a>
+        
+        			</p>
+        			<p id="docm_css">
+        				© 2021. DocMode Health Technologies Pvt. Ltd. All rights reserved
+        			</p>
+    			</div>
+    		</div>
+    	</div>
+    </footer>
+    <div class="modal fade" id="youtube" data-backdrop="static"
+   data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+
+                    <iframe id="iframeYoutube" width="100%" height="315" src="https://www.youtube.com/embed/-S0kLcw105Q" frameborder="0" allowfullscreen ></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="modalclose();">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!---mobile footer added by nisha--->
+<script type="text/javascript">
+	function modalclose() {
+        $('#iframeYoutube').attr('src', '');
+    }
+
+    function modalvideoplay() { 
+          var url = "https://www.youtube.com/embed/-S0kLcw105Q?autoplay=1";
+          document.getElementById("iframeYoutube").src = url;
+        }
+
+    function myAccordian(){
+	/*************script added by nisha course accordian******************/ 
+    var acc = document.getElementsByClassName("accordionGroup");
+      var i;
+        for (i = 0; i < acc.length; i++) {
+          acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+            if (panel.style.maxHeight){
+              panel.style.maxHeight = null;
+            } else {
+              panel.style.maxHeight = panel.scrollHeight + "px";
+            } 
+          });
+        }
+    }
+
+$(document).ready(function(){
+
+	function footerAcc(){
+	/*************script added by nisha mobile footer accordian******************/ 
+	    var acc = document.getElementsByClassName("accordion");
+		var i;
+
+		for (i = 0; i < acc.length; i++) {
+		  acc[i].addEventListener("click", function() {
+		    this.classList.toggle("active");
+		    var panel = this.nextElementSibling;
+		    if (panel.style.maxHeight){
+		      panel.style.maxHeight = null;
+		    } else {
+		      panel.style.maxHeight = panel.scrollHeight + "px";
+		    } 
+		  });
+		}
+    }
+
+	setTimeout(
+      function () {
+        footerAcc();
+    }, 2000);
+
+
+});
+
+</script>
+

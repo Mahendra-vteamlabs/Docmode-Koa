@@ -1,0 +1,178 @@
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%namespace name='static' file='/static_content.html'/>
+<%def name="online_help_token()"><% return "progress" %></%def>
+<%!
+from course_modes.models import CourseMode
+from lms.djangoapps.certificates.models import CertificateStatuses
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.markup import HTML, Text
+from django.urls import reverse
+from django.conf import settings
+from django.utils.http import urlquote_plus
+from six import text_type
+
+from openedx.features.enterprise_support.utils import get_enterprise_learner_generic_name
+from lms.djangoapps.course_extrainfo.models import course_extrainfo
+from lms.djangoapps.reg_form.models import extrafields
+from lms.djangoapps.grades.models import PersistentCourseGrade
+%>
+
+<%
+username = get_enterprise_learner_generic_name(request) or student.username
+%>
+
+<%block name="bodyclass">view-in-course view-progress</%block>
+
+<%block name="headextra">
+<%static:css group='style-course-vendor'/>
+<%static:css group='style-course'/>
+</%block>
+
+
+<%namespace name="progress_graph" file="/courseware/progress_graph.js"/>
+
+<%block name="pagetitle">${_("{course_number} Progress").format(course_number=course.display_number_with_default)}</%block>
+
+<%block name="js_extra">
+<script type="text/javascript" src="${static.url('js/vendor/flot/jquery.flot.js')}"></script>
+<script type="text/javascript" src="${static.url('js/vendor/flot/jquery.flot.stack.js')}"></script>
+<script type="text/javascript" src="${static.url('js/vendor/flot/jquery.flot.symbol.js')}"></script>
+<script type="text/javascript" src="${static.url('js/courseware/certificates_api.js')}"></script>
+<script type="text/javascript" src="${static.url('js/courseware/credit_progress.js')}"></script>
+<script>
+    ## This JavaScript is being HTML-escaped because it historically has, and it is not clear what
+    ## the correct syntax is. For safety, maintain the previous behavior.
+    ## xss-lint: disable=mako-invalid-js-filter
+    ${progress_graph.body(grade_summary, course.grade_cutoffs, "grade-detail-graph", not course.no_grade, not course.no_grade)}
+</script>
+</%block>
+
+<%include file="/courseware/course_navigation.html" args="active_page='progress'" />
+<%
+  course_extra = course_extrainfo.objects.get(course_id=course.id)
+  user_data = extrafields.objects.get(user_id=request.user)
+%>
+<main id="main" aria-label="Content" tabindex="-1">
+    <div class="container">
+        <div class="profile-wrapper">
+            <section class="course-info" id="course-info-progress"
+              % if getattr(course, 'language'):
+                lang="${course.language}"
+              % endif
+              >
+                % if staff_access and studio_url is not None:
+                <div class="wrap-instructor-info">
+                    <a class="instructor-info-action studio-view" href="${studio_url}">${_("View Grading in studio")}</a>
+                </div>
+                % endif
+
+                <div class="wrapper-msg wrapper-auto-cert">
+                    <div id="errors-info" class="errors-info"></div>
+                    %if certificate_data:
+                    <div class="auto-cert-message" id="course-success">
+                        <div class="has-actions">
+                            <% post_url = reverse('generate_user_cert', args=[unicode(course.id)]) %>
+                            <div class="msg-content">
+                                <h4 class="hd hd-4 title"></h4>
+                                <p class="copy">You have earned a certificate for this webinar.</p>
+                            </div>
+                            <div class="msg-actions">
+                                %if certificate_data.cert_web_view_url:
+                                    %if course_extra.mci_mandatory =='1' and user_data.reg_num == '':
+                                        <button onclick="show_mcipopup(); ">${_('View Certificate')}</button>
+                                    %else:
+                                        %if not staff_access:
+                                            <a class="btn" href="${certificate_data.cert_web_view_url}" target="_blank" onclick="smartech('dispatch', 'Lecture_Completion', {'LECTURE_NAME':'${course.display_name}','LECTURE_ID': '${course.id}','USER ID' : '${request.user.id}','GRADES':'0'});">
+                                        %else:
+                                            <a class="btn" href="${certificate_data.cert_web_view_url}" target="_blank">
+                                        %endif
+                                            ${_("View Certificate")} <span class="sr">${_("Opens in a new browser window")}</span></a>
+                                    %endif
+                                %elif certificate_data.cert_status == CertificateStatuses.downloadable and certificate_data.download_url:
+                                <a class="btn" href="${certificate_data.download_url}" target="_blank">${_("Download Your Certificate")} <span class="sr">${_("Opens in a new browser window")}</span></a>
+                                %elif certificate_data.cert_status == CertificateStatuses.requesting:
+                                    %if course_extra.mci_mandatory =='1' and user_data.reg_num == '':
+                                        <button onclick="show_mcipopup();">${_('Request Certificate')}</button>
+                                    %else:
+                                        <button class="btn generate_certs" data-endpoint="${post_url}" id="btn_generate_cert">${_('Request Certificate')}</button>
+                                    %endif
+                                %endif
+                            </div>
+                        </div>
+                    </div>
+                    %endif
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<div class="modal fade" id="course_extradata" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-sm-12 col-md-8">
+                <p>Please Enter your Mci number</p>
+              </div>
+              <div class="col-sm-12 col-md-8">
+                <input type="text" name="idavl" id="idavl" class="extra_data_val">
+              </div>
+              <p id="error_msg"></p>
+            </div>
+            <p></p>
+            <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+          <div class="modal-footer" id="closebtn" style="text-align: center; border:unset;">
+              <button type="button" class="btn btn-primary extra_data" id="submit" onclick="update_extra_data();">Submit</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+  <script type="text/javascript">
+    function show_mcipopup () {
+        $("#course_extradata").modal('show');
+        return false;
+    }
+
+          function update_extra_data(){   
+            var reg_num = document.getElementById('idavl').value;
+            var intRegex = /^[A-Za-z0-9!@#$&()-`.+,/\" ]+$/;
+            if(intRegex.test(reg_num)){
+              if (reg_num.length < 3){
+                $("#error_msg").show();
+                $('#idavl').val("");
+                $("#error_msg").html("Please enter minimum 3 charac")
+                return false;
+              } 
+            }else{
+              $("#error_msg").show();
+                    $("#error_msg").html("Please enter valid data")
+                    return false;
+            }
+                $.ajax({
+                    type: "GET",
+                    url: "/account/settings",
+                    dataType:'html',
+                    data: {
+                      reg_num:reg_num
+                    },
+                    success: function(data) {
+                        if(data == ' Updated succesfully'){
+                            
+                            window.location.href = '';
+                        } else {
+                            $("#error_msg").html(data.msg);
+                            $("#error_msg").show();
+                        }
+                    }
+                });
+              
+            }
+
+  </script>
+
+<%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
+    DateUtilFactory.transform(iterationKey=".localized-datetime");
+</%static:require_module_async>

@@ -1,0 +1,684 @@
+<%namespace name='static' file='../static_content.html'/>
+<%!
+import json
+import unicodedata
+from django.utils.translation import ugettext as _
+from django.urls import reverse
+from courseware.courses import get_course_about_section
+from django.conf import settings
+from edxmako.shortcuts import marketing_link
+from openedx.core.djangolib.markup import HTML
+from openedx.core.lib.courses import course_image_url
+from lms.djangoapps.course_extrainfo.views import course_ctype, course_ctype_number
+from lms.djangoapps.reg_form.views import getuserfullprofile, get_authuser
+from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_image_urls_for_user, set_has_profile_image
+from lms.djangoapps.associations.views import course_usercount
+from organizations.models import Organization
+from lms.djangoapps.add_manager.views import sponsored_user,get_association_ad_data
+from datetime import datetime
+from pytz import UTC
+%>
+
+<%inherit file="../main.html" />
+<%block name="headextra">
+  ## OG (Open Graph) title and description added below to give social media info to display
+  ## (https://developers.facebook.com/docs/opengraph/howtos/maximizing-distribution-media-content#tags)
+  <meta property="og:title" content="${course.display_name_with_default_escaped}" />
+  <meta property="og:description" content="${get_course_about_section(request, course, 'short_description')}" />
+  <link href="${static.url("css/breadcrums.css")}" rel="stylesheet"> 
+  <link href="${static.url("css/coursedetail.css")}" rel="stylesheet">     
+  <style type="text/css">
+    #modal_clone {
+          overflow: hidden; 
+          max-height: 352px;
+          width:600px;
+        }
+
+        @media only screen and (max-width: 600px) {
+          #modal_clone {
+            overflow: hidden; 
+            max-height: 340px;
+          }
+        }
+
+      .modal.video-modal .inner-wrapper{
+        height: 332px !important;
+        width: 580px !important;
+      }
+
+    </style>
+</%block>
+
+<%block name="js_extra">
+  <script type="text/javascript">
+  (function() {
+    $(".register").click(function(event) {
+      $("#class_enroll_form").submit();
+      event.preventDefault();
+    });
+
+    % if can_add_course_to_cart:
+      add_course_complete_handler = function(jqXHR, textStatus) {
+        if (jqXHR.status == 200) {
+          location.href = "${cart_link}";
+        }
+        if (jqXHR.status == 400) {
+          $("#register_error")
+            .html(jqXHR.responseText ? jqXHR.responseText : "${_("An error occurred. Please try again later.")}")
+            .css("display", "block");
+        }
+        else if (jqXHR.status == 403) {
+            location.href = "${reg_then_add_to_cart_link}";
+        }
+      };
+
+      $("#add_to_cart_post").click(function(event){
+        $.ajax({
+          url: "${reverse('add_course_to_cart', args=[course.id.to_deprecated_string()])}",
+          type: "POST",
+          /* Rant: HAD TO USE COMPLETE B/C PROMISE.DONE FOR SOME REASON DOES NOT WORK ON THIS PAGE. */
+          complete: add_course_complete_handler
+        })
+        event.preventDefault();
+      });
+    % endif
+
+    ## making the conditional around this entire JS block for sanity
+    %if settings.FEATURES.get('RESTRICT_ENROLL_BY_REG_METHOD') and course.enrollment_domain:
+      <%
+        perms_error = _('The currently logged-in user account does not have permission to enroll in this course. '
+                        'You may need to {start_logout_tag}log out{end_tag} then try the enroll button again. '
+                        'Please visit the {start_help_tag}help page{end_tag} for a possible solution.').format(
+                          start_help_tag="<a href='{url}'>".format(url=marketing_link('FAQ')), end_tag='</a>',
+                          start_logout_tag="<a href='{url}'>".format(url=reverse('logout'))
+                          )
+      %>
+    $('#class_enroll_form').on('ajax:complete', function(event, xhr) {
+      if(xhr.status == 200) {
+        location.href = "${reverse('dashboard')}";
+      } else if (xhr.status == 403) {
+        location.href = "${reverse('course-specific-register', args=[course.id.to_deprecated_string()])}?course_id=${course.id | u}&enrollment_action=enroll";
+      } else if (xhr.status == 400) { //This means the user did not have permission
+        $('#register_error').html("${perms_error}").css("display", "block");
+      } else {
+        $('#register_error').html(
+            (xhr.responseText ? xhr.responseText : "${_("An error occurred. Please try again later.")}")
+        ).css("display", "block");
+      }
+    });
+
+    %else:
+
+    $('#class_enroll_form').on('ajax:complete', function(event, xhr) {
+      if(xhr.status == 200) {
+        if (xhr.responseText == "") {
+          location.href = "${reverse('dashboard')}";
+        }
+        else {
+          location.href = xhr.responseText;
+        }
+      } else if (xhr.status == 403) {
+          location.href = "${reverse('register_user')}?course_id=${course.id | u}&enrollment_action=enroll";
+      } else {
+        $('#register_error').html(
+            (xhr.responseText ? xhr.responseText : "${_("An error occurred. Please try again later.")}")
+        ).css("display", "block");
+      }
+    });
+
+    %endif
+
+  })(this)
+  </script>
+
+  <script src="${static.url('js/course_info.js')}"></script>
+</%block>
+
+<%block name="pagetitle">${course.display_name_with_default_escaped}</%block>
+<% ctype = course_ctype(course.id) %>
+<% ctype_numb = course_ctype_number(course.id) %>
+<% assoc_ad = get_association_ad_data(course.id) %>
+<% 
+  course_id = course.display_number_with_default
+  popupid = course_id
+  now = datetime.now(UTC)
+%>
+
+<div class="content-wrapper homepage-content" id="content">
+  <section class="courseDetailSection">
+    <div class="container-fluid topicCont course-first-section">
+      <div class="container">
+          <div class="row">
+              <ul class=breadcrums>
+                  <li><a href="/">Home / </a></li>
+                  <li><a href="/courses" >All Courses / </a></li>
+                  <li><a href="#" class="active" >${course.display_name_with_default_escaped}</a></li>
+              </ul>
+          </div>
+          <div class="row">
+              <div class="col-md-4 col-sm-4 col-xs-12">
+                   % if get_course_about_section(request, course, "video"):
+                  <a href="#video-modal" class="media" rel="leanModal">
+                    <div class="hero">
+                      <img src="${course_image_urls['large']}" alt="${course_image_urls['large']}" width="351px;" height="226px;"/>
+                      <div class="play-intro course-play-btn"><img src="https://s3.ap-south-1.amazonaws.com/student-verified-photos/icons8-play-40.png"></div>
+                      <img src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/Docmode-Themes/Star-IMG/Promo-IMG.png">
+                    </div>
+                  </a>
+                %else:
+                <div class="media">
+                  <div class="hero">
+                    <!-- <img src="${course_image_urls['large']}" alt="${course.display_name_with_default_escaped}" width= "360;" height="230px;" /> -->
+                    <img src="${course_image_urls['large']}" alt="${course_image_urls['large']}" width="351px;" height="226px;">
+                  </div>
+                </div>
+                % endif
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                  <div class="coursesDetail coursesDetailWrap">
+                      
+                      <h2 class="courseTitle">${course.display_name_with_default_escaped}</h2>
+                      <!-- <p>The Course is designed to help residents and practicing ophthalmologists in gaining reasonable understanding of diagnosis of primary open angle glaucoma and its<span id="dots">...</span><span id="more">. These Course is designed to help residents and practicing ophthalmologists in gaining reasonable understanding of diagnosis of primary open angle glaucoma and its</span></p>
+                      <button onclick="readMore()" id="readBtn">More</button> -->
+                      <p> ${get_course_about_section(request, course, 'short_description')} 
+                      </p>
+                      <p>&nbsp;</p>
+                      %if user.is_authenticated() and registered:
+                        %if show_courseware_link:
+                          %if assoc_ad:
+                            <a href="#" data-toggle="modal" class="enroll enrollBtn" data-target="#${popupid}" onclick="view_ad('${assoc_ad}','${popupid}');">
+                          %else:
+                           <a href="/courses/${course.id}/${ctype}" class="enroll enrollBtn">
+                          %endif 
+                          %if ctype_numb == '1':
+                            ${_("View Course")} </a>
+                          %elif ctype_numb == '2':
+                            ${_("View Lecture")} </a>
+                          %else:
+                            ${_("View Case study")} </a> 
+                          %endif
+                        %else:
+                          % if ctype_numb == '1':
+                            <a href="#" class="enroll enrollBtn"> Course link will be available soon </a>
+                            </a>
+                          %elif ctype_numb == '2':
+                            <a href="#" class="enroll enrollBtn"> Lecture link will be available soon </a>
+                            </a>
+                          %else:
+                            <a href="#" class="enroll enrollBtn"> Case Study link will be available soon </a>
+                            </a>
+                          %endif
+                        %endif
+                      %elif in_cart:
+                        <span class="add-to-cart">
+                          ${_('This course is in your <a href="{cart_link}">cart</a>.').format(cart_link=cart_link)}
+                        </span>
+                      % elif is_course_full:
+                        <span class="register disabled">
+                          ${_("Course is full")}
+                        </span>
+                      % elif invitation_only and not can_enroll:
+                        <span class="register disabled">${_("Enrollment in this course is by invitation only")}</span>
+                      ## Shib courses need the enrollment button to be displayed even when can_enroll is False,
+                      ## because AnonymousUsers cause can_enroll for shib courses to be False, but we need them to be able to click
+                      ## so that they can register and become a real user that can enroll.
+                      % elif not is_shib_course and not can_enroll:
+                        <a href="#" class="enroll enrollBtn">${_("Enrollment not yet started.")}</a>
+                      %elif can_add_course_to_cart:
+                        <%
+                        if user.is_authenticated():
+                          reg_href = "#"
+                          reg_element_id = "add_to_cart_post"
+                        else:
+                          reg_href = reg_then_add_to_cart_link
+                          reg_element_id = "reg_then_add_to_cart"
+                        %>
+                        <% if ecommerce_checkout:
+                            reg_href = ecommerce_checkout_link
+                            reg_element_id = ""
+                        %>
+                        <a href="${reg_href}" class="enroll enrollBtn add-to-cart" id="${reg_element_id}">
+                          ${_("Add {course_name} to Cart <span>({price} USD)</span>")\
+                            .format(course_name=course.display_number_with_default, price=course_price)}
+                        </a>
+                        <div id="register_error"></div>
+                      %else:
+                        <% 
+                          if ecommerce_checkout:
+                            reg_href = ecommerce_checkout_link
+                          else:
+                            reg_href="#"
+                          if professional_mode:
+                            href_class = "add-to-cart"
+                          else:
+                            href_class = "register"
+                        %>
+                        <a href="${reg_href}" class="enroll enrollBtn ${href_class}">
+                          ${_("Enroll in {course_name}").format(course_name=course.display_number_with_default) | h}
+                        </a> 
+                      %endif
+                      <!-- <a href="#" class="share">Share
+                      <span><img src="${static.url('images/share.png')}" /></span> 
+                      </a>
+                      <ul class="social-shareCont">
+                        <li class="facebook">
+                        <span><img src="${static.url('images/facebook.png')}"</span>
+                        <a href="facebook" > Facebook</a>
+                        </li>
+                        <li class="twitter">
+                        <span><img src="${static.url('images/twitter.png')}"</span>
+                        <a href="facebook" > twitter</a>
+                        </li>
+                      </ul> -->
+                      <%
+                          if course.start is not None:
+                              course_date_string = course.start.strftime('%Y-%m-%dT%H:%M:%S%z')
+                          else:
+                              course_date_string = ''
+                      %>  
+                      <!-- <a href="" class="book_tag"><i class="fa fa-bookmark-o"></i> Favourite</a> -->
+         
+                  <!-- <div class="dropdown share_tag">
+                    <button class="btn btn-primary share_btn dropdown-toggle" type="button" data-toggle="dropdown"><i class="fa fa-share-alt"></i> Share <span class="caret"></span></button>
+                    <ul class="dropdown-menu share-list">
+                      <li><a href="#"><i class="fa fa-facebook"></i> Facebook</a></li>
+                      <li><a href="#"><i class="fa fa-twitter"></i> Twitter</a></li>
+                    </ul>
+                  </div> -->
+                      
+                  </div>
+              </div>
+
+              <div class="col-md-2 col-sm-2 col-xs-12">
+                  <div class="courseImg">
+                      <p>Offered by <a href="https://docmode.org/${course.display_org_with_default}">${course.display_org_with_default}</a></p>
+                      <img src="${assoc_logo}" alt="${course.org}" height="100%;" width="70%;"/> 
+                      <!-- <img src="${static.url('images/weq-images/MaskGroup32.png')}" alt=""> -->
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 col-sm-12 col-xs-12">
+              <div class="courseSideWrap">
+                <div class="courseInformation">
+                  <h2>Information</h2>
+                  <% 
+                    usercount = course_usercount(course.id)
+                  %>
+                  <!--<p class="course-users">186 users registered (4 people you follow)</p>   -->
+                     <!-- <p class="course-users">${usercount} users registered</p> -->       
+                  <ul>
+                    <li class="c-price">
+                      <span><i class="fa fa-money"></i> Price:</span>
+                      %if course_price :
+                        <p>${course_price}</p>
+                      %else:
+                        <p>Free</p>
+                      %endif
+                     </li>
+
+                     <li class="c-language">
+                      <span><i class="fa fa-globe"></i> Language:</span>
+                      <p>English</p>
+                    </li>
+
+                    <li class="commitment">
+                      <span><i class="fa fa-clock-o"></i> Commitment: </span>
+                      <p>${get_course_about_section(request, course, "effort")}</p>
+                    </li>                    
+                  </ul>
+                </div>
+                <div class="aboutCourse">
+                  <h2>Share your Case Studies</h2>
+                  <p>Come join our "Learn as you Teach" initiative to democratise healthcare learning by submitting your unique & interesting Case-Studies which will be reviewed by our global medical fraternity as well as an opportunity to be published in leading research journals.</p>
+                </div>
+                <div class="coursesDetail"> 
+                  <a href="https://docmode.org/research/new/" class="enroll enrollBtn" target="_blank"> Submit Case Study</a>
+                  <!-- <a href="https://docmode.org/case_studies/" class="enroll" target="_blank" style="background-color: #ffffff; color:#b6348e; "> View Case Study</a> -->
+                </div>
+              </div>
+            </div>
+            <div class="col-md-8 col-sm-12 col-xs-12">
+                ${get_course_about_section(request, course, "overview")}
+                <!-- <div class="ratingSec clearfix">
+                    <h2>Rating and Review</h2>
+                    <div class="ratingbox">
+                        <div class="rating">
+                            <p> 4/5</p>
+                            <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <p>First time in india. We can now here and learn from expert from or home</p>
+                        <div class="reviewUser">
+                            <img src="${static.url('images/man1.jpg')}"/>
+                            <div class="reviewtext">
+                                <h3> Dr. Swati Suresh</h3>
+                                <span>Bombay Hospital</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ratingbox">
+                        <div class="rating">
+                            <p> 4/5</p>
+                            <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <p>First time in india. We can now here and learn from expert from or home</p>
+                        <div class="reviewUser">
+                            <img src="${static.url('images/man1.jpg')}"/>
+                            <div class="reviewtext">
+                                <h3> Dr. Swati Suresh</h3>
+                                <span>Bombay Hospital</span>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+                               
+                <!---added about section end---->
+            </div>
+        </div> <!---end row-->
+    </div>
+  </section>
+
+
+<!---REVIEW AND TESTIMONIALS SECTION ADDED BY NISHA---->
+<!-- <section class="review-testimonials">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="reviewWrap">
+          <h2>Review and Testimonials</h2>
+          <div class="reviewSlider">
+            <div id="reviewSliderId" class="row owl-theme owl-carousel">
+              <div class="cardWrap">
+                <div class="col-md-4 col-sm-5 col-xs-12">             
+                  <div class="cardOne">
+                    <img class="reviewImg" src="${static.url('images/weq-images/forum_user.png')}" alt="">          
+                              <div class="cardText">
+                      <h4>Dr. Edwin Pathrose</h4>
+                      <span>MS (Ophthalmology), FCPS, DOMS, MBBS</span> 
+                      <p>Independently runs the Iris Eye Care Hospital in Ulhasnagar (since the year 2000)</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-8 col-sm-7 col-xs-12">               
+                  <div class="expertCard">
+                    <h5><i class="fa fa-star"></i> Expert Review 1</h5>
+                    <p>"Recently started ICO online course module on Glaucoma designed by Docmode. Unique format for an online course with didactic videos by renowned glaucoma faculty. The real time transcript that runs parallel to the videos enables not to miss out on important points and the mock tests at end of each section is a good self evaluation tool. Courses are comfortably paced and centered to drive home basics of the disease by illustrations, animations and easy to remember mind maps. Would soon complete the POAG module. Can't wait on to move onto the next course."</p>
+                  </div>
+                </div>
+              </div>
+              <div class="cardWrap">
+                <div class="col-md-4 col-sm-5 col-xs-12">             
+                  <div class="cardOne">
+                    <img class="reviewImg" src="${static.url('images/weq-images/forum_user.png')}" alt="">          
+                              <div class="cardText">
+                      <h4>Dr. Edwin Pathrose</h4>
+                      <span>MS (Ophthalmology), FCPS, DOMS, MBBS</span> 
+                      <p>Independently runs the Iris Eye Care Hospital in Ulhasnagar (since the year 2000)</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-8 col-sm-7 col-xs-12">               
+                  <div class="expertCard">
+                    <h5><i class="fa fa-star"></i> Expert Review 2</h5>
+                    <p>"Recently started ICO online course module on Glaucoma designed by Docmode. Unique format for an online course with didactic videos by renowned glaucoma faculty. The real time transcript that runs parallel to the videos enables not to miss out on important points and the mock tests at end of each section is a good self evaluation tool. Courses are comfortably paced and centered to drive home basics of the disease by illustrations, animations and easy to remember mind maps. Would soon complete the POAG module. Can't wait on to move onto the next course."</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section> -->
+%if len(org_courses) > 1: 
+	<section class="lecture-course">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 col-sm-2 col-xs-12"></div>
+      <div class="col-md-8 col-sm-10 col-xs-12">
+        <!--courses-->
+        <div class="coursesbyharvad clearfix course_wrap_sec otherCourseWrap">
+            %if course.org == 'casestudy' :
+              <h2> Other <a href="https://docmode.org/casestudy">Case studies</a></h2>
+            %else:
+              <h2> Other courses/lectures by <a href= "/${course.org}">${course.org} </a></h2>
+            %endif
+               
+            <div id="otherCourse-slider" class="row owl-theme owl-carousel">
+            % for org_course in org_courses:
+              	%if course.id != org_course.id:
+                    <%
+                        if org_course.start is not None:
+                            org_course_date_string = org_course.start.strftime('%Y-%m-%dT%H:%M:%S%z')
+                        else:
+                            org_course_date_string = ''
+                        association_name = Organization.objects.get(short_name=course.display_org_with_default)
+                        data = association_name.name 
+                        info = (data[:8] + '..') if len(data) > 10 else data
+                        ctype_numb = course_ctype_number(org_course.id)
+                        if ctype_numb == '1':
+                            ctype = 'Course'
+                        elif ctype_numb == '2':
+                            ctype = 'Lecture'
+                        else:
+                            ctype = 'Case Study'
+                    %> 
+                    <div class="col-md-12 col-sm-12 col-xs-12"> 
+                  <a href="${reverse('about_course', args=[org_course.id.to_deprecated_string()])}">                  
+                    <div class="card">
+                        <div class="card-img">
+                            <img src="${org_course.course_image_url}" alt="">
+                            <!--<img src="${static.url('images/weq-images/user2.png')}" alt=""> --> 
+                        </div>
+                        <div class="card-text">
+                           <!--added by nisha start-->
+                           <span class="course-author"><i class="fa fa-user-o" aria-hidden="true"></i> ${info}</span>
+                           <span class="course-time"><i class="fa fa-clock-o" aria-hidden="true"></i> <time class="localized_datetime" itemprop="startDate" data-format="shortDate" data-datetime="${org_course_date_string}"></time></span>
+                           <!--added by nisha end-->
+                           <h4>${org_course.display_name_with_default}</h4>
+                           <!-- <span>By ${org_course.display_org_with_default}</span> -->
+                           <!-- <a href="#" class="btn btn-primary">Credit Hours</a> -->
+                           <!-- <p>Starts <time class="localized_datetime" itemprop="startDate" data-format="shortDate" data-datetime="${org_course_date_string}"></time></p> -->
+                           <!--added by nisha start-->
+                           <button type="button" class="btn btn-default enroll_btn">View</button>
+                           <a href="" class="book_tag">${ctype}</a>
+                           <!-- <a href="" class="book_tag"><i class="fa fa-bookmark-o"></i> Favourite</a> -->
+                           <!--added by nisha end-->
+                        </div>
+                    </div>                  
+                  </a>
+                    </div>
+                %endif
+            % endfor
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+	</section>
+%endif
+
+</div>
+%if active_reg_button or is_shib_course:
+  <div style="display: none;">
+    <form id="class_enroll_form" method="post" data-remote="true" action="${reverse('change_enrollment')}">
+      <fieldset class="enroll_fieldset">
+        <legend class="sr">${_("Enroll")}</legend>
+        <input name="course_id" type="hidden" value="${course.id | h}">
+        <input name="enrollment_action" type="hidden" value="enroll">
+      </fieldset>
+      <div class="submit">
+        <input name="submit" type="submit" value="${_('enroll')}">
+      </div>
+    </form>
+  </div>
+%endif
+
+<%include file="../video_modal.html" />
+
+<%static:require_module_async module_name="js/dateutil_factory" class_name="DateUtilFactory">
+    DateUtilFactory.transform(iterationKey=".localized_datetime");
+</%static:require_module_async>
+<div class="modal fade" id="${popupid}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                  
+                    <iframe id="iframeYoutube_${popupid}" width="100%" height="315" src="" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+                  
+                </div>
+                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                
+                <div class="modal-footer" id="closebtn_${popupid}">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_view_counter('${course.id}');">Close</button>
+                </div>
+            </div>
+        </div>
+      </div>
+<div class="loading" id="gifloader" style="display: none;">
+    <img src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/logo/100x100Docmode.gif" width="100" height="100" border="0" alt="">
+</div>
+
+<!----script added by nisha ----->
+
+<!---function for read more---->
+<script type="text/javascript">
+function readMore() {
+  var dots = document.getElementById("dots");
+  var moreText = document.getElementById("more");
+  var btnText = document.getElementById("readBtn");
+
+  if (dots.style.display === "none") {
+    dots.style.display = "inline";
+    btnText.innerHTML = "More"; 
+    moreText.style.display = "none";
+  } else {
+    dots.style.display = "none";
+    btnText.innerHTML = "Less"; 
+    moreText.style.display = "inline";
+  }
+}
+
+
+$(document).ready(function() {
+
+var slider = $("#otherCourse-slider");
+
+  slider.owlCarousel({   
+    loop:true,
+    margin:5,
+    nav: true,
+    autoplay:true,
+    autoplayTimeout:2500,
+    autoplayHoverPause:true,
+    navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+        '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:1,
+            nav:true
+        },
+        600:{
+            items:2,
+            nav:false
+        },
+        1000:{
+            items:3,
+            nav:true,
+            loop:false
+        }
+    }
+
+  });
+
+
+  var review = $("#reviewSliderId");
+
+  review.owlCarousel({   
+    loop:true,
+    margin:5,
+    nav: true,
+    autoplay:true,
+    autoplayTimeout:2500,
+    autoplayHoverPause:true,
+    navText: ['<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>',
+        '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i>'],
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:1,
+            nav:true
+        },
+        600:{
+            items:1,
+            nav:false
+        },
+        1000:{
+            items:1,
+            nav:true,
+            loop:true
+        }
+    }
+
+  });
+
+  $(".play").click(function(){
+    owl.trigger('owl.play',1000); //owl.play event accept autoPlay speed as second parameter
+  })
+  $(".stop").click(function(){
+    owl.trigger('owl.stop');
+  })
+
+
+});
+</script>
+<script type="text/javascript">
+  function view_ad(videourl,courseid){
+      /* Get iframe src attribute value i.e. YouTube video url
+      and store it in a variable */
+      var url = ""+videourl+"?autoplay=1&loop=3";
+      
+      /* Remove iframe src attribute on page load to
+      prevent autoplay in background */
+      $("#iframeYoutube_"+courseid).attr('src', '');
+      
+      /* Assign the initially stored url back to the iframe src
+      attribute when modal is displayed */
+      
+      $("#iframeYoutube_"+courseid).attr('src', url);
+      
+      /* Assign empty url value to the iframe src attribute when
+      modal hide, which stop the video playing */
+      $("#"+courseid).modal('show');
+      console.log(courseid);
+  }
+
+  
+
+  function add_view_counter(courseid) {
+    $('#gifloader').show();
+      $.ajax({
+        method:'GET',
+        url:'/dashboard',
+        dataType:'html',
+        data:{
+          cid : courseid,
+          csrfmiddlewaretoken : document.getElementsByName('csrfmiddlewaretoken')[0].value
+        },
+        success:function(data){
+          window.location.href="/courses/"+courseid+"/courseware";
+        }
+      });
+    return false;
+    }
+
+  function modalclose() {
+      $('#iframeYoutube').attr('src', '');
+  }
+</script>

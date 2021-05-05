@@ -1,0 +1,24 @@
+<%! from django.utils.translation import ugettext as _ %>
+"You're almost there! Use the link to activate your account to register for the Viatris and VIA webinar series "Learning from expert - A series of clinical cases: Menopause patient profiles and treatment options"
+
+% if is_secure:
+https://${ site }/activate/${ key }
+% else:
+http://${ site }/activate/${ key }
+% endif
+
+"After the account activation, you can always sign-in on https://viatris-via.docmode.org/ using your password and access the webinar selection page. Enjoy the webinar series."
+
+
+${_("If you need help, email us at {support_email}.").format(
+  support_url=support_url, support_email=support_email
+)}
+
+"This email message was automatically sent by viatris-via.docmode.org because someone attempted to create an account on Viatris VIA Webinar using this email address"
+
+Legal Notice
+Viatris Inc.
+1000 Mylan Blvd. Canonsburg,
+PA 15317 USA Tel: +1 724.514.1800
+Viatris Privacy Notice : https://www.viatris.com/en/privacy-policy
+Viatris Cookie Notice  : https://www.viatris.com/en/Cookie-Notice

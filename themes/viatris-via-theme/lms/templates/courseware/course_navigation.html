@@ -1,0 +1,72 @@
+## mako
+
+<%page args="active_page=None" expression_filter="h" />
+<%namespace name='static' file='/static_content.html'/>
+
+<%!
+from courseware.tabs import get_course_tab_list
+from django.conf import settings
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+%>
+
+<%  
+    path = request.path
+    path = path.split('/')
+%>
+<%
+styl = ''
+if path[3] == 'course' or path[3] == 'discussion':
+    styl = 'margin-left:70px;'
+%>
+
+<%
+if active_page is None and active_page_context is not UNDEFINED:
+    # If active_page is not passed in as an argument, it may be in the context as active_page_context
+    active_page = active_page_context
+
+if course is not None:
+    include_special_exams = settings.FEATURES.get('ENABLE_SPECIAL_EXAMS', False) and (course.enable_proctored_exams or course.enable_timed_exams)
+%>
+
+% if include_special_exams is not UNDEFINED and include_special_exams:
+    <%static:js group='proctoring'/>
+    % for template_name in ["proctored-exam-status"]:
+        <script type="text/template" id="${template_name}-tpl">
+            <%static:include path="courseware/${template_name}.underscore" />
+        </script>
+    % endfor
+    <div class="proctored_exam_status"></div>
+% endif
+
+% if disable_tabs is UNDEFINED or not disable_tabs:
+    <%
+    tab_list = get_course_tab_list(request, course)
+    %>
+    
+        <nav id="course-navbar" class="${active_page} wrapper-course-material" aria-label="${_('Course Material')}">
+    
+        <div class="course-material course-material-wrap">
+            <%
+            tabs_tmpl = static.get_template_path('/courseware/tabs.html')
+            %>
+            <ol class="tabs course-tabs" style="margin-left:0px;">
+                <%include file="${tabs_tmpl}" args="tab_list=tab_list,active_page=active_page,default_tab=default_tab,tab_image=tab_image" />
+                <%block name="extratabs" />
+            </ol>
+        </div>
+    </nav>
+%endif
+
+<!--css added by nisha WEQ--->
+<style type="text/css">
+    
+    #course-navbar{height: 50px;margin-top: 0px;}
+    #course-navbar{background-color: #f5f5f5;margin-left:0px;}
+    #course-navbar .course-material-wrap .course-tabs{padding-top: 0px !important;}
+
+    @media (min-width: 1200px){
+        #course-navbar .course-material-wrap{max-width: 1170px;margin-left: auto;margin-right: auto;}
+    }
+
+</style>

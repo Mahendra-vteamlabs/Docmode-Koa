@@ -73,7 +73,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_oauth.authentication import OAuth2Authentication
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.throttling import UserRateThrottle
-from organizations.models import (
+from common.djangoapps.organizations.models import (
     Organization,
     OrganizationMembers,
     SponsoringCompany,
@@ -81,7 +81,7 @@ from organizations.models import (
     Organization_sub_admins,
 )
 
-# from organizations import serializers
+# from common.djangoapps.organizations import serializers
 from lms.djangoapps.reg_form.models import extrafields
 from lms.djangoapps.specialization.views import specializationName
 from lms.djangoapps.course_extrainfo.models import course_extrainfo

@@ -1,0 +1,893 @@
+<%inherit file="/main.html" />
+<%namespace name='static' file='../static_content.html'/>
+<%!
+from django.utils.translation import ugettext as _
+from django.urls import reverse
+from lms.djangoapps.associations.views import course_usercount, course_viewercount
+from lms.djangoapps.specialization.views import specializationName
+from lms.djangoapps.reg_form.models import states
+%>
+
+<%block name="pagetitle">${assoc_name} | Dashboard</%block>
+<!-- Bootstrap -->
+<link href="${static.url('vendors/bootstrap/dist/css/bootstrap.min.css')}" rel="stylesheet">
+<!-- Custom Theme Style -->
+<link href="${static.url('css/vendor/build/css/custom.css')}" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.css" rel="stylesheet"/>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
+<%block name="headextra">
+  <style type="text/css">
+
+.funnel-item-1,
+.funnel-item-2 {
+    display: none;
+}
+.funnel-item-0 {
+    display: flex;
+    margin-bottom: 6px;
+}
+.funnel-item-1,
+.funnel-item-2,
+.funnel-item-0 {
+    flex-direction: column;
+    align-items: center;
+}
+.funnel-item-0.active .funnel-item-1 {
+    display: flex;
+}
+.funnel-item-1.active .funnel-item-2 {
+    display: flex;
+}
+.funnel-item-1 > .funnel-item-content > .funnel-item-name {
+    width: 310px;
+}
+.funnel-item-2 > .funnel-item-content > .funnel-item-name {
+    width: 280px;
+}
+.funnel-item-content {
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: 0.2s;
+    padding-right: 80px;
+    display: flex;
+    align-items: center;
+}
+.funnel-item-content:before {
+    content: '\f107';
+    font-family: "FontAwesome";
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translate(0,-50%);
+    color: #fff;
+    font-size: 18px;
+    transition: 0.2s;
+}
+.funnel-item-0 > .funnel-item-content {
+    border-radius: 5px;
+    background-color: #8392cb;
+    width: 554px;
+    min-height: 80px;
+    color: #c5d1ff;
+    margin-bottom: 3px;
+    font-size: 14px;
+    padding: 20px;
+    display: block;
+}
+.funnel-item-0.active > .funnel-item-content,
+.funnel-item-0:hover> .funnel-item-content {
+    background-color: #6677b6;
+    color: #e2e8ff;
+    transition: 0.2s;
+}
+.funnel-item-1 > .funnel-item-content {
+    border-radius: 5px;
+    background-color: #95c891;
+    width: 420px;
+    min-height: 50px;
+    color: #242424;
+    margin-bottom: 3px;
+    font-size: 12px;
+    padding: 10px;
+    text-align: left;
+}
+.funnel-item-1.active > .funnel-item-content,
+.funnel-item-1:hover > .funnel-item-content {
+    background-color: #73b76d;
+    transition: 0.2s;
+}
+.funnel-item-2 > .funnel-item-content {
+    border-radius: 5px;
+    background-color: rgb(117, 203, 197);
+    width: 361px;
+    min-height: 30px;
+    color: #242424;
+    margin-bottom: 3px;
+    font-size: 12px;
+    padding: 10px;
+    text-align: left;
+}
+.funnel-item-2 .funnel-item-content:before {
+    display: none;
+}
+.funnel-item-0.active > .funnel-item-content:before,
+.funnel-item-1.active > .funnel-item-content:before {
+    transform: translate(0,-50%) rotate(180deg);
+    transition: 0.2s;
+}
+.funnel-item-incoming,
+.funnel-item-outgoing {
+    position: absolute;
+    width: 85px;
+    height: 40px;
+    background: url(/static/rg_instructor_analytics/images/Arrow.svg) no-repeat right center;
+    background-size: auto 30px;
+    padding-right: 40px;
+    left: -10px;
+    transform: translate(-100%,-50%);
+    font-size: 16px;
+    color: #505050;
+    top: 50%;
+    display: flex;
+    align-items: center;
+}
+.funnel-item-incoming {
+    justify-content: flex-end;
+}
+.funnel-item-outgoing {
+    left: auto;
+    right: -10px;
+    background: url(/static/rg_instructor_analytics/images/Arrow.svg) no-repeat left center;
+    padding: 0 0 0 40px;
+    transform: translate(100%,-50%);
+    background-size: auto 30px;
+}
+.funnel-item-1 .funnel-item-incoming,
+.funnel-item-1 .funnel-item-outgoing {
+    background-size: auto 18px;
+    padding-right: 25px;
+    color: #999999;
+    font-size: 12px;
+}
+.funnel-item-1 .funnel-item-outgoing {
+    padding: 0 0 0 24px;
+}
+.funnel-item-2 .funnel-item-incoming,
+.funnel-item-2 .funnel-item-outgoing {
+    background-size: auto 14px;
+    padding-right: 20px;
+    color: #999999;
+    font-size: 12px;
+}
+.funnel-item-2 .funnel-item-outgoing {
+    padding: 0 0 0 18px;
+}
+.idash-section .content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.funnel-item-stuck {
+    position: absolute;
+    right: 45px;
+    top: 50%;
+    transform: translate(0,-50%);
+}
+.funnel-item-0 > .funnel-item-content > .funnel-item-stuck {
+    position: static;
+    transform: translate(0,0);
+    top: auto;
+    right: auto;
+    margin-top: 12px;
+    display: block;
+    color: #fff;
+}
+.funnel-item-1 > .funnel-item-content > .funnel-item-stuck {
+    color: #fff;
+}
+.funnel-item-2 > .funnel-item-content > .funnel-item-stuck {
+    right: 10px;
+    color: #fff;
+}
+
+  </style>
+
+  </%block>
+
+%if user.is_authenticated():
+    %if user.is_staff or org_admin == '1' or sub_admin == '1':
+        <div class="container">
+	        <div class="row" style="padding-bottom: 10px;max-width: 100% !important;"> <!-- LOGO and COUNTS -->
+	          	<div class="col-md-4">
+	            	<img src="${courses.course_image_url}" height="250px">
+	          	</div>
+	          	<div class="col-md-8" style="padding-left: 50px;">
+		            <div class="row tile_count"><!-- Counts of Users/Associations -->
+		              <div class="col-md-4 tile_stats_count">
+		                <span class="count_top"><i class="fa fa-user"></i> Total Enrolled</span>
+		                <div class="count">${total_enrolled}</div>
+		                <!-- <span class="count_bottom"><i class="green">4% </i> From last Week</span> -->
+		              </div>
+		              <div class="col-md-4 tile_stats_count">
+		                <span class="count_top"><i class="fa glyphicon glyphicon-hd-video"></i> Total viewers</span>
+		                <div class="count">${total_viewers}</div>
+		                <button onclick="window.location.href='/courses/${courses}/courseware'" style="background:#337ab7;color:#ffffff;">View Webinar</button>
+                    %if user.is_staff:
+                      <button data-toggle="modal" data-target="sub_admin" id="add_sub_admin" style="background:#337ab7;color:#ffffff;">Add sub-admin</button>
+                    %endif
+		              </div>
+
+		            </div>
+	          	</div>
+	        </div>
+              <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+          <div class="row">
+            <div class="col-md-4">
+              <label>From:</label>
+              <input type="text" class="form-control col-sm-2" id="from_date" placeholder="" name="from_date" onchange="get_range_data(this);" value="${course_enrollment_start}">
+            </div>
+            <div class="col-md-4">
+              <label>To:</label>
+              <input type="text" class="form-control col-sm-2" id="to_date" placeholder="" name="to_date" onchange="get_range_data(this);">
+              <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+              <input type="checkbox" id="ranges" checked="checked">
+            </div>
+            <div id="chartContainer" style="height: 300px; width: 100%;"></div>
+          </div>
+	        <div class="row" style="max-width: 100% !important;">
+	          	<div class="col-md-6">
+	            	<h2>Total Enrolled Users</h2>
+	            	<div id="regions_div" style="width: 500px; height: 400px;"></div>
+	            	%if sub_admin == '1':
+	            		<a href="subadmin_excel/enrolled"><input type="button" value="Download Enrolled Users"></a>
+	            	%else:
+	            		<a href="viatris_excel/enrolled"><input type="button" value="Download Enrolled Users"></a>
+	          		%endif
+	            	<div class="container-fluid tile_count"><!-- Counts of Users/Associations -->
+	                	<table id="table_id" class="cell-border display">
+	                  		<thead>
+		                      	<tr>
+		                          	<th>State</th>
+		                        	<th>Count</th>
+		                      	</tr>
+	                  		</thead>
+	                  		<tbody>
+		                    	%for sq in enrolldata:
+			                      	<tr>
+			                          	<td>${sq['rstate']}</td>
+			                          	<td>${sq['dcount']}</td>
+			                      	</tr>
+		                    	%endfor
+	                  		</tbody>
+	                	</table>
+	      			</div>
+	          	</div>
+	          	<div class="col-md-6">
+	            	<h2>Total Viewers</h2>
+	            	<div id="viewers" style="width: 500px; height: 400px;"></div>
+	            	%if sub_admin == '1':
+	            		<p><a href="subadmin_excel/viewers"><input type="button" value="Download Viewers"></a></p>
+	            	%else:
+	            		<p><a href="viatris_excel/viewers"><input type="button" value="Download Viewers"></a></p>
+	          		%endif
+	            	
+	            	<div class="container-fluid tile_count"><!-- Counts of Users/Associations -->
+	                	<table id="viewer" class="cell-border display">
+	                  		<thead>
+		                      	<tr>
+		                          	<th>State</th>
+		                        	<th>Count</th>
+		                      	</tr>
+	                  		</thead>
+	                  		<tbody>
+		                    	%for sq in viewers:
+			                      	<tr>
+			                          	<td>${sq['rstate']}</td>
+			                          	<td>${sq['dcount']}</td>
+			                      	</tr>
+		                    	%endfor
+	                  		</tbody>
+	                	</table>
+	      			</div>
+	          	</div>
+	        </div>
+	        <div class="row" style="max-width: 100% !important;">
+	          <div class="col-md-6">
+	            <div id="enrolled_user_specGcChart" style="width: 400px; height: 300px;"></div>
+	          </div>
+	          <div class="col-md-6">
+	            <div id="viewer_user_specGcChart" style="width: 400px; height: 300px;"></div>
+	          </div>
+	        </div>
+	        <%def name="user_enrollment()">
+	            [
+	              ["State", "Count"],
+	              %for sq in enrolldata:
+	               ["${sq['rstate']}", ${sq['dcount']}],
+	              %endfor
+	            ]
+	        </%def>
+	        <%def name="viewed_user()">
+	            [
+	              ["State", "Count"],
+	              %for sq in viewers:
+	                ["${sq['rstate']}", ${sq['dcount']}],
+	              %endfor
+	            ]
+	        </%def>
+	        <%def name="enrolleduser_specialization()"><!-- Doctor Specialization Chart Data -->
+	          [
+	            ["Specialization", "Doctors Count"],
+	            %for sq in enrolleduserspecz:
+	              ["${specializationName(sq['specialization_id'])}", ${sq['dcount']}],
+	            %endfor
+	          ]
+	        </%def>
+	        <%def name="viewer_specialization()"><!-- Doctor Specialization Chart Data -->
+	          [
+	            ["Specialization", "Doctors Count"],
+	            %for sq in viewerspecz:
+	              ["${specializationName(sq['specialization_id'])}", ${sq['dcount']}],
+	            %endfor
+	          ]
+	        </%def>
+
+        <div class="row">
+          <p>User Progress </p>
+            <div class="col-md-4">
+              <label>From:</label>
+              <input type="text" id="config-demo" class="form-control" onchange="get_range_data1(this);" value="${course_enrollment_start}">
+            </div>
+        </div>
+        %if user.is_staff:
+          <div class="progress" style="height: auto;">
+        %else:
+          <div class="progress" style="height: auto;">
+        %endif
+              <button type="button" id="funnel-btn" class="btn-link active-section" data-section="cohort">Progress Funnel
+              </button>
+              <section  id="section-funnel">
+                <div class="tab-content">
+                <div class="content"></div>
+                </div>
+              </section>
+          </div>
+      </div>
+        
+    %else:
+        <h2 style="text-align: center;">U are not authorized to view this page</h2>
+    %endif
+%else:
+    <h2>You must be loggedin and admin to view this page</h2>
+%endif
+
+<div class="loading" id="gifloader">
+        <img src="https://s3-ap-southeast-1.amazonaws.com/docmode.co/logo/100x100Docmode.gif" width="100" height="100" border="0" alt="">
+</div>
+
+<div class="modal fade" id="sub_admin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-sm-12 col-md-8">
+                  <label>Enter email-id</label>
+                </div>
+                <div class="col-sm-12 col-md-8">
+                    <input type="text" name="email" value='' id="email" onchange="emailid_validation();" style="width: 70%;">
+                  </div>
+                </div>
+                <div class="row" id="select_states" style="margin-top: 20px;">
+                  <%
+                    state_lists = states.objects.all().order_by('name')
+                  %>
+                  <div class="col-sm-12 col-md-8">
+                    <label style="font-size: 20px;">States</label>
+                  </div>
+                  <div class="col-sm-12 col-md-8">
+                    <select class="selectpicker" multiple id="states">
+                      <option>select states</option>
+                      %for state in state_lists:
+                        <option value="${state.id}">${state.name}</option>
+                      %endfor
+                    </select>
+                  </div>
+                </div>
+            </div>
+            <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+            <div class="b-regulatory-disclosure email_validation" id="email_validation" style="display:none;">
+                <div class="b-regulatory-disclosure__header">
+                  <div id="email_vlidation_error_msg"></div>
+                   
+                </div>
+            </div>
+          
+            <div class="modal-footer" id="closebtn">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="add_button" data-dismiss="modal" disabled="disabled" onclick="create_sub_admin();">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery -->
+<script src="${static.url('https://s3-ap-southeast-1.amazonaws.com/site-js/jquery.min.js')}"></script>
+<!-- Bootstrap -->
+<script src="${static.url('vendors/bootstrap/dist/js/bootstrap.min.js')}"></script>
+<!-- Google Charts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<!-- Custom Theme Scripts -->
+<script src="${static.url('css/vendor/build/js/custom.js')}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+<script type="text/javascript">
+
+  $('select').selectpicker();
+
+  $("#from_date").datepicker( {
+        format: "mm/dd/yyyy", // Notice the Extra space at the beginning
+        changeMonth: true,
+        
+  }).datepicker("setDate", "${course_enrollment_start}");
+
+  $("#to_date").datepicker( {
+        format: "mm/dd/yyyy",
+        
+  }).datepicker("setDate", new Date());
+
+    $("#progress_from_date").datepicker( {
+        format: "mm/dd/yyyy", // Notice the Extra space at the beginning
+        changeMonth: true,
+        
+  }).datepicker("setDate", "${course_enrollment_start}");
+
+  $("#progress_to_date").datepicker( {
+        format: "mm/dd/yyyy",
+        
+  }).datepicker("setDate", new Date());
+  google.charts.load('current', {'packages':['geochart','corechart']});
+  google.charts.setOnLoadCallback(drawRegionsMap);
+  google.charts.setOnLoadCallback(ViewersdrawRegionsMap);
+  google.charts.setOnLoadCallback(drawChart);
+  
+
+  function drawRegionsMap() {
+
+    var data = google.visualization.arrayToDataTable(${user_enrollment()});
+
+    var options = {
+      region: 'IN',
+      displayMode: 'regions',
+      resolution: 'provinces',
+      colorAxis: {colors: ['#30529a'] },
+      width: "500px",
+      height: "400px"
+    };
+
+    var chart = new google.visualization.GeoChart(document.getElementById('regions_div'));
+
+    chart.draw(data, options);
+  }
+
+  function ViewersdrawRegionsMap() {
+
+    var data = google.visualization.arrayToDataTable(${viewed_user()});
+
+    var options = {
+      title: ' Total Viewers',
+      region: 'IN',
+      colorAxis: {colors: ['green'] },
+      displayMode: 'regions',
+      resolution: 'provinces',
+      width: "500px",
+      height: "400px"
+    };
+
+    var chart = new google.visualization.GeoChart(document.getElementById('viewers'));
+
+    chart.draw(data, options);
+  }
+
+  function drawChart() {
+
+    var enrolled_userspecdata = google.visualization.arrayToDataTable(${enrolleduser_specialization()});
+    var viewer_userspecdata = google.visualization.arrayToDataTable(${viewer_specialization()});
+
+    var options = {
+      title: 'Enrolled User Specializations',
+      titleTextStyle: { fontSize: 20, bold: true },
+      backgroundColor: '#FEF7F5',
+      width: 500
+    };
+    var options2 = {
+      title: 'Viewers Specialization',
+      titleTextStyle: { fontSize: 20, bold: true },
+      backgroundColor: '#FEF7F5',
+      colors: ['#1AC3D7', '#AC60F9', '#F960F8', '#F96E60', '#6FF960'],
+      //is3D:true,
+      width: 500
+    };
+
+    var enrolled_userspecchart = new google.visualization.PieChart(document.getElementById('enrolled_user_specGcChart'));
+    var viewer_specchart = new google.visualization.PieChart(document.getElementById('viewer_user_specGcChart'));
+
+    enrolled_userspecchart.draw(enrolled_userspecdata, options);
+    viewer_specchart.draw(viewer_userspecdata, options2);
+  }
+
+
+    $(document).ready( function () {
+    	$('#table_id').DataTable({
+		    aaSorting: [[1, 'desc']]
+		  });
+
+		  $('#viewer').DataTable({
+			  aaSorting: [[1, 'desc']]
+		  });
+
+		  $("#add_sub_admin").click(function(){
+		    // show Modal
+		    $('#sub_admin').modal('show');
+		  });
+		  updateConfig();
+		  $('#gifloader').hide();
+      	setTimeout(get_range_data, 2000);
+  	}); 
+
+    function emailid_validation(){
+    	var emailid = document.getElementById("email").value;
+        $.ajax({
+            type: "GET",
+            url: "/search_term/",
+            data: {
+                emailid : emailid,
+                email_validation :1
+            },
+            success: function(data) {
+                if(data.status != 200){
+                	document.getElementById("email_validation").style.display="block";
+                    document.getElementById("email_validation").innerHTML = '<h1 class="disclosure_heading">This email id is not registered!.</h1>';
+                    document.getElementById("email").value = "";
+                    $("#add_button").prop( "disabled", true );
+                } else {
+                	$("#add_button").prop( "disabled", false );
+                	document.getElementById('email_validation').innerHTML='<h1>You can now login with otp or using password</h1>';
+                    console.log(data);
+                }
+            }
+        });
+    }
+
+    function create_sub_admin(){
+    	var emailid = document.getElementById("email").value;
+    	var stateids = [];
+    	$('#states :selected').each(function(i, selected) {
+            stateids[i] = $(selected).val();
+        });
+    	
+        $.ajax({
+            type: "GET",
+            url: window.location.href,
+            data: {
+                emailid : emailid,
+                stateids:JSON.stringify(stateids),
+                assoc_sub_admin:1,
+                associd:'${association_id}'
+            },
+            success: function(data) {
+                if(data.status != 200){
+                	document.getElementById("email_validation").style.display="block";
+                    document.getElementById("email_validation").innerHTML = '<h1 class="disclosure_heading">This email id is not registered!.</h1>';
+                    document.getElementById("email").value = "";
+                    $("#add_button").prop( "disabled", true );
+                } else {
+                	$("#add_button").prop( "disabled", false );
+                	document.getElementById('email_validation').innerHTML='<h1>You can now login with otp or using password</h1>';
+                    console.log(data);
+                }
+            }
+        });
+    }
+
+    function get_range_data(val) {
+    	$('#gifloader').show();
+    	var daterange = $('#config-demo').val();
+    	var startdate = daterange.split("-")
+      $.ajax({
+        method:'GET',
+        url:'',
+        dataType:'html',
+        data:{
+          rangedate:"1",
+          fromdate:document.getElementById("from_date").value,
+          todate:document.getElementById("to_date").value,
+          course_id:'${courses.id}',
+          csrfmiddlewaretoken : document.getElementsByName('csrfmiddlewaretoken')[0].value
+        },
+        success:function(data){
+        	$('#gifloader').hide();
+          var arrSales = [['date', 'total']];    // Define an array and assign columns for the chart.
+
+          // Loop through each data and populate the array.
+          $.each(JSON.parse(data), function (index, value) {
+              arrSales.push([value.day, value.total]);
+          });
+
+          var options = {
+              title: 'User enrollment',
+              seriesType: "bars",
+              curveType: 'function',
+              legend: { position: 'bottom', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
+          };
+
+          // Create DataTable and add the array to it.
+          var figures = google.visualization.arrayToDataTable(arrSales);
+
+          // Define the chart type (LineChart) and the container (a DIV in our case).
+          var chart = new google.visualization.ColumnChart(document.getElementById('chartContainer'));
+          chart.draw(figures, options);      // Draw the chart with Options.
+        }
+      });
+  return false;
+  }
+
+  function get_range_data1(val) {
+  	$('#gifloader').show();
+  	var daterange = $('#config-demo').val();
+    var startdate = daterange.split("-")
+    	
+      var from_date = toTimestamp(startdate[0]);
+      var to_date = toTimestamp(startdate[1]);
+      var CSS_INSTRUCTOR_CONTENT ='progress';
+      var $tab = $('.' + CSS_INSTRUCTOR_CONTENT);
+      var funnelTab = $tab.find("#section-funnel");
+      funnelTab.courseStructureView = $tab.find(".tab-content");
+            function openLocation() {
+              var items = [funnelTab.viewContent.find(
+                  '*[data-edxid="' + funnelTab.locationToOpen.value + '"]'
+              )];
+              while (!items.slice(-1)[0].hasClass('funnel-item-0')) {
+                  items.push(items.slice(-1)[0].parent())
+              }
+              items.map(function (el) {
+                  return el.click()}
+              );
+              funnelTab.locationToOpen = undefined;
+            }
+
+            
+                function onSuccess(response) {
+                	$('#gifloader').hide();
+                    funnelTab.courseStructure = response.courses_structure;
+
+                    funnelTab.viewContent = funnelTab.courseStructureView.find('.content');
+                    funnelTab.viewContent.empty();
+                    funnelTab.viewContent.append(generateFunnel(funnelTab.courseStructure));
+                    $('.funnel-item-0').on('click', function (e) {
+                        $(e.target).closest('.funnel-item').toggleClass('active');
+                    });
+
+                    if(funnelTab.locationToOpen) {
+                        openLocation();
+                    }
+                }
+
+                function generateFunnel(data) {
+                    return data.map(function (el) {
+                      return (el.level > 2) ? '' : generateFunnelItem(el, generateFunnel(el.children))
+                    }).join(' ');
+                }
+
+                function generateFunnelItem(item, children) {
+                  emailids = item.userid +'';
+                  name = item.username+'';
+                  var list_email = emailids.split(',');
+                  var list_names = name.split(',');
+                  var emailid = '';
+                  var ids = '';
+                  if(list_email.length > 1) {
+                  	ids += list_email[0];
+                  	for(var i = 1; i < list_email.length; i++) {
+                  		// if(i==0) {
+                  		// 	ids += list_email[i];
+                  		// } else {
+                  		// 	ids += ','+list_email[i];
+                  		// }
+                  		ids += ','+list_email[i];
+                    }
+                    //emailid += '<a href="https://develop.docmode.org/dashboard/${courses.id}/excel/enrolled?stuckuser=1&emailids=\''+ids+'\'">'
+                  	emailid += '<ul style="height:300px; overflow-y:scroll;width: 100%;overflow-x: hidden;" onclick="get_stuck_users(\''+ids+'\');" id="test">';
+                    for(var i = 0; i < list_names.length; i++) {
+                      emailid += '<li>'+list_names[i]+'</li>';
+                    }
+                    emailid += '</ul>';
+                  }
+                    var tpl =
+                      '<div class="funnel-item funnel-item-'+ item.level+'" data-edxid="'+ item.id+'" style="max-height:unset;">' +
+                          '<div class="funnel-item-content accordion">' +
+                              '<span class="funnel-item-incoming">'+item.student_count_in+'</span>' +
+                              '<span class="funnel-item-outgoing">'+item.student_count_out+'</span>' +
+                              '<span class="funnel-item-name">'+item.name+'</span>' +
+                              '<span class="funnel-item-stuck">stuck:'+item.student_count+'</span>' +
+                              emailid +
+                          '</div>' +
+                          children +
+                      '</div>';
+                    return tpl
+                }
+
+                function onError() {
+                    alert('Can not load statistic for the selected course');
+                }
+            
+
+
+      $.ajax({
+        method:'POST',
+        url:'/courses/${courses.id}/tab/instructor_analytics/api/customfunnel/',
+        dataType:'json',
+        data:{
+          rangedate:"1",
+          from:from_date,
+          to:to_date,
+          course_id:'${courses.id}',
+          csrfmiddlewaretoken : document.getElementsByName('csrfmiddlewaretoken')[0].value
+        },
+        
+        success:onSuccess
+          // data.courses_structure.map(function (el) {
+          //   $.each(JSON.parse(el), function (index, value) {
+          //     document.getElementById('funnel_content').innerHTML = index.name;
+          //   } 
+          // });
+      });
+  return false;
+  }
+
+  function toTimestamp(strDate){
+     var datum = Date.parse(strDate);
+     return datum/1000;
+  }
+
+
+        function updateConfig() {
+        	var options = {
+        		startDate: "${course_enrollment_start}",
+        		minDate:"${course_enrollment_start}"
+        	};
+        	if ($('#ranges').is(':checked')) {
+	            options.ranges = {
+	              'Today': [moment(), moment()],
+	              'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+	              'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+	              'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+	              'This Month': [moment().startOf('month'), moment().endOf('month')],
+	              'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+	            };
+	        }
+        	$('#config-demo').daterangepicker(options, function(start, end, label) { console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD') + ' (predefined range: ' + label + ')'); }).click();;
+        }
+
+    function get_stuck_users(val) {
+   //   $.ajax({
+    //       method:'GET',
+    //       url:'https://develop.docmode.org/dashboard/${courses.id}/excel/enrolled',
+    //       dataType:'html',
+    //       data:{
+    //         stuckuser:"1",
+    //         emailids:val,
+    //         csrfmiddlewaretoken : document.getElementsByName('csrfmiddlewaretoken')[0].value
+    //       },
+    //       success:function(data){
+    //        console.log(data);
+    //       }
+    //     });
+    // return false;
+      var url = "https://learn.docmode.org/dashboard/${courses.id}/excel/enrolled";
+      var request = new XMLHttpRequest();
+      var fileName = "userslist.csv";
+    request.open('POST', url, true);
+    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    request.responseType = 'json';
+
+    request.onload = function(e) {
+        if (this.status === 200) {
+          var JSONData = this.response;
+          var ShowLabel = true;
+          var ReportTitle = "userlist"
+          var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
+
+          var CSV = '';
+          //Set Report title in first row or line
+
+          CSV += ReportTitle + '\r\n\n';
+
+          //This condition will generate the Label/Header
+          if (ShowLabel) {
+            var row = "";
+
+            //This loop will extract the label from 1st index of on array
+            for (var index in arrData[0]) {
+
+              //Now convert each value to string and comma-seprated
+              row += index + ',';
+            }
+
+            row = row.slice(0, -1);
+
+            //append Label row with line break
+            CSV += row + '\r\n';
+          }
+
+            //1st loop is to extract each row
+            for (var i = 0; i < arrData.length; i++) {
+              var row = "";
+
+              //2nd loop will extract each column and convert it in string comma-seprated
+              for (var index in arrData[i]) {
+                row += '"' + arrData[i][index] + '",';
+              }
+
+              row.slice(0, row.length - 1);
+
+              //add a line break after each row
+              CSV += row + '\r\n';
+            }
+
+            if (CSV == '') {
+              alert("Invalid data");
+              return;
+            }
+
+            //Generate a file name
+            var fileName = "MyReport_";
+            //this will remove the blank-spaces from the title and replace it with an underscore
+            fileName += ReportTitle.replace(/ /g, "_");
+
+            //Initialize file format you want csv or xls
+            var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+
+            // Now the little tricky part.
+            // you can use either>> window.open(uri);
+            // but this will not work in some browsers
+            // or you will not get the correct file extension    
+
+            //this trick will generate a temp <a /> tag
+            var link = document.createElement("a");
+            link.href = uri;
+
+            //set the visibility hidden so it will not effect on your web-layout
+            link.style = "visibility:hidden";
+            link.download = fileName + ".csv";
+
+            //this part will append the anchor tag and remove it after automatic click
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+           }
+           // if(window.navigator.msSaveOrOpenBlob) {
+           //      window.navigator.msSaveBlob(blob, fileName);
+           //  }
+           //  else{
+           //      var downloadLink = window.document.createElement('a');
+           //      var contentTypeHeader = request.getResponseHeader("Content-Type","application/vnd.ms-excel");
+           //      downloadLink.href = window.URL.createObjectURL(new Blob([blob], { type: contentTypeHeader }));
+           //      downloadLink.download = fileName;
+           //      document.body.appendChild(downloadLink);
+           //      downloadLink.click();
+           //      document.body.removeChild(downloadLink);
+           //     }
+       };
+    request.send('stuckuser=1&emailids='+val+'&csrfmiddlewaretoken=${ csrf_token }');
+
+    }
+</script>

@@ -1,0 +1,388 @@
+<%!
+  import json
+  from django.utils.translation import ugettext as _
+  from openedx.core.djangolib.js_utils import dump_js_escaped_json
+  from lms.djangoapps.specialization.models import specializations
+  from lms.djangoapps.hcspecialization.models import hcspecializations
+%>
+<%inherit file="../main.html" />
+
+<%namespace name='static' file='../static_content.html'/>
+<%block name="pagetitle">${_("Registration")}</%block>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<style type="text/css">
+  input[type="text"],input[type="email"] {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: normal;
+  }
+  .btn {
+    text-transform: uppercase;
+    padding: 6px 16px;
+    font-family: "lato";
+    font-weight: bold;
+    line-height: 1.43;
+    letter-spacing: 0.4px;
+    border-radius: 0;
+    border: none;
+    margin: 10px 0;
+    margin-left: 15px;
+    padding: 8px 16px;
+  }
+  .btn-primary {
+    background-color: #07b256;
+    color: #fff;
+    border: 1px solid #07b256;
+  }
+    input[type="submit"] {
+      background-color: #07b256;
+      color: #fff;
+      border: 1px solid #07b256;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      font-family: "lato";
+      font-weight: bold;
+      line-height: 1.43;
+      letter-spacing: 0.4px;
+      border-radius: 0;
+      border: none;
+      margin: 10px 0;
+      margin-left: 15px;
+      padding: 8px 16px;
+      background-image: none;
+    }
+</style>
+  <section >
+    <div class="container topicCont">
+<!--       <div class="row">
+        <ul class=breadcrums>
+          <li><a href="/">Home / </a></li>
+          <li ><a href="#" class="active" >Contact us</a></li>
+        </ul>
+      </div> -->
+       
+          <div class="row">
+            <div >
+              <h3>Registration form</h3>
+          
+              <form action="/registration" method="post" class="register-form" id="contact" autocomplete="off">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                <div class="row col-md-12">
+                  <div class="col-md-6" style="padding-bottom:10px;">
+                    <input type="email" style="width:100%" id="register-email" name="emailid" placeholder="Email-id" required onchange="emailid_validation();">
+                    <div class="email_validation hidden" id="email_validation">
+                      <div class="b-regulatory-disclosure__header">
+                        <div id="email_vlidation_error_msg"></div>
+                      </div>
+                    </div>
+                  </div>  
+                  <div class="col-md-6 ">
+                    <input type="text" style="width:100%" id="name" name="name" placeholder="Full name" required value="">
+                  </div>
+                </div>
+                <input type="text" style="width:100%; display: none;"  id="register-username" name="username" placeholder="Username" required >
+                <div class="row col-md-12">
+                  <div class="col-md-6" style="padding-bottom:10px;">
+                    <input type="password" style="width:100%"  id="password" name="password" placeholder="Password" required value="" class="form-control">
+                  </div>
+                  <div class="col-md-6  ">
+                    <input type="text" id="register-phone" style="width:100%;" name="phone" minlength="10" placeholder="Phone number*" required value="">
+                  </div>
+                </div>
+                <div class="row col-md-12">
+                  <div class="col-md-6" style="padding-bottom:10px;">
+                    <select id="user_type" name="user_type" class="form-control" >   
+                      <option value="">Select user type</option>             
+                      <option value="dr" selected="">Doctor</option>
+                    </select>
+                  </div>
+                
+                  <div class="col-md-6" style="padding-bottom:10px;" id="specialization">
+                    <%
+                      speczs = specializations.objects.all()
+                    %>
+                    <select  name="specialization" class="form-control" >   
+                      <option value="">Speciality</option>             
+                      %for specz in speczs:
+                        <option value="${specz.id}">${specz.name}</option>             
+                      %endfor
+                    </select>
+                  </div>
+                </div>
+                <div class="row col-md-12">
+                  <div class="col-md-6" >
+                      <p>Name of your Organization (e.g. Practice, Hospital, Institution)*</p>
+                  </div>
+                  <div class="col-md-6" >
+                    <p>Organization - Department of service*</p>
+                  </div>
+                </div>
+                <div class="row col-md-12">
+                  <div class="col-md-6" style="padding-bottom:10px;">
+                    <input type="text" style="width:100%"   name="ogname" required value="" class="form-control">
+                  </div>
+                  <div class="col-md-6 " style="padding-bottom:10px;">
+                    <input type="text" style="width:100%;" name="department_of_service"   required value="">
+                  </div>
+                </div>
+                <!-- 
+                <div class="col-md-6" style="padding-bottom:10px;" id="hcspecialization">
+                  <%
+                    hcspeczs = hcspecializations.objects.all()
+                  %>
+                  <select  name="hcspecialization" class="form-control" >   
+                    <option value="">Hcspecialization</option>       
+                    %for hcspecz in hcspeczs:
+                      <option value="${hcspecz.id}">${hcspecz.name}</option>             
+                    %endfor
+                  </select>
+                </div> -->
+              <div class="row col-md-12">
+                <div class="col-md-6" style="padding-bottom:10px;">
+                  <input type="text" style="width:100%;" class="form-control" id="register-rpincode" name="pincode" placeholder="Pincode*" required  value="">
+                </div>
+              
+                <div class="col-md-6" style="padding-bottom:10px;">
+                  <input type="text" style="width:100%;" class="form-control" id="register-rcountry" name="country"  placeholder="Country*" required value="">
+                </div>
+              </div>
+              <div class="row col-md-12">
+                <div class="col-md-6" style="padding-bottom:10px;">
+                  <input type="text" style="width:100%;" class="form-control" id="register-rstate" name="state"  placeholder="State*" required value="">
+                </div>
+              
+              
+                <div class="col-md-6" style="padding-bottom:10px;">
+                  <input type="text" style="width:100%;" id="register-rcity" name="city" placeholder="City*" required value="">
+                </div>
+              </div>
+              <div class="row col-md-12">
+                <div class="col-md-12" style="margin-left: 0px;">
+                  <p>Are you licensed/authorized to prescribe or supply prescription? *</p>
+              </div>
+              <div class="col-md-12" style="padding-bottom:10px;">
+                  <select required="required" class="form-control" style="width: 70%;" name="auth_prescriber">
+                    <option>Please select one</option>
+                    <option value="1">Prescriber</option>
+                    <option value="2">Non-Prescriber</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row col-md-12">
+                <div class="col-md-12" style="margin-left: 0px;">
+                  <p>Your professional registration number</p>
+              </div>
+              <div class="col-md-12" style="padding-bottom:10px;">
+                  <input type="text" style="width:100%" class="form-control" name="profession_reg_num">
+                </div>
+              </div>
+              <div class="row col-md-12" style="width: 90%;padding-bottom:10px;margin-left: 0px;">
+                <input type="checkbox" name="dataprotection" value="1" required="">
+                Yes, I have read the data protection notice and agree that Mylan (see company information in data protection notice) uses my business contact data to provide me with scientific information and information on pharmaceutical products as well as events, webinars or surveys of Mylan group. In order to improve its emails, websites and information services, Mylan may track whether I received an email, opened it, clicked on any links, viewed or downloaded any documents in it. My consent is voluntary. I can withdraw my consent at any time. The withdrawal of consent will not affect the lawfulness of processing based on consent before its withdrawal.
+              </div>
+              <div class="row col-md-12" style="width: 90%;padding-bottom:10px;margin-left: 0px;">
+                <input type="checkbox" name="privacy" value="1" required="">
+                Yes, I would like to receive marketing communication from Biomedical Technologies srl concerning updates about congresses courses and other meetings in medical sciences via email, social media, post, telephone or SMS. I understand that I can unsubscribe at any time. Further information about the collection and processing of your personal data can be found in Biomedical Technologies srl privacy policy.
+              </div>
+              <div class="row col-md-12" style="width: 90%;padding-bottom:10px;margin-left: 0px;">
+                <input type="checkbox" name="checkbox" value="1" required="">
+                * I understand that this webinar is organized by Biomedical Technologies srl and I further understand that Mylan will store my registration data with Biomedical Technologies srl to conduct a webinar and who will use it as specified in its privacy policy.
+              </div>
+              <div class="row col-md-12" >
+                <div class="btn-custom">
+                  <input type="submit" id="submit" class="btn btn-primary" value="Register">
+                </div>
+              </div>
+              </form>
+            </div>
+          </div>
+      </div>
+    </div>
+  </section>
+</div>
+<script type="text/javascript">
+
+  function phone_validation() {
+    var inputtxt = document.getElementById('register-phone').value;
+    var phoneno = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+    if((inputtxt.value.match(phoneno))) {
+        return true;
+      document.getElementById("submit").disabled = false;
+    } else {
+      alert("message");
+      return false;
+    }
+  }
+
+  function emailid_validation(){
+      var emailid = document.getElementById("register-email").value;
+        $.ajax({
+            type: "GET",
+            url: "/search_term/",
+            data: {
+                emailid : emailid,
+                email_validation :1
+            },
+            success: function(data) {
+                if(data.status == 200){
+                  $(".email_validation").removeClass("hidden");
+                    document.getElementById("email_validation").style.display="block";
+                    document.getElementById("email_validation").innerHTML = '<h5 class="disclosure_heading">This email id is already registered!.</h5>';
+                    document.getElementById("register-email").value = "";
+                } else {
+                  checkEmailValidity();
+                }
+            }
+        });
+    }
+
+  function setfunc() {
+
+    $("#register-rpincode").on("keyup", function(event) { 
+        getlocation(this.value);
+    });
+
+    $("#register-username").hide();
+
+}
+    var ZeroBounceApi = /** @class */ (function () {
+        function ZeroBounceApi(apiKey){
+          var baseUrl = "https://api.zerobounce.net/v1";
+          var get = new XMLHttpRequest();
+          /**
+           * @param apiKey - your private API key
+           * */
+          this.apiKey = apiKey;
+
+          /**
+           * @return the number of credits remaining on your account
+           * */
+          this.getCredits = function(){
+              var uri = baseUrl + "/getcredits" + "?apikey=" + apiKey;
+              get.open('GET', uri, false);
+              get.send();
+              if (get.readyState === 4 && get.status === 200) {
+                  return get.responseText;
+              }
+          }
+
+          /**
+           * @param email - the email you want to validate
+           * @return - a JSONObject with all of the information for the specified email
+           * */
+          this.validate = function(email){
+              var uri = baseUrl + "/validate" + "?apikey=" + apiKey + "&email=" + email;
+              get.open('GET', uri, false);
+              get.send();
+              if (get.readyState == 4 && get.status == 200) {
+                  return get.responseText;
+              }
+          }
+
+          /**
+           * @param email - the email you want to validate
+           * @param ip - the ip to be use for this validation (advanced)
+           * @return - a JSONObject with all of the information for the specified email
+           * */
+          this.validateWithIpAddress = function(email, ipAddress){
+              var uri = baseUrl + "/validate" + "?apikey=" + apiKey + "&email=" + email + "&ipAddress=" + ipAddress;
+              get.open('GET', uri, false);
+              get.send();
+              if (get.readyState == 4 && get.status == 200) {
+                  return get.responseText;
+              }
+          }
+        }
+        return ZeroBounceApi;
+    }());
+  
+
+
+  function checkEmailValidity() {
+      
+      mail = document.getElementById('register-email').value;
+      var ZeroBounceApiVar = new ZeroBounceApi('af8e53a08b7a4a9ab3cc98584fd3a734');
+      ZeroBounceApiVar.apiKey;
+      ZeroBounceApiVar.getCredits();
+      var getResults = ZeroBounceApiVar.validate(mail);
+      var getStatus = JSON.parse(getResults);
+      // alert(getStatus.status);
+      if (getStatus.status == 'Invalid' || getStatus.status == 'Spamtrap' || getStatus.status == 'Abuse' || getStatus.status == 'DoNotMail') {
+        alert('Email Address Invalid');
+        document.getElementById('register-email').value = "";
+        document.getElementById('register-email').focus();
+      }
+      mail = document.getElementById('register-email').value;
+      newval = mail.replace(/[.]/gi, "-");
+      string =  newval.replace("@", "_");
+      var length = 30;
+      var trimmedString = string.length > length ? 
+                    string.substring(0, length - 3): 
+                    string;
+      var newstring = trimmedString.split("_");
+      document.getElementById('register-username').value = newstring[0];
+    }
+
+    setTimeout(setfunc, 2000);
+
+    function getlocation(zipcode) {
+      var zip;
+      zip = zipcode;
+      if (zip.length >3) {
+        $.ajax({
+            type: 'POST',
+            url: "https://maps.googleapis.com/maps/api/geocode/json?address=" + zip + "&key=AIzaSyDQUh3L4Gfjc-QOrpQAIUm7MG6hR1RX6Bo",
+            success: (function(_this) {
+            return function(data) {
+              if (data["status"] === "OK") {
+                var count = Object.keys(data["results"][0]["address_components"]).length;
+                if (count >= 6 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][5]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][4]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][2]["long_name"]);
+                    //$('.js-register.register-button').attr("disabled", false);
+                } else if (count == 5 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][4]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][3]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][1]["long_name"]);
+                    //$('.js-register.register-button').attr("disabled", false);
+                } else if (count == 4 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][3]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][2]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][1]["long_name"]);
+                    $('.js-register.register-button').attr("disabled", false);
+                } else if (count == 3 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][2]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][1]["long_name"]);
+                    $("input#register-rcity").attr("placeholder","Please enter your city");
+                    document.getElementById("register-rcity").style.color = "#80709d";
+                    //$('.js-register.register-button').attr("disabled", false);
+                } else {
+                    //$('.text-rcountry').show();
+                    //$('.text-rstate').show();
+                    //$('.text-rcity').show();
+                    // $("input#register-rcountry").attr("placeholder","Please enter your country");
+                    // $("input#register-rstate").attr("placeholder","Please enter your state");
+                    // $("input#register-rcity").attr("placeholder","Please enter your city");
+                    //$('.js-register.register-button').attr("disabled", false);
+                }
+                $('input#register-address').val(data["results"][0]["formatted_address"]);
+              } if (data["status"] != "OK") {
+                //$('.text-rcountry').show();
+                //$('.text-rstate').show();
+                //$('.text-rcity').show();
+                // $("input#register-rcountry").attr("placeholder","Please enter your country");
+                // $("input#register-rstate").attr("placeholder","Please enter your state");
+                // $("input#register-rcity").attr("placeholder","Please enter your city");
+
+                //$('.js-register.register-button').attr("disabled", false);
+                
+              } 
+            };
+          })(this)
+        });
+      }
+    };
+</script>

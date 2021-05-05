@@ -86,7 +86,7 @@ from common.djangoapps.organizations.models import (
     Organization_sub_admins,
 )
 
-# from organizations import serializers
+# from common.djangoapps.organizations import serializers
 from lms.djangoapps.reg_form.models import extrafields
 from lms.djangoapps.specialization.views import specializationName
 from lms.djangoapps.course_extrainfo.models import course_extrainfo
@@ -201,7 +201,7 @@ def index(request):
         main_url = "https://docmode.org/"
         new_url = main_url + "our-partner/"
         return redirect(new_url)
-    from organizations.api import get_organizations
+    from common.djangoapps.organizations.api import get_organizations
 
     # org_list = []
 
@@ -320,7 +320,7 @@ def association_about(request, organization_id):
     Display the association's about page.
     """
     user = request.user
-    from organizations.models import (
+    from common.djangoapps.organizations.models import (
         Organization,
         OrganizationCourse,
         OrganizationSlider,
@@ -603,7 +603,7 @@ def speczName(speczId):
 
 def orgName(orgId):
     from django.core.exceptions import ObjectDoesNotExist
-    from organizations.models import (
+    from common.djangoapps.organizations.models import (
         Organization,
         OrganizationCourse,
         OrganizationSlider,
@@ -643,7 +643,7 @@ def organization_analytics(request, organization_id):
     Display the association's about page.
     """
     user = request.user
-    from organizations.models import (
+    from common.djangoapps.organizations.models import (
         Organization,
         OrganizationCourse,
         OrganizationSlider,
@@ -1287,7 +1287,7 @@ def custom_analytics_viewership(request):
 @require_http_methods(["GET"])
 def association_dashboard(request, org_sname):
 
-    from organizations.models import OrganizationCourse, OrganizationMembers
+    from common.djangoapps.organizations.models import OrganizationCourse, OrganizationMembers
 
     gusr = request.user.id
     data = Organization.objects.get(short_name=org_sname)
@@ -1388,7 +1388,7 @@ def organizationName(orgId):
 @require_http_methods(["GET"])
 def association_course_analytics(request, course_id):
     from opaque_keys.edx.locations import SlashSeparatedCourseKey
-    from organizations.models import OrganizationCourse, OrganizationMembers
+    from common.djangoapps.organizations.models import OrganizationCourse, OrganizationMembers
     from lms.djangoapps.reg_form.models import states
 
     gusr = request.user.id
@@ -2582,8 +2582,8 @@ export_csv.short_description = u"Export CSV"
 
 def autojoin_org(userid, course_id, email):
 
-    from organizations.models import OrganizationMembers
-    from organizations.models import OrganizationCourse
+    from common.djangoapps.organizations.models import OrganizationMembers
+    from common.djangoapps.organizations.models import OrganizationCourse
 
     org_id = OrganizationCourse.objects.get(course_id=course_id)
 
@@ -2594,7 +2594,7 @@ def autojoin_org(userid, course_id, email):
 
 
 def assoc_join(userid, org_id, email):
-    from organizations.models import OrganizationMembers
+    from common.djangoapps.organizations.models import OrganizationMembers
 
     data = Organization.objects.get(short_name=org_id)
     gmember = OrganizationMembers(
@@ -2604,7 +2604,7 @@ def assoc_join(userid, org_id, email):
 
 
 def check_domain_in_usermail(sponsoring_companyname="lupin"):
-    from organizations.models import SponsoringCompany
+    from common.djangoapps.organizations.models import SponsoringCompany
 
     try:
         sname = SponsoringCompany.objects.filter(name=sponsoring_companyname)
