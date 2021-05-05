@@ -4,14 +4,17 @@ Associations views functions
 
 import json
 import ast
+import csv
 import logging
 import urllib
 import MySQLdb
-from collections import OrderedDict
+import datetime
 import requests
 
+from collections import OrderedDict
 from django.conf import settings
 from django.urls import reverse
+from django.utils.encoding import smart_str
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, AnonymousUser
 from django.template.context_processors import csrf
@@ -766,12 +769,9 @@ def custom_analytics(request):
        GET /account/profile
     """
     user = request.user
-    import datetime
 
     # if (user.email == 'hemant@docmode.com') or (user.email == 'paulson@docmode.com') or (user.email == 'dev@docmode.com'):
     if user.is_staff:
-        from opaque_keys.edx.locations import SlashSeparatedCourseKey
-
         total_users = User.objects.count()
         users_not_verified = User.objects.filter(is_active=0).count()
         verified_users = User.objects.filter(is_active=1).count()
@@ -917,9 +917,8 @@ export_specz_usercount_csv.short_description = u"Export Specialization Usercount
 @ensure_csrf_cookie
 @require_http_methods(["GET"])
 def custom_analytics_coupons(request):
-    # from opaque_keys.edx.locations import SlashSeparatedCourseKey
     # cid = 'mindvision/LMV004/2017_May_LMV004'
-    # cid = SlashSeparatedCourseKey.from_deprecated_string(cid)
+    # cid = CourseKey.from_string(cid)
     # enrollLocationQset = CourseEnrollment.objects.filter(course_id=cid).count()
     # extrafields.objects.filter(user_type='dr').exclude(specialization_id__isnull=True).values('specialization_id').annotate(dcount=Count('specialization_id')).order_by()
 
@@ -1199,10 +1198,8 @@ def custom_analytics_viewership(request):
 
     if request.is_ajax():
         if "courseid" in request.GET:
-            from opaque_keys.edx.locations import SlashSeparatedCourseKey
-
             cid = request.GET.get("courseid")
-            cid = SlashSeparatedCourseKey.from_deprecated_string(cid)
+            cid = CourseKey.from_string(cid)
             count = StudentModule.objects.filter(
                 course_id=cid, module_type="video"
             ).count()
@@ -1249,9 +1246,7 @@ def custom_analytics_viewership(request):
             mimetype = "application/json"
             return HttpResponse(data, mimetype)
 
-    from opaque_keys.edx.locations import SlashSeparatedCourseKey
-
-    course_id = SlashSeparatedCourseKey.from_deprecated_string(
+    course_id = CourseKey.from_string(
         "docmode/dm002/2017_dm002"
     )
 
@@ -1312,9 +1307,7 @@ def association_dashboard(request, org_sname):
     else:
         grpstaff = "1"
 
-    from opaque_keys.edx.locations import SlashSeparatedCourseKey
-
-    course_id = SlashSeparatedCourseKey.from_deprecated_string(
+    course_id = CourseKey.from_string(
         "course-v1:DRL+DRL002+2020_Dec_DRL002"
     )
 
@@ -1387,7 +1380,6 @@ def organizationName(orgId):
 @ensure_csrf_cookie
 @require_http_methods(["GET"])
 def association_course_analytics(request, course_id):
-    from opaque_keys.edx.locations import SlashSeparatedCourseKey
     from common.djangoapps.organizations.models import OrganizationCourse, OrganizationMembers
     from lms.djangoapps.reg_form.models import states
 
@@ -1485,7 +1477,7 @@ def association_course_analytics(request, course_id):
         elif "courseid" in request.GET:
 
             cid = request.GET.get("courseid")
-            cid = SlashSeparatedCourseKey.from_deprecated_string(cid)
+            cid = CourseKey.from_string(cid)
             count = StudentModule.objects.filter(
                 course_id=cid, module_type="video"
             ).count()
@@ -1506,7 +1498,7 @@ def association_course_analytics(request, course_id):
             if "course_id" != 0:
                 cid = request.GET.get("course_id")
 
-                cid = SlashSeparatedCourseKey.from_deprecated_string(cid)
+                cid = CourseKey.from_string(cid)
                 cdata = CourseOverview.objects.get(id=cid)
                 fromdate = datetime.datetime.strptime(
                     request.GET.get("fromdate"), "%m/%d/%Y"
@@ -1565,9 +1557,7 @@ def association_course_analytics(request, course_id):
                     json.dumps(data, default=str), content_type="application/json"
                 )
 
-    from opaque_keys.edx.locations import SlashSeparatedCourseKey
-
-    cid = SlashSeparatedCourseKey.from_deprecated_string(course_id)
+    cid = CourseKey.from_string(course_id)
     try:
         course = CourseOverview.objects.get(id=cid)
     except ObjectDoesNotExist:
@@ -1702,12 +1692,7 @@ def association_course_analytics(request, course_id):
 
 
 def export_csv(request, course_id, datatype):
-    import csv
-    from django.utils.encoding import smart_str
-
-    from opaque_keys.edx.locations import SlashSeparatedCourseKey
-
-    cid = SlashSeparatedCourseKey.from_deprecated_string(course_id)
+    cid = CourseKey.from_string(course_id)
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = "attachment; filename=users.csv"
@@ -2162,12 +2147,7 @@ export_csv.short_description = u"Export CSV"
 
 
 def viatris_export_csv(request, course_id, datatype):
-    import csv
-    from django.utils.encoding import smart_str
-
-    from opaque_keys.edx.locations import SlashSeparatedCourseKey
-
-    cid = SlashSeparatedCourseKey.from_deprecated_string(course_id)
+    cid = CourseKey.from_string(course_id)
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = "attachment; filename=users.csv"
