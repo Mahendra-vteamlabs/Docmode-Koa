@@ -19,8 +19,8 @@ class OrganizationsApiTestCase(utils.OrganizationsTestCaseBase):
         super(OrganizationsApiTestCase, self).setUp()
         self.test_organization = api.add_organization(
             {
-                "name": unicode("test_organizationßßß", "utf-8"),
-                "description": unicode("Test Organization Descriptionßßß", "utf-8"),
+                "name": str("test_organizationßßß", "utf-8"),
+                "description": str("Test Organization Descriptionßßß", "utf-8"),
             }
         )
 

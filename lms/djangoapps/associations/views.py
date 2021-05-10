@@ -4168,8 +4168,12 @@ def send_completion_mail(sender, user=None, course_id=None, **kwargs):
 
     log.info("->-> CC == %s ++ %s ++ %s", user, course_id)
 
-    course_email = CourseEmail.objects.get(id=49)
-    log.info(u"course_email %s", course_email)
+    try:
+        course_email = CourseEmail.objects.get(id=49)
+        log.info(u"course_email %s", course_email)
+    except Exception as e:
+        return
+        
     connection = get_connection()
     connection.open()
     cid1 = str(course_email.course_id)

@@ -50,10 +50,6 @@ username = get_enterprise_learner_generic_name(request) or student.username
 </%block>
 
 <%include file="/courseware/course_navigation.html" args="active_page='progress'" />
-<%
-  course_extra = course_extrainfo.objects.get(course_id=course.id)
-  user_data = extrafields.objects.get(user_id=request.user)
-%>
 <main id="main" aria-label="Content" tabindex="-1">
     <div class="container">
         <div class="profile-wrapper">
@@ -76,6 +72,10 @@ username = get_enterprise_learner_generic_name(request) or student.username
                 <div class="wrapper-msg wrapper-auto-cert">
                     <div id="errors-info" class="errors-info"></div>
                     <%block name="certificate_block">
+                        <%
+                          course_extra = course_extrainfo.objects.get(course_id=course.id)
+                          user_data = extrafields.objects.get(user_id=request.user)
+                        %>
                         %if certificate_data:
                         <div class="auto-cert-message" id="course-success">
                             <div class="has-actions">

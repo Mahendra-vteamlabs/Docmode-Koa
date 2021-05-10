@@ -10,3 +10,5 @@ body.view-wiki .wiki-wrapper {border: 1px solid #c8c8c8 !important;margin-bottom
 body.view-wiki .wiki-wrapper section.wiki .breadcrumbs-header {height: 70px;}
 .wiki-wrapper section.wiki .breadcrumb{padding: 0;}
 .wiki-wrapper section.wiki .article-functions ul li{display: block;float: none;width: 100%;}
+body.view-in-course .modal, body.view-in-course .leanModal_box, 
+body.view-in-course .entitlement-unenrollment-modal{bottom: auto; overflow: hidden;}

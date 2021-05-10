@@ -13,8 +13,8 @@ def course_key_is_valid(course_key):
     if course_key is None:
         return False
     try:
-        CourseKey.from_string(unicode(course_key))
-    except (InvalidKeyError, UnicodeDecodeError):
+        CourseKey.from_string(str(course_key))
+    except InvalidKeyError:
         return False
     return True
 

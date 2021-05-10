@@ -61,7 +61,7 @@ def course_home_url(course):
     Arguments:
         course (CourseDescriptor): The course being tested.
     """
-    return course_home_url_from_string(unicode(course.id))
+    return course_home_url_from_string(str(course.id))
 
 
 def course_home_url_from_string(course_key_string):
