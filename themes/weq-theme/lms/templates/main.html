@@ -25,7 +25,7 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 from openedx.core.djangolib.js_utils import dump_js_escaped_json, js_escaped_string
 from openedx.core.release import RELEASE_LINE
 from common.djangoapps.pipeline_mako import render_require_js_path_overrides
-
+from lms.djangoapps.reg_form.views import userdetails
 %>
 <!DOCTYPE html>
 <!--[if lte IE 9]><html class="ie ie9 lte9" lang="${LANGUAGE_CODE}"><![endif]-->
@@ -157,9 +157,41 @@ from common.djangoapps.pipeline_mako import render_require_js_path_overrides
   <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/cccd3ae050b407462dbcf1acf/398c976ca7df6743159a9cb86.js");</script>
   <!-- Mailchimp Integration -->
 
++  <%
+    if user.is_authenticated:
+      userDet = userdetails(user.id)
+      if userDet.user_type == 'u':
+        ut = 'User'
+      elif userDet.user_type == 'dr':
+        ut = 'Doctor'
+      elif userDet.user_type == 'hc':
+        ut = 'Healthcare professional'
+      elif userDet.user_type == 'ms':
+        ut = 'Medical student'
+      endif
+    endif
+  %>  
+  % if user.is_authenticated:
+    <script>
+      dataLayer = [{
+        'userID': '${user.id}', 
+        'userType':'${ut}'
+      }]
+    </script>
+  % endif
+  <!-- Google Tag Manager -->
+<script>function loadgtm(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+}$(window).load(function(){loadgtm(window,document,'script','dataLayer','GTM-M7SX36F');});</script>
+<!-- End Google Tag Manager -->
+
+
   <!-- SmarTech Integration -->
-  <script src='//cdnt.netcoresmartech.com/smartechclient.js'></script>      <script>        smartech('create', 'ADGMOT35CHFLVDHBJNIG50K969P6R1BSHEEO344QDLDDGQL15FAG' );        smartech('register', '2664517973f8ce9a843b32f5628fa5e1');        smartech('identify', '${user.id}');  smartech('dispatch',1,{});    </script>
-  <!-- End of SmarTech Integration -->
+<script src='//cdnt.netcoresmartech.com/smartechclient.js'></script>      <script>        smartech('create', 'ADGMOT35CHFLVDHBJNIG50K969P6R1BSHEEO344QDLDDGQL15FAG' );        smartech('register', '2664517973f8ce9a843b32f5628fa5e1');        smartech('identify', '${user.id}');  smartech('dispatch',1,{});    </script>
+<!-- End of SmarTech Integration -->
+
 <% ga_acct = static.get_value("GOOGLE_ANALYTICS_ACCOUNT", settings.GOOGLE_ANALYTICS_ACCOUNT) %>
 % if ga_acct:
     <script type="text/javascript">

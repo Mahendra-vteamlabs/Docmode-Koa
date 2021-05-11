@@ -4,6 +4,7 @@
     from django.utils.translation import ugettext as _
     from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
     from openedx.core.djangolib.js_utils import dump_js_escaped_json
+    from lms.djangoapps.reg_form.models import states
 %>
 <%namespace name='static' file='/static_content.html'/>
 
@@ -24,9 +25,6 @@
             newrelic.addPageAction('xfinished');
         }
     </%static:require_module>
-    % if configuration_helpers.get_value('DISPLAY_TOS_IN_MODAL_ON_REGISTRATION_PAGE', False):
-    <script type="text/javascript" src="${static.url('js/student_account/tos_modal.js')}"></script>
-    % endif
 </%block>
 
 <%block name="header_extras">
@@ -235,7 +233,7 @@ var ZeroBounceApi = /** @class */ (function () {
     }());
 
 
-function checkEmailValidity() {
+function checkEmailValidity1() {
       
       mail = document.getElementById('register-email').value;
       var ZeroBounceApiVar = new ZeroBounceApi('af8e53a08b7a4a9ab3cc98584fd3a734');
@@ -249,6 +247,22 @@ function checkEmailValidity() {
         document.getElementById('register-email').value = "";
         document.getElementById('register-email').focus();
       }
+      mail = document.getElementById('register-email').value;
+      newval = mail.replace(/[.]/gi, "-");
+      string =  newval.replace("@", "_");
+      var length = 30;
+      var trimmedString = string.length > length ? 
+                    string.substring(0, length - 3): 
+                    string;
+      var newstring = trimmedString.split("_");
+      document.getElementById('register-username').value = newstring[0];
+      
+      $('.text-username').show();
+      document.getElementById("register-username").focus();
+      document.getElementById("register-name").focus();
+    }
+
+function checkEmailValidity() {
       mail = document.getElementById('register-email').value;
       newval = mail.replace(/[.]/gi, "-");
       string =  newval.replace("@", "_");
@@ -285,6 +299,10 @@ function checkEmailValidity() {
     function getlocation(zipcode) {
       var zip;
       zip = zipcode;
+      <%
+        state_list = states.objects.all().order_by('name')
+      %>
+
       if (zip.length >1) {
         $.ajax({
             type: 'POST',
@@ -302,24 +320,82 @@ function checkEmailValidity() {
                 $( "input#register-rcity" ).prev().removeClass( "focus-out" );
                 $( "input#register-rcity" ).prev().addClass( "focus-in" );
                 var count = Object.keys(data["results"][0]["address_components"]).length;
-                if (count >= 6 ) {
-                    $('input#register-rcountry').val(data["results"][0]["address_components"][5]["long_name"]);
-                    $('input#register-rstate').val(data["results"][0]["address_components"][4]["long_name"]);
+                states = '';
+                states += '<select class="input-inline" id="state_list" name="rstate" onchange="focusin(this.value);">';
+                states += '<option></option>';
+                %for state in state_list:
+                  states += '<option value="${state.name}">${state.name}</option>';
+                %endfor
+                if (count > 6 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][6]["long_name"]);
+                    if(data["results"][0]["address_components"][6]["long_name"] === "India") {
+                      $("input#register-rstate").hide();
+                      $("#state_list").hide();
+                      states  += '</select>';
+                      $('.text-rstate').append(states);
+                    }else{
+                      $("input#register-rstate").show();
+                      $("#state_list").hide();
+                      $('input#register-rstate').val(data["results"][0]["address_components"][5]["long_name"]);
+                    }
                     $('input#register-rcity').val(data["results"][0]["address_components"][2]["long_name"]);
+                    $('.js-register.register-button').attr("disabled", false);
+                } else if (count == 6 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][5]["long_name"]);
+                    if(data["results"][0]["address_components"][5]["long_name"] === "India") {
+                      $("input#register-rstate").hide();
+                      $("#state_list").hide();
+                      states  += '</select>';
+                      $('.text-rstate').append(states);
+                    }else{
+                      $("input#register-rstate").show();
+                      $("#state_list").hide();
+                      $('input#register-rstate').val(data["results"][0]["address_components"][4]["long_name"]);
+                    }
+                    $('input#register-rcity').val(data["results"][0]["address_components"][3]["long_name"]);
                     $('.js-register.register-button').attr("disabled", false);
                 } else if (count == 5 ) {
                     $('input#register-rcountry').val(data["results"][0]["address_components"][4]["long_name"]);
-                    $('input#register-rstate').val(data["results"][0]["address_components"][3]["long_name"]);
+
+                    if(data["results"][0]["address_components"][4]["long_name"] === "India") {
+                      $("input#register-rstate").hide();
+                      $("#state_list").remove();
+                      states  += '</select>';
+                      $('.text-rstate').append(states);
+                    }else{
+                      $("input#register-rstate").show();
+                      $("#state_list").hide();
+                      $('input#register-rstate').val(data["results"][0]["address_components"][3]["long_name"]);
+                    }
+
                     $('input#register-rcity').val(data["results"][0]["address_components"][1]["long_name"]);
                     $('.js-register.register-button').attr("disabled", false);
                 } else if (count == 4 ) {
                     $('input#register-rcountry').val(data["results"][0]["address_components"][3]["long_name"]);
-                    $('input#register-rstate').val(data["results"][0]["address_components"][2]["long_name"]);
+
+                    if(data["results"][0]["address_components"][3]["long_name"] === "India") {
+                      $("input#register-rstate").hide();
+                      states  += '</select>';
+                      $('.text-rstate').append(states);
+                    }else{
+                      $("input#register-rstate").show();
+                      $("#state_list").hide();
+                      $('input#register-rstate').val(data["results"][0]["address_components"][2]["long_name"]);
+                    }
                     $('input#register-rcity').val(data["results"][0]["address_components"][1]["long_name"]);
                     $('.js-register.register-button').attr("disabled", false);
                 } else if (count == 3 ) {
                     $('input#register-rcountry').val(data["results"][0]["address_components"][2]["long_name"]);
-                    $('input#register-rstate').val(data["results"][0]["address_components"][1]["long_name"]);
+
+                    if(data["results"][0]["address_components"][2]["long_name"] === "India") {
+                      $("input#register-rstate").hide();
+                      states  += '</select>';
+                      $('.text-rstate').append(states);
+                    }else{
+                      $("input#register-rstate").show();
+                      $("#state_list").hide();
+                      $('input#register-rstate').val(data["results"][0]["address_components"][1]["long_name"]);
+                    }
                     $("input#register-rcity").attr("placeholder","Please enter your city");
                     document.getElementById("register-rcity").style.color = "#80709d";
                     $('.js-register.register-button').attr("disabled", false);
@@ -347,5 +423,9 @@ function checkEmailValidity() {
         });
       }
     };
+
+    function focusin(value) {
+     $('input#register-rstate').val(value);
+    }
 
 </script>
