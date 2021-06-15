@@ -162,7 +162,7 @@ class CustomEmailTemplate(models.Model):
         stored HTML template and the provided `context` dict.
         """
         # HTML-escape string values in the context (used for keyword substitution).
-        for key, value in context.iteritems():
+        for key, value in context.items():
             if isinstance(value, basestring):
                 context[key] = markupsafe.escape(value)
         return CustomEmailTemplate._render(self.html_template, htmltext, context)

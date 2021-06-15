@@ -2598,7 +2598,6 @@ def search_list(request):
     if request.is_ajax():
         if request.method == "GET":
             if "email_validation" in request.GET:
-                log.info(u"reqs--> %s", request.__dict__)
                 emailid = request.GET.get("emailid")
                 msg = {}
                 try:

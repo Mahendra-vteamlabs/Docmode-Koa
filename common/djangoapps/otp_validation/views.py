@@ -70,11 +70,12 @@ class SendOTP(APIView):
                 }
             )
         except Exception as e:
+            logs.info(str(e))
             return JsonResponse(
                 {
                     "status": 400,
                     "message": "Mobile No. does not exists. Try using Email OTP",
-                    "error": "err2",
+                    "error": str(e),
                 }
             )
 
@@ -102,11 +103,12 @@ class SendOTP(APIView):
                     }
                 )
         except Exception as e:
+            logs.info(str(e))
             return JsonResponse(
                 {
                     "status": 400,
                     "message": "Email address does not exists.",
-                    "error": "err1",
+                    "error": str(e),
                 }
             )
 

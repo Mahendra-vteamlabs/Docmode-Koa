@@ -147,7 +147,7 @@ from lms.djangoapps.specialization.models import (categories, sub_categories)
                   <label for="new-course-run">${_("Course Run")}</label>
                   ## Translators: This is an example for the "run" used to identify different
                   ## instances of a course, seen when filling out the form to create a new course.
-                  <input class="new-course-run" id="new-course-run" type="text" name="new-course-run" required placeholder="${_('e.g. 2014_T1')}" aria-describedby="tip-new-course-run tip-error-new-course-run" onfocus="docnum();"/>
+                  <input class="new-course-run" id="new-course-run" type="text" name="new-course-run" required placeholder="${_('e.g. 2014_T1')}" aria-describedby="tip-new-course-run tip-error-new-course-run" onfocus="docrun();"/>
                   <span class="tip" id="tip-new-course-run">${Text(_("The term in which your course will run. {strong_start}Note: This is part of your course URL, so no spaces or special characters are allowed and it cannot be changed.{strong_end}")).format(
                       strong_start=HTML('<strong>'),
                       strong_end=HTML('</strong>'),
