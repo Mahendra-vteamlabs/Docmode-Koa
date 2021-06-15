@@ -3,24 +3,31 @@
 <%namespace name='static' file='/static_content.html'/>
 <%def name="online_help_token()"><% return "courseware" %></%def>
 <%!
+import six
 import waffle
 
 from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import ugettext as _
-
-from edxnotes.helpers import is_feature_enabled as is_edxnotes_enabled
+from lms.djangoapps.edxnotes.helpers import is_feature_enabled as is_edxnotes_enabled
 from openedx.core.djangolib.js_utils import js_escaped_string
 from openedx.core.djangolib.markup import HTML
-from openedx.features.course_experience import course_home_page_title, COURSE_OUTLINE_PAGE_FLAG
+from openedx.features.course_experience import course_home_page_title, DISABLE_COURSE_OUTLINE_PAGE_FLAG
 from lms.djangoapps.webform.views import feedback_form_link
-from lms.djangoapps.course_extrainfo.models import course_extrainfo
-from lms.djangoapps.reg_form.models import extrafields
-from lms.djangoapps.specialization.models import specializations
 %>
 <%
-  include_special_exams = settings.FEATURES.get('ENABLE_SPECIAL_EXAMS', False) and (course.enable_proctored_exams or course.enable_timed_exams)
+   include_special_exams = (
+   request.user.is_authenticated and
+   settings.FEATURES.get('ENABLE_SPECIAL_EXAMS', False) and
+   (course.enable_proctored_exams or course.enable_timed_exams)
+   )
 %>
+
+% if display_reset_dates_banner:
+    <script type="text/javascript">
+        $('.reset-deadlines-banner').css('display', 'flex');
+    </script>
+% endif
 <%def name="course_name()">
  <% return _("{course_number} Courseware").format(course_number=course.display_number_with_default) %>
 </%def>
@@ -39,13 +46,6 @@ from lms.djangoapps.specialization.models import specializations
 <script type="text/template" id="${template_name}-tpl">
     <%static:include path="common/templates/${template_name}.underscore" />
 </script>
-<style type="text/css">
-	@media screen and (max-width: 800px) {
-		.chapters-wrapper{
-			flex: unset !important;
-		}
-	}
-</style>
 % endfor
 
 % if include_special_exams is not UNDEFINED and include_special_exams:
@@ -55,13 +55,6 @@ from lms.djangoapps.specialization.models import specializations
     </script>
   % endfor
 % endif
-
-<style type="text/css">
-  .wrap-instructor-info  {
-    margin: 10px 5px 0 0 !important;
-    display: inline;
-}
-</style>
 
 </%block>
 
@@ -77,7 +70,7 @@ from lms.djangoapps.specialization.models import specializations
 <script type="text/javascript" src="${static.url('js/src/tooltip_manager.js')}"></script>
 
 <link href="${static.url('css/vendor/jquery.autocomplete.css')}" rel="stylesheet" type="text/css">
-<!-- <link rel="stylesheet" type="text/css" href="https://s3-ap-southeast-1.amazonaws.com/docmode-in-uploads/youtube-chapters.css"> -->
+<link rel="stylesheet" type="text/css" href="https://s3-ap-southeast-1.amazonaws.com/docmode-in-uploads/youtube-chapters.css">
 <link rel="stylesheet" href="https://s3-ap-southeast-1.amazonaws.com/site-js/feedback.css" />
   ${HTML(fragment.head_html())}
 </%block>
@@ -89,7 +82,7 @@ from lms.djangoapps.specialization.models import specializations
   <%static:js group='courseware'/>
   <%include file="/mathjax_include.html" args="disable_fast_preview=True"/>
 
-  % if settings.FEATURES.get('ENABLE_COURSEWARE_SEARCH'):
+  % if show_search:
     <%static:require_module module_name="course_search/js/course_search_factory" class_name="CourseSearchFactory">
         var courseId = $('.courseware-results').data('courseId');
         CourseSearchFactory({
@@ -104,8 +97,20 @@ from lms.djangoapps.specialization.models import specializations
   </%static:require_module>
 
   % if staff_access:
-    <%include file="xqa_interface.html"/>
+  	<%include file="xqa_interface.html"/>
   % endif
+
+<style type="text/css">
+  @media screen and (max-width: 800px) {
+    .chapters-wrapper{
+      flex: unset !important;
+    }
+  }
+  .wrap-instructor-info  {
+    margin: 10px 5px 0 0 !important;
+    display: inline;
+}
+</style>
 
   <script type="text/javascript">
     var $$course_id = "${course.id | n, js_escaped_string}";
@@ -151,7 +156,7 @@ ${HTML(fragment.foot_html())}
               </a>
           </div>
 
-          % if settings.FEATURES.get('ENABLE_COURSEWARE_SEARCH'):
+          % if show_search:
             <div id="courseware-search-bar" class="search-bar courseware-search-bar" role="search" aria-label="Course">
               <form class="search-form">
                 <label for="course-search-input" class="sr">${_('Course Search')}</label>
@@ -186,21 +191,21 @@ ${HTML(fragment.foot_html())}
                 <nav aria-label="${_('Course')}" class="sr-is-focusable" tabindex="-1">
                     <div class="has-breadcrumbs">
                         <div class="breadcrumbs" style="font-size: 1.5rem;">
-                            % if COURSE_OUTLINE_PAGE_FLAG.is_enabled(course.id):
+                            % if DISABLE_COURSE_OUTLINE_PAGE_FLAG.is_enabled(course.id):
                                 <span class="nav-item nav-item-course">
-                                    <a href="${course_url}">Webinar</a>
+                                    <a href="${course_url}">${course_home_page_title(course)}</a>
                                 </span>
                                 <span class="icon fa fa-angle-right" aria-hidden="true"></span>
                             % endif
                             % if chapter:
                                 <span class="nav-item nav-item-chapter" data-course-position="${course.position}" data-chapter-position="${chapter.position}">
-                                    <a href="${course_url}#${unicode(chapter.location)}">${chapter.display_name_with_default}</a>
+                                    <a href="${course_url}#${six.text_type(chapter.location)}">${chapter.display_name_with_default}</a>
                                 </span>
                                 <span class="icon fa fa-angle-right" aria-hidden="true"></span>
                             % endif
                             % if section:
                                 <span class="nav-item nav-item-section">
-                                    <a href="${course_url}#${unicode(section.location)}">${section.display_name_with_default}</a>
+                                    <a href="${course_url}#${six.text_type(section.location)}">${section.display_name_with_default}</a>
                                 </span>
                                 <span class="icon fa fa-angle-right" aria-hidden="true"></span>
                             % endif
@@ -243,7 +248,12 @@ ${HTML(fragment.foot_html())}
             % endif
 
               ${HTML(fragment.body_html())}
-              
+              <% feedback_link = feedback_form_link(course.id) %>
+              %if feedback_link and feedback_link.feedback_form_link != 'NULL':
+                <div id="feedback">
+                  <div id="feedback-tab" style="background-color: #000;"><a href="${feedback_link.feedback_form_link}" target="_blank" style="color: #fff;">Feedback</a></div>
+                </div>
+              %endif
         </main>
     </section>
 
@@ -281,10 +291,6 @@ ${HTML(fragment.foot_html())}
       % endif
     </nav>
 % endif
-<%
-  course_extra = course_extrainfo.objects.get(course_id=course.id)
-  user_data = extrafields.objects.get(user_id=request.user)
-%>
 <div class="modal fade" id="course_extradata" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="width:100%;" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -376,41 +382,37 @@ ${HTML(fragment.foot_html())}
   </script>
 %endif
 <script src="https://s3-ap-southeast-1.amazonaws.com/site-js/feedback.js"></script>
-<!-- <script src="https://docmode-in-uploads.s3-ap-southeast-1.amazonaws.com/youtube-chapters.min.js"></script> -->
-<!-- added by docmode to create chapters in vimeo videos -->
+<script src="https://docmode-in-uploads.s3-ap-southeast-1.amazonaws.com/youtube-chapters.min.js"></script>
 <script src="https://player.vimeo.com/api/player.js"></script>
-<!-- <script type="text/javascript">
-  $("document").ready(function() { // Document Ready (important!)
-  
-  // Get the video element that we wish to control
-  var iframe = document.getElementById('thevideo');
-  
-  // Initialize Froogaloop (linked .js.min file) on the captured video
-  var player = new Vimeo.Player(iframe);
+<%static:require_module_async module_name="js/commerce/track_ecommerce_events" class_name="TrackECommerceEvents">
 
-  // When a link with a class of "timecode" is clicked, capture the event
-  $('.timecode').on('click', function (e) {
-    // Prevent the default link (typically a hash) from executing
-    e.preventDefault();
-    // Get the location value from the HTML5 data parameter
-    var seekVal = $(this).attr('data-seek');
-    // Using Froogaloop, trigger the SeekTo method using the captured value
-    player.setCurrentTime(seekVal);
+  var fbeLink = $("#FBE_banner");
+  var welcomeLink = $("#welcome");
+  var accessDeniedUpsellLink = $("#accessDeniedUpsell");
+  var sockLink = $("#sock");
+
+  TrackECommerceEvents.trackUpsellClick(fbeLink, 'in_course_audit_access_expires', {
+      pageName: "in_course",
+      linkType: "link",
+      linkCategory: "FBE_banner"
   });
 
-});
-</script>
-<script type="text/javascript">   
-  setTimeout(
-    function () {
-      YTC('#player', options);
-  }, 2000);
-</script> -->
-<script type="text/javascript">
-  $("document").ready(function() {
-    if($("#vowza_iframe").length != 0) {
-      var username = "?username=${request.user}&useremail=${request.user.email}"
-      $("#vowza_iframe").attr("src", $("#vowza_iframe").attr("src")+username);
-    }
+  TrackECommerceEvents.trackUpsellClick(welcomeLink, 'in_course_welcome', {
+      pageName: "in_course",
+      linkType: "link",
+      linkCategory: "welcome"
   });
-</script>
+
+  TrackECommerceEvents.trackUpsellClick(accessDeniedUpsellLink, 'in_course_upgrade', {
+    pageName: "in_course",
+    linkType: "link",
+    linkCategory: "(none)"
+  });
+
+  TrackECommerceEvents.trackUpsellClick(sockLink, 'in_course_sock', {
+      pageName: "in_course",
+      linkType: "button",
+      linkCategory: "green_upgrade"
+  });
+
+</%static:require_module_async>

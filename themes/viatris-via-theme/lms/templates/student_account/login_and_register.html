@@ -28,9 +28,15 @@
 
 <%block name="header_extras">
     % for template_name in ["account", "access", "form_field", "login", "register", "institution_login", "institution_register", "password_reset", "hinted_login"]:
+      % if template_name == 'login':
         <script type="text/template" id="${template_name}-tpl">
-            <%static:include path="student_account/${template_name}.underscore" />
+          <%static:include path="student_account/${template_name}-viatris-via.underscore" />
         </script>
+      % else:
+        <script type="text/template" id="${template_name}-tpl">
+          <%static:include path="student_account/${template_name}.underscore" />
+        </script>
+      % endif 
 % endfor
   <link rel="stylesheet" href="https://dev-srv-edxuploads.s3.ap-south-1.amazonaws.com/country-code-js-files/prism.css">
     <link rel="stylesheet" href="https://dev-srv-edxuploads.s3.ap-south-1.amazonaws.com/country-code-js-files/intlTelInput.css?1585994360633">
@@ -202,11 +208,22 @@ input[type=submit]:hover {
    
   %if "/login" not in request.path:
     <div class="container topicCont">
-      <div class="row">
+      <div class="row" style="padding-top:73px;">
         <div class="col-75" id="register_title">
           <h3>
+            <% 
+              data=request.GET.dict()
+              course_id = data.get('course_id')
+              if course_id:
+                courseid = course_id.replace(' ','+')
+                enrollment = data.get('enrollment_action')
+            %>
               <span class="text" style="font-size: 20px;">Register Now</span>
+              %if course_id and enrollment:
+                <a href="/login?course_id=${courseid}&enrollment_action=enroll" style="font-size:15px;color:#428bca; float: right;" data-type="login">Already Registered?</a>
+              %else:
                 <a href="/login?next=/oauth2/authorize/confirm" style="font-size:15px;color:#428bca; float: right;" data-type="login">Already Registered?</a>
+              %endif
           </h3>
         </div>
             <div class="container">
@@ -1379,7 +1396,7 @@ input[type=submit]:hover {
     </div>
   %else:
     <main id="main" aria-label="Content" tabindex="-1">
-        <div id="login-and-registration-container" class="login-register" />
+        <div id="login-and-registration-container" class="login-register" style="padding-top: 73px;" />
     </main>
   %endif
 </div>
@@ -1418,7 +1435,7 @@ input[type=submit]:hover {
       
         $.ajax({
             type: "POST",
-            url: "/viatris_registration",
+            url: "/custom_registration_without_zerobounce",
             data: frm.serialize(),
             success: function(data) {
                 if(data.success == true){
@@ -1429,9 +1446,9 @@ input[type=submit]:hover {
     });
     
     function setfunc() {
-    $("#register-email").on("change", function(event){
-            checkEmailValidity();
-        });
+      // $("#register-email").on("change", function(event){
+      //       checkEmailValidity();
+      //   });
 
         // $("#register-cemail").on("change", function(event) { 
         //     checkmail();
@@ -1610,32 +1627,43 @@ var ZeroBounceApi = /** @class */ (function () {
 
 function checkEmailValidity() {
       
+      //mail = document.getElementById('register-email').value;
+      // var ZeroBounceApiVar = new ZeroBounceApi('af8e53a08b7a4a9ab3cc98584fd3a734');
+      // ZeroBounceApiVar.apiKey;
+      // ZeroBounceApiVar.getCredits();
+      // var getResults = ZeroBounceApiVar.validate(mail);
+      // var getStatus = JSON.parse(getResults);
+      // // alert(getStatus.status);
+      // if (getStatus.status == 'Invalid' || getStatus.status == 'Spamtrap' || getStatus.status == 'Abuse' || getStatus.status == 'DoNotMail') {
+      //   alert('Email Address Invalid');
+      //   document.getElementById('register-email').value = "";
+      //   document.getElementById('register-email').focus();
+      // }
       mail = document.getElementById('register-email').value;
-      var ZeroBounceApiVar = new ZeroBounceApi('af8e53a08b7a4a9ab3cc98584fd3a734');
-      ZeroBounceApiVar.apiKey;
-      ZeroBounceApiVar.getCredits();
-      var getResults = ZeroBounceApiVar.validate(mail);
-      var getStatus = JSON.parse(getResults);
-      // alert(getStatus.status);
-      if (getStatus.status == 'Invalid' || getStatus.status == 'Spamtrap' || getStatus.status == 'Abuse' || getStatus.status == 'DoNotMail') {
+      if (validateEmail(mail)) {
+        newval = mail.replace(/[.]/gi, "-");
+        string =  newval.replace("@", "_");
+        var length = 30;
+        var trimmedString = string.length > length ? 
+                      string.substring(0, length - 3): 
+                      string;
+        var newstring = trimmedString.split("_");
+        document.getElementById('register-username').value = newstring[0];
+        
+        $('.text-username').show();
+        document.getElementById("register-username").focus();
+        //document.getElementById("register-name").focus();
+      } else {
         alert('Email Address Invalid');
         document.getElementById('register-email').value = "";
         document.getElementById('register-email').focus();
       }
-      mail = document.getElementById('register-email').value;
-      newval = mail.replace(/[.]/gi, "-");
-      string =  newval.replace("@", "_");
-      var length = 30;
-      var trimmedString = string.length > length ? 
-                    string.substring(0, length - 3): 
-                    string;
-      var newstring = trimmedString.split("_");
-      document.getElementById('register-username').value = newstring[0];
       
-      $('.text-username').show();
-      document.getElementById("register-username").focus();
-      //document.getElementById("register-name").focus();
-      
+    }
+
+    function validateEmail(email) {
+      const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(email);
     }
 
     // function checkmail() {

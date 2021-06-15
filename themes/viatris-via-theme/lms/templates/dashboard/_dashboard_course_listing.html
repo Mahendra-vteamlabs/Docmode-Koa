@@ -90,7 +90,19 @@ from lms.djangoapps.reg_form.views import userdetails
     else :
       disclaimer = 'n/a'
 
+    course_id = course_overview.display_number_with_default
+    popupid = course_id
+    social_url = 'https://docmode.org/'+ course_new_url(course_overview.id)
     user_extra_info = userdetails(request.user.id)
+  %>
+  <% 
+    enrollment_data = CourseEnrollment.objects.get(course_id=course_overview.id,user_id=request.user.id)
+    diffdate = datetime.datetime.now(UTC) - enrollment_data.created
+    total_mins = (diffdate.days*1440 + diffdate.seconds/60)
+    minutes = divmod(diffdate.seconds, 60)
+    total_mins = abs(total_mins)
+    enrollment_date = enrollment_data.created.strftime("%b %d, %Y")
+    enrollment_time = enrollment_data.created.strftime("%X")
 
     course_id = course_overview.display_number_with_default
     popupid = course_id
@@ -102,7 +114,7 @@ from lms.djangoapps.reg_form.views import userdetails
     <div class="wrapper-course-image" aria-hidden="true">
       % if show_courseware_link and not is_unfulfilled_entitlement:
         % if not is_course_expired:
-            <a href="/courses/${course_overview.id}/${ctype}" data-course-key="${enrollment.course_id}" class="cover" tabindex="-1">
+            <a href="/courses/${course_overview.id}/${ctype}" data-course-key="${enrollment.course_id}" class="cover course-target-link" tabindex="-1">
               <img src="${course_overview.image_urls['small']}" class="course-image" alt="${_('{course_number} {course_name} Home Page').format(course_number=course_overview.number, course_name=course_overview.display_name_with_default)}" />
             </a>
         % else:
@@ -129,7 +141,7 @@ from lms.djangoapps.reg_form.views import userdetails
         <h3 class="course-title" id="course-title-${enrollment.course_id}">
           % if show_courseware_link and not is_unfulfilled_entitlement:
             % if not is_course_expired:
-              <a data-course-key="${enrollment.course_id}" href="/courses/${course_overview.id}/${ctype}">${course_overview.display_name_with_default} </a>
+              <a data-course-key="${enrollment.course_id}" href="/courses/${course_overview.id}/${ctype}" class="course-target-link">${course_overview.display_name_with_default}</a>
             % else:
               <a class="disable-look" data-course-key="${enrollment.course_id}">${course_overview.display_name_with_default}</a>
             % endif
@@ -163,6 +175,8 @@ from lms.djangoapps.reg_form.views import userdetails
                     course_date = course_overview.dashboard_start_display
                     course_date = course_date + datetime.timedelta(0,1800)
                     format = 'defaultFormat'
+                endif
+            endif
           %>
 
             <span class="info-date-block-container">
@@ -246,23 +260,22 @@ from lms.djangoapps.reg_form.views import userdetails
                   %else:
                     <a href="${resume_button_url}"
                      class="enter-course ${'hidden' if is_unfulfilled_entitlement else ''}"
-                     data-course-key="${enrollment.course_id}">
+                     data-course-key="${enrollment.course_id}" onclick="dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'Resume Course'});">
                   %endif
-                    ${_('Resume Webinar')}
+                    ${_('Resume Course')}
                     <span class="sr">
                       &nbsp;${course_overview.display_name_with_default}
                     </span>
                   </a>
                 % elif not is_course_expired:
                   %if assoc_ad != 'n/a':
-                    <a href="#" data-toggle="modal" data-target="#ad_${popupid}" class="enter-course archived" onclick="view_ad('${assoc_ad}','${popupid}');">
+                    <a href="#" data-toggle="modal" data-target="#ad_${popupid}" class="enter-course archived" onclick="view_ad('${assoc_ad}','${popupid}'); dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %elif disclaimer != 'n/a':
-                    <a href="#" data-toggle="modal" class="enter-course ${'hidden' if is_unfulfilled_entitlement else ''}" data-target="#disclaimer_${popupid}" onclick="view_disclaimer('${popupid}');">
-                  
+                    <a href="#" data-toggle="modal" class="enter-course ${'hidden' if is_unfulfilled_entitlement else ''}" data-target="#disclaimer_${popupid}" onclick="view_disclaimer('${popupid}'); dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %else:
                     <a href="/courses/${course_overview.id}/${ctype}" 
                      class="enter-course ${'hidden' if is_unfulfilled_entitlement else ''}" 
-                     data-course-key="${enrollment.course_id}">
+                     data-course-key="${enrollment.course_id}" onclick="dataLayer.push({'event': 'MyCourses','courseName':'${course_overview.display_name_with_default}','buttonName':'View Lecture'});">
                   %endif
                     %if ctype_numb == '1':
                       ${_("View Webinar")} </a>
@@ -285,9 +298,9 @@ from lms.djangoapps.reg_form.views import userdetails
                      data-course-key="${enrollment.course_id}">
                   %endif
                     %if ctype_numb == '1':
-                      ${_("View Webinar")} </a>
+                      ${_("View Course")} </a>
                     %elif ctype_numb == '2':
-                      ${_("View Webinar")} </a>
+                      ${_("View Lecture")} </a>
                     %else:
                       ${_("View Case study")} </a> 
                     %endif
@@ -299,72 +312,16 @@ from lms.djangoapps.reg_form.views import userdetails
               % endif
             %else:
               % if ctype_numb == '1':
-                <a class="btn btn-info" style="color: #FFFFFF; background-color: #c48c09;border-radius: 0px;"> Thank you for enrolling.<br/> Webinar link will be available soon </a>
+                <a class="btn btn-info" style="color: #FFFFFF; background-color: #337ab7;border-radius: 0px;"> Thank you for enrolling.<br/> Course link will be available soon </a>
                 </a>
               %elif ctype_numb == '2':
-                <a class="btn btn-info" style="color: #FFFFFF; background-color: #c48c09;border-radius: 0px;"> Thank you for enrolling.<br/> Webinar link will be available soon </a>
+                <a class="btn btn-info" style="color: #FFFFFF; background-color: #337ab7;border-radius: 0px;"> Thank you for enrolling.<br/> Lecture link will be available soon </a>
                 </a>
               %else:
-                <a class="btn btn-info" style="color: #FFFFFF; background-color: #c48c09;border-radius: 0px;"> Thank you for enrolling.<br/> Case study link will be available soon </a>
+                <a class="btn btn-info" style="color: #FFFFFF; background-color: #337ab7;border-radius: 0px;"> Thank you for enrolling.<br/> Case study link will be available soon </a>
                 </a>
               %endif
             %endif
-
-            % if show_courseware_link or course_overview.has_social_sharing_url() or course_overview.has_marketing_url():
-
-                % if share_settings:
-                    <%
-                      share_url = get_link_for_about_page(course_overview)
-                      encoded_utm_parameters = get_encoded_course_sharing_utm_params()
-                      share_window_name = 'shareWindow'
-                      share_window_config = 'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=640, height=480'
-                    %>
-                    % if share_settings.get('DASHBOARD_FACEBOOK', False):
-                        <%
-                          facebook_share_url = u"{url}?{utm_params}".format(url=share_url, utm_params=encoded_utm_parameters['facebook'])
-                          share_text = _("I'm taking {course_name} online with {facebook_brand}. Check it out!").format(course_name=course_overview.display_name_with_default, facebook_brand=share_settings.get('FACEBOOK_BRAND', 'edX.org'))
-                          query_params = urlencode((('u', facebook_share_url), ('quote', share_text),))
-                          facebook_url = 'https://www.facebook.com/sharer/sharer.php?{query}'.format(query=query_params)
-                          share_msg = _("Share {course_name} on Facebook").format(course_name=course_overview.display_name_with_default)
-                        %>
-                        <a
-                          data-tooltip="${_('Share on Facebook')}"
-                          data-trigger="focus hover"
-                          class="action action-facebook"
-                          href="${facebook_url}"
-                          rel="noopener"
-                          target="_blank"
-                          title="${_('Share on Facebook')}"
-                          data-course-id="${course_overview.id}"
-                          onclick="var popupWindow = window.open('${facebook_url}', '${share_window_name}', '${share_window_config}'); popupWindow.opener = null; return false;">
-                          <span class="sr">${share_msg}</span>
-                          <span class="fa fa-facebook" aria-hidden="true"></span>
-                        </a>
-                    % endif
-                    % if share_settings.get('DASHBOARD_TWITTER', False):
-                        <%
-                          twitter_share_url = u"{url}?{utm_params}".format(url=share_url, utm_params=encoded_utm_parameters['twitter'])
-                          default_share_text = _("I'm taking {course_name} online with {twitter_brand}. Check it out!").format(course_name=course_overview.display_name_with_default, twitter_brand=share_settings.get('TWITTER_BRAND', '@edxonline'))
-                          share_text = urlquote_plus(share_settings.get('DASHBOARD_TWITTER_TEXT', default_share_text))
-                          twitter_url = u'https://twitter.com/intent/tweet?text=' + share_text + u'%20' + urlquote_plus(twitter_share_url)
-                          share_msg = _("Share {course_name} on Twitter").format(course_name=course_overview.display_name_with_default)
-                        %>
-                        <a
-                          data-tooltip="${_('Share on Twitter')}"
-                          data-trigger="focus hover"
-                          class="action action-twitter"
-                          href="${twitter_url}"
-                          rel="noopener"
-                          target="_blank"
-                          title="${_('Share on Twitter')}"
-                          data-course-id="${course_overview.id}"
-                          onclick="var popupWindow = window.open('${twitter_url}', '${share_window_name}', '${share_window_config}'); popupWindow.opener = null; return false;">
-                          <span class="sr">${share_msg}</span>
-                          <span class="fa fa-twitter" aria-hidden="true"></span>
-                        </a>
-                    % endif
-                % endif
-            % endif
 
             ## We should only show the gear dropdown if the user is able to refund/unenroll from their entitlement
             ## and/or if they have selected a course run and email_settings are enabled
@@ -595,6 +552,21 @@ from lms.djangoapps.reg_form.views import userdetails
                        $('.disable-look-unregister').click();
                    });
                }
+               if(${total_mins} < 5){  
+                 smartech(  
+                  'dispatch', 'enroll data',  
+                  { 
+                    'USER ID': '${request.user.id}',  
+                    'COURSE_LANG': 'English', 
+                    'COURSE_NAME':'${course_overview.display_name_with_default}' ,  
+                    'COURSE_ID': '${enrollment.course_id}', 
+                    'EnrollDate':'${enrollment_date}',  
+                    'EnrollTime':'${enrollment_time}',  
+                    'SiteName':'learn.docmode.org', 
+                    'REGISTRATION_DATE':'${user.date_joined}' 
+                  } 
+                  );  
+                }
            });
 </script>
 % if share_settings.get('DASHBOARD_FACEBOOK', False) and share_settings.get('DASHBOARD_TWITTER', False):

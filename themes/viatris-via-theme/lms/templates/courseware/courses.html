@@ -1,7 +1,8 @@
+<%page expression_filter="h"/>
 <%!
   import json
   from django.utils.translation import ugettext as _
-  from openedx.core.djangolib.js_utils import dump_js_escaped_json
+  from openedx.core.djangolib.js_utils import js_escaped_string, dump_js_escaped_json
 %>
 <%inherit file="../main.html" />
 <%
@@ -21,28 +22,21 @@
     DiscoveryFactory(
       ${course_discovery_meanings | n, dump_js_escaped_json},
       getParameterByName('search_query'),
-      "${user_language}",
-      "${user_timezone}"
+      "${user_language | n, js_escaped_string}",
+      "${user_timezone | n, js_escaped_string}"
     );
   </%static:require_module>
 </%block>
 % endif
-
-<%block name="pagetitle">
-%if request.path == '/courses' :
-  ${_("Courses")}
-%else :
-    ${_("Lectures")}
-%endif
-</%block>
 <%block name="headextra">
-  <link href="${static.url("custom_css/breadcrums.css")}" rel="stylesheet"> 
-  <link href="${static.url("custom_css/course.css")}" rel="stylesheet"> 
+  <link href="${static.url('custom_css/breadcrums.css')}" rel="stylesheet"> 
+  <link href="${static.url('custom_css/course.css')}" rel="stylesheet"> 
 </%block>
+<%block name="pagetitle">${_("Courses")}</%block>
+
 <main id="main" aria-label="Content" tabindex="-1">
     <section class="find-courses find-course-wrap">
-      <section class="courses-container container-fluid"> <!-- added container-fluid class--->
-
+      <section class="courses-container container-fluid">
         <div class="video_wrap">  <!-- added wrap row--->
           <div class="row video_banner_row"> <!---added class--->
             <div class="col-md-12 col-sm-12 col-xs-12">
@@ -76,7 +70,7 @@
           </div>
         </div>
 
-        <div class="container container_wrapper"> <!---added container class--->
+      <div class="container container_wrapper">
         % if course_discovery_enabled:
         <div id="discovery-form" role="search" aria-label="course" class="wrapper-search-context">
           <div id="discovery-message" class="search-status-label search-label-text"></div>
@@ -87,7 +81,7 @@
               <i class="icon search-icon fa fa-search" aria-hidden="true"></i>
               <div aria-live="polite" aria-relevant="all">
                 <div id="loading-indicator" class="loading-spinner hidden">
-                  <i class="icon fa fa-spinner fa-spin" aria-hidden="true"></i>
+                  <span class="icon fa fa-spinner fa-spin" aria-hidden="true"></span>
                   <span class="sr">${_('Loading')}</span>
                 </div>
               </div>
@@ -98,79 +92,33 @@
         <div id="filter-bar" class="filters hide-phone is-collapsed">
         </div>
         % endif
+
         % if course_discovery_enabled:
         <aside aria-label="${_('Refine Your Search')}" class="search-facets phone-menu filter-sidebar">
-
-
-        <!-- <div class="filter-wrap">
-          <span class="left-align">Filter</span>
-          <span class="right-align">Reset Filters</span>
-        </div> -->
-
-       
-
-      <h2 class="header-search-facets">${_('Refine Your Search')}</h2>
-          
-          <!-- <section class="search-facets-lists">
-            
-          </section> -->
-
-
+          <h2 class="header-search-facets">${_('Refine Your Search')}</h2>
           <div class="sidebar-filter">
               <section class="search-facets-lists"></section>
-           </div>
-        
+           </div>        
         </aside>
         % endif
 
-
         <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
-          <!-- <div class="video-popup-content clearfix">
-              <div class="video-img">
-                  <a href="#" data-toggle="modal" data-target="#youtube">
-                      <img src="https://img.youtube.com/vi/-S0kLcw105Q/0.jpg" alt="demo" width="219.5px;" height="149px;">
-                      <div class="play-intro"><img src="https://s3.ap-south-1.amazonaws.com/student-verified-photos/icons8-play-40.png" style="margin-left: 0%;margin-top: 0%;"></div>
-                  </a>
-
-              </div>
-              <div class="video-content">
-                  <h4>Learn how courses work on DocMode</h4>
-                  <p>Courses help you study a specific topic in 6-8 week engagements culminating in a certificate
-                      of participation from the Partner Watch the video to learn more!</p>
-                  <a href="#" class="close-content">x</a>
-              </div>
-          </div> -->
-
-          <!-- <div class="filter-wrap right-side-filter">
-            <span class="left-align">Sort By</span>
-            <span class="right-align">1- 100 of 100 COURSES</span>
-          </div> -->
-
-
-          <ul class="courses-listing">
+          <ul class="courses-listing courses-list">
             %for course in courses:
-              <p>${course.id}</p>
             <li class="courses-listing-item">
               <%include file="../course.html" args="course=course" />
             </li>
-            %endfor            
+            %endfor
           </ul>
-          <br>
-        
-        </div>        
-
-       </div> <!----end of container--->
+        </div>
+      </div>
 
        <div class="course_load_more explore_btn">
           <button type="button" class="btn btn-default">Load More</button>
        </div>
-
-
       </section>
     </section>
 </main>
-
-
 <script type="text/javascript">
 function hide_types() { 
       document.getElementById("types").style.display = "none";  

@@ -120,21 +120,8 @@ from pipeline_mako import render_require_js_path_overrides
     })();
     </script>
 % endif
-  <link href="${static.url("css/bootstrap.min.css")}" rel="stylesheet">
-  <link href="${static.url("css/animate.min.css")}" rel="stylesheet">
-  <link href="${static.url("css/prettyPhoto.css")}" rel="stylesheet">
-  <link href="${static.url("css/main.css")}" rel="stylesheet">
-  <link href="${static.url("css/responsive.css")}" rel="stylesheet">
-  <link href="${static.url("css/customOne.css")}" rel="stylesheet">  
-  
-  <!--commented by nisha added updated version css-->
-  <!-- <link href="${static.url("css/owl.carousel.min.css")}" rel="stylesheet"> -->
-  <!--added by nisha--->
-  <!---owl slider--->
-  <link href="${static.url("css/owl.carousel.min.css")}" rel="stylesheet">
-  <link href="${static.url("css/owl.theme.default.min.css")}" rel="stylesheet">
-  <link href="${static.url("css/style.css")}" rel="stylesheet">
-  <link href="${static.url("css/select2.css")}" rel="stylesheet">
+  <link href="${static.url("custom_css/style.css")}" rel="stylesheet">
+  <link href="${static.url("custom_css/otp-popup.css")}" rel="stylesheet">
 
   <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
   <!-- Start of docmode Zendesk Widget script -->
@@ -175,18 +162,6 @@ from pipeline_mako import render_require_js_path_overrides
   <script type="text/javascript" src="${static.url('js/vendor/noreferrer.js')}" charset="utf-8"></script>
   <script type="text/javascript" src="${static.url('js/utils/navigation.js')}" charset="utf-8"></script>
   <%static:optional_include_mako file="body-extra.html" is_theming_enabled="True" />
-  <script src="${static.url('js/bootstrap.min.js')}" charset="utf-8" type="text/javascript"></script>
-  <script src="${static.url('js/jquery.prettyPhoto.js')}" charset="utf-8" type="text/javascript"></script>
-  <script src="${static.url('js/jquery.isotope.min.js')}" charset="utf-8" type="text/javascript"></script>
-  <script src="${static.url('js/main.js')}" charset="utf-8" type="text/javascript"></script>
-  <script src="${static.url('js/wow.min.js')}" charset="utf-8" type="text/javascript"></script>
-
-  <!--commented by nisha added updated version js-->
-  <!-- <script src="${static.url('js/owl.carousel.js')}" charset="utf-8" type="text/javascript"></script> -->
-  <!----added by nisha slider js--->
-  <script src="${static.url('js/owlSlider.js')}" charset="utf-8" type="text/javascript"></script>
-  <script src="${static.url('js/owl.carousel.min.js')}" charset="utf-8" type="text/javascript"></script>
-  <script src="${static.url('js/select2.js')}" charset="utf-8" type="text/javascript"></script>
 </body>
 </html>
 

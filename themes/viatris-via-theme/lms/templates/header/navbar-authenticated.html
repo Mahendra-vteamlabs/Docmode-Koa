@@ -26,15 +26,16 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
     help_link = doc_link
 %>
 <%
-  site_domain = static.get_value('site_domain', settings.SITE_NAME)
-  site_protocol = 'https' if settings.HTTPS == 'on' else 'http'
-  home_url = site_protocol +'://'+ site_domain
+site_domain = static.get_value('site_domain', settings.SITE_NAME)
+site_protocol = 'https' if settings.HTTPS == 'on' else 'http'
+home_url = site_protocol +'://'+ site_domain
 %>
 <div class="nav-links">
   <div class="main">
     % if show_dashboard_tabs and site_domain != 'cims.learn.docmode.org':
       <div class="mobile-nav-item hidden-mobile nav-item nav-tab" alt="${site_domain}">
-        <a class="${'active ' if reverse('dashboard') == request.path else ''}tab-nav-link" href="${marketing_link('COURSES')}" style="color:#c48c09;font-size: 20px;">
+        <a class="${'active ' if reverse('dashboard') == request.path else ''}tab-nav-link" href="${marketing_link('COURSES')}" style="color:#c48c09;font-size: 28px;font-weight: bold;">
+          <!-- <img style="max-height: 40px;" src="https://viatris.docmode.org/wp-content/uploads/2020/12/cropped-Association-VIATRIS-IMG.jpg"> -->
           Home
         </a>
         
@@ -42,7 +43,8 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
     % endif
     % if show_explore_courses and site_domain != 'cims.learn.docmode.org':
       <div class="mobile-nav-item hidden-mobile nav-item nav-tab">
-        <a class="tab-nav-link" href="${marketing_link('COURSES')}" style="color:#c48c09;font-size: 20px;">
+        <a class="tab-nav-link" href="${marketing_link('COURSES')}" style="color:#c48c09;font-size: 28px;font-weight: bold;">
+          <!-- <img style="max-height: 40px;" src="https://viatris.docmode.org/wp-content/uploads/2020/12/cropped-Association-VIATRIS-IMG.jpg"></a> -->
           Home</a>
       </div>
     % endif
@@ -54,6 +56,9 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
     % endif
   </div>
   <div class="secondary">
+    <!-- <div class="mobile-nav-item hidden-mobile nav-item">
+      <a class="help-link" href="${help_link}" target="_blank">${_("Help")}</a>
+    </div> -->
     <%include file="user_dropdown.html"/>
   </div>
 </div>

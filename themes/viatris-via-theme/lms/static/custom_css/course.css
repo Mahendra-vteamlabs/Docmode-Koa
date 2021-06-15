@@ -1,0 +1,112 @@
+.course h2 {
+    text-align: left;
+    margin-bottom: 25px;
+}
+
+.filter-title p {
+    color: #b6348e;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.filter-head p {
+    color: #333333;
+    font-size: 16px;
+    font-weight: bold;
+    padding-top: 10px;
+}
+
+.filter-body ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+.filter-body li {
+    display: block;
+    padding: 5px 0;
+}
+
+.filter-body label span {
+    color: #ccc;
+    padding: 0 3px;
+    display: inline-block;
+}
+
+.filter-show-more p,
+.showing-total p {
+    color: #b6348e;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.filter-body-hidden {
+    display: none;
+}
+
+.video-popup-content {
+    position: relative;
+}
+
+.video-img {
+    width: 25%;
+    float: left;
+    height: 149px;
+    background: #ccc;
+}
+
+.video-content {
+    width: 75%;
+    float: left;
+    background-color: #fafafb;
+    padding: 20px 25px;
+}
+
+.video-content h4 {
+    font-size: 21px;
+    color: #606062;
+}
+
+.video-content p {
+    font-size: 14px;
+    margin-bottom: 0;
+    opacity: 0.8;
+    width: 75%;
+}
+
+.video-content a.close-content {
+    position: absolute;
+    right: 10px;
+    top: 2px;
+    font-size: 16px;
+    color: #5d5d5d;
+}
+
+.coursec-list-custom {
+    padding: 30px 0;
+}
+
+.showing-total p {
+    text-align: right;
+}
+
+.pagination ul {
+    list-style: none;
+}
+
+.pagination li {
+    width: 23px;
+    height: 23px;
+    display: inline-block;
+    text-align: center;
+    background: #f1f1f1;
+    border-radius: 50%;
+    color: #b6348e;
+    margin-right: 8px;
+}
+
+.pagination li.active {
+    background-color: #b6348e;
+    color: #fff;
+}

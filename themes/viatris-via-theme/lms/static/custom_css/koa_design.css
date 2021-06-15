@@ -1,0 +1,14 @@
+#unenroll-modal {bottom: inherit; overflow: hidden;}
+.xblock .xblock h2{text-align: left;}
+.bookmark-button-wrapper .bookmark-button{padding: 0;margin: 0;text-transform: inherit;}
+.content-wrapper .course-tabs{background-color: #f5f5f5;margin-left: 0px;overflow: hidden;height: 50px;margin-top: 0px;box-sizing: border-box;border-bottom: none;margin: 0 auto;font-size: 14px;}
+.content-wrapper .course-tabs .navbar-nav{padding: 0;}
+.page-header .page-header-main .page-title{text-align: left;}
+.course-outline .block-tree .section ol.outline-item .subsection .subsection-text .details{font-size: 14px;}
+.profile-wrapper .progress-certificates-title{text-align: left;}
+body.view-wiki .wiki-wrapper {border: 1px solid #c8c8c8 !important;margin-bottom: 25px; margin-top: 25px;}
+body.view-wiki .wiki-wrapper section.wiki .breadcrumbs-header {height: 70px;}
+.wiki-wrapper section.wiki .breadcrumb{padding: 0;}
+.wiki-wrapper section.wiki .article-functions ul li{display: block;float: none;width: 100%;}
+body.view-in-course .modal, body.view-in-course .leanModal_box, 
+body.view-in-course .entitlement-unenrollment-modal{bottom: auto; overflow: hidden;}
