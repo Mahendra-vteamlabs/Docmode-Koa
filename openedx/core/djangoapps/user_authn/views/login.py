@@ -118,6 +118,19 @@ def _check_excessive_login_attempts(user):
             _generate_locked_out_error_message()
 
 
+def _check_excessive_login_attempts_viatris(user,site):
+    """
+    See if account has been locked out due to excessive login failures
+    """
+    if user and LoginFailures.is_feature_enabled():
+        if LoginFailures.is_user_locked_out(user):
+            if 'viatris-via' in site:
+                raise AuthFailedError(_('<p style="font-size:20px;">The account has been temporarily locked due to excessive login failures. Try again after 5 mins. or Sign In using the One Time Password(OTP) option.</p><br/>By entering you email address you will receive a OTP (One Time Password) by email that will be valid for 2 minutes and you can use it to sign-in into the VIA platform and join lectures.'))
+            else:
+                log.info('site3--> %s', site)
+                raise AuthFailedError(_('La cuenta se ha bloqueado temporalmente debido a un numero excesivo de errores de inicio de sesion. Intentalo de nuevo despus de 5 minutos.'))
+
+
 def _generate_locked_out_error_message():
     """
     Helper function to generate error message for users consumed all
@@ -303,6 +316,31 @@ def _handle_failed_authentication_microsite(user):
             AUDIT_LOG.warning(u"Login failed - password for {0} is invalid".format(user.email))
 
     raise AuthFailedError(_('Incorrect Password. You can reset your password using Forgot password link or Sign In using the OTP option.'))
+
+
+def _handle_failed_authentication_viatris(user, site):
+    """
+    Handles updating the failed login count, inactive user notifications, and logging failed authentications.
+    """
+    if user:
+        if LoginFailures.is_feature_enabled():
+            LoginFailures.increment_lockout_counter(user)
+
+        if not user.is_active:
+            _log_and_raise_inactive_user_auth_error(user)
+
+        # if we didn't find this username earlier, the account for this email
+        # doesn't exist, and doesn't have a corresponding password
+        if settings.FEATURES['SQUELCH_PII_IN_LOGS']:
+            loggable_id = user.id if user else "<unknown>"
+            AUDIT_LOG.warning(u"Login failed - password for user.id: {0} is invalid".format(loggable_id))
+        else:
+            AUDIT_LOG.warning(u"Login failed - password for {0} is invalid".format(user.email))
+    if 'viatris-via' in site:
+        raise AuthFailedError(_('<p style="font-size:20px;">Incorrect Password. You can reset your password using <a href="#" class="forgot-password field-link" style="color:#0075b4;">Forgot password</a> link or Sign In using the OTP option.</p><br/>By entering you email address you will receive a OTP (One Time Password) by email that will be valid for 2 minutes and you can use it to sign-in into the VIA platform and join lectures.'))
+    else:
+        raise AuthFailedError(_('Contrasena incorrecta. Puede restablecer su contrasena utilizando el enlace Olvide mi contrasena.'))
+
 
 #Below function to allow inactive users to login 5 times 
 def _handle_inactive_user_failed_authentication(user):
@@ -516,7 +554,10 @@ def login_user(request):
         else:
             user = _get_user_by_email(request)
 
-        _check_excessive_login_attempts(user)
+        if 'viatris' in  str(request.site):
+            _check_excessive_login_attempts_viatris(user, str(request.site))
+        else:
+            _check_excessive_login_attempts(user)
 
         possibly_authenticated_user = user
 
@@ -528,7 +569,10 @@ def login_user(request):
 
         if possibly_authenticated_user is None or not possibly_authenticated_user.is_active:
             # _handle_failed_authentication(user, possibly_authenticated_user)
-            _handle_failed_authentication_microsite(user)
+            if 'viatris-via' or 'viatris-kreon' in  str(request.site):
+                _handle_failed_authentication_viatris(user, str(request.site))
+            else:
+                _handle_failed_authentication_microsite(user)
 
         _handle_successful_authentication_and_login(possibly_authenticated_user, request)
 

@@ -1529,6 +1529,7 @@ INSTALLED_APPS = [
     'lms.djangoapps.webform',
     'lms.djangoapps.case_study',
     'lms.djangoapps.userprofile_extrainfo',
+    'common.djangoapps.course_credit_points',
 ]
 
 

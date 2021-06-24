@@ -115,4 +115,24 @@ urlpatterns = [
         views.docvidya_popular_insturctor_api.as_view(),
         name="docvidya_popular_insturctor_api",
     ),
+    url(
+        r"^api/v1/doc_vidya/popular_courses/$",
+        views.docvidya_popular_courses.as_view(),
+        name="docvidya_popular_courses",
+    ),
+    url(
+        r"^api/v1/doc_vidya/popular_upcoming_courses/$",
+        views.docvidya_popular_upcoming_courses.as_view(),
+        name="docvidya_popular_upcoming_courses",
+    ),
+    url(
+        r"^api/v1/doc_vidya/all_courses/$",
+        views.docvidya_all_courses.as_view(),
+        name="docvidya_all_courses",
+    ),
+    url(
+        r"^api/v1/doc_vidya/user_profile_update/$",
+        views.docvidya_profile_updation.as_view(),
+        name="docvidya_profile_updation",
+    ),
 ]

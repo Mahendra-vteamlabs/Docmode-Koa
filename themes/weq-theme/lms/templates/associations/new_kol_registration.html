@@ -1,0 +1,282 @@
+<%!
+  import json
+  from django.utils.translation import ugettext as _
+  from openedx.core.djangolib.js_utils import dump_js_escaped_json
+  from lms.djangoapps.specialization.models import specializations
+  from lms.djangoapps.hcspecialization.models import hcspecializations
+%>
+<%inherit file="../main.html" />
+
+<%namespace name='static' file='../static_content.html'/>
+<%block name="pagetitle">${_("Kol Registration")}</%block>
+
+    <link href="/static/edx-bootstrap-theme-master/css/breadcrums.css" rel="stylesheet"> 
+    <link href="/static/edx-bootstrap-theme-master/css/contact.css" rel="stylesheet"> 
+<style type="text/css">
+  input[type="text"],input[type="email"] {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: normal;
+  }
+  .btn {
+    text-transform: uppercase;
+    padding: 6px 16px;
+    font-family: "lato";
+    font-weight: bold;
+    line-height: 1.43;
+    letter-spacing: 0.4px;
+    border-radius: 0;
+    border: none;
+    margin: 10px 0;
+    margin-left: 15px;
+    padding: 8px 16px;
+  }
+  .btn-primary {
+    background-color: #07b256;
+    color: #fff;
+    border: 1px solid #07b256;
+  }
+    input[type="submit"] {
+      background-color: #07b256;
+      color: #fff;
+      border: 1px solid #07b256;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      font-family: "lato";
+      font-weight: bold;
+      line-height: 1.43;
+      letter-spacing: 0.4px;
+      border-radius: 0;
+      border: none;
+      margin: 10px 0;
+      margin-left: 15px;
+      padding: 8px 16px;
+      background-image: none;
+    }
+</style>
+  <section >
+    <div class="container topicCont">
+      <div class="row">
+        <ul class=breadcrums>
+          <li><a href="/">Home / </a></li>
+          <li ><a href="#" class="active" >Contact us</a></li>
+        </ul>
+      </div>
+       % if messages:
+            <ul class="messages" style="margin-left: -0.5rem;">
+              % for message in messages:
+                <div class = "alert alert-success alert-dismissable" id="msg" style="background: #07b256;min-width: 325px;">
+                   <button type = "button" class = "close" data-dismiss = "alert" aria-hidden = "true" onclick="msghide();">&times;</button>${ message }
+                </div>
+              % endfor
+            </ul>
+          % endif
+      %if user.is_authenticated():
+        %if user.is_staff:
+          <div class="row contactSec">
+            <div class="col-md-6">
+              <h3>KOL Registration form</h3>
+          
+              <form action="/new_kol_registration" method="post" class="register-form" id="contact" autocomplete="off">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
+                <div class="mat-div">
+                    <input  class="mat-input" type="text" id="name" name="name" placeholder="Full name" required value="">
+                </div>   
+                <div class="mat-div">
+                  <input type="email" class="mat-input" id="emailid" name="emailid" placeholder="Email-id" required>
+                </div>
+                <div class="mat-div">
+                  <input type="text" class="mat-input" id="username" name="username" placeholder="Username" required>
+                </div>
+                <div class="mat-div">
+                  <input type="password" class="mat-input" id="password" name="password" placeholder="Password" required value="">
+                </div>
+                <div class="mat-div">
+                  <input type="text" class="mat-input" id="phone" name="phone" minlength="10" placeholder="Phone number*" required value="">
+                </div>
+                <div class="mat-div">
+                  <select id="user_type" name="user_type" class="form-control" >   
+                    <option value="">Select user type</option>             
+                    <option value="dr" selected="">Doctor</option>
+                  </select>
+                </div>
+                <div class="mat-div" id="specialization">
+                  <%
+                    speczs = specializations.objects.all()
+                  %>
+                  <select  name="specialization" class="form-control" >   
+                    <option value="">Specialization</option>             
+                    %for specz in speczs:
+                      <option value="${specz.id}">${specz.name}</option>             
+                    %endfor
+                  </select>
+                </div><!-- 
+                <div class="mat-div" id="hcspecialization">
+                  <%
+                    hcspeczs = hcspecializations.objects.all()
+                  %>
+                  <select  name="hcspecialization" class="form-control" >   
+                    <option value="">Hcspecialization</option>       
+                    %for hcspecz in hcspeczs:
+                      <option value="${hcspecz.id}">${hcspecz.name}</option>             
+                    %endfor
+                  </select>
+                </div> -->
+                <div class="mat-div">
+                  <input type="text" class="mat-input" id="pincode" name="pincode" placeholder="Pincode*" required  value="">
+                </div>
+                <div class="mat-div">
+                  <input type="text" class="mat-input" id="register-rcountry" name="country"  placeholder="Country*" required value="">
+                </div>
+                <div class="mat-div">
+                  <input type="text" class="mat-input" id="register-rstate" name="state"  placeholder="State*" required value="">
+                </div>
+                <div class="mat-div">
+                  <input type="text" class="mat-input" id="register-rcity" name="city" placeholder="City*" required value="">
+                </div>
+                <div class="mat-div">
+                  <input type="checkbox" class="mat-input" id="is_active" name="is_active" value="1">
+                  <p>Activate user</p>
+                </div>
+                <div class="btn-custom">
+                                   
+                  <input type="submit" id="submit" class="btn btn-primary" value="Register KOL">                                
+                </div>
+              </form>
+            </div>
+          </div>
+        %else:
+          <p>You are not auhtorized to view this page!. Please contact admin for any help.</p>
+        %endif
+      %endif
+      </div>
+    </div>
+  </section>
+</div>
+<script type="text/javascript">
+  $( document ).ready(function() {
+    //Captcha();
+    usertype('dr');
+  });
+
+  function msghide(){
+    $('#msg').hide();
+  }
+
+  function phone_validation() {
+    var inputtxt = document.getElementById('register-phone').value;
+    var phoneno = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+    if((inputtxt.value.match(phoneno))) {
+        return true;
+      document.getElementById("submit").disabled = false;
+    } else {
+      alert("message");
+      return false;
+    }
+  }
+  function setfunc() {
+    $("#emailid").on("change", function(event){
+            checkmail();
+        });
+
+        // $("#user_type").on("change", function(event) { 
+        //     usertype(this.value);
+        // } );
+        
+
+        $("#pincode").on("change", function(event) { 
+            getlocation(this.value);
+        });
+
+        $('#username').hide();
+        // $('#specialization').hide();
+        // $('#hcspecialization').hide();
+  }
+
+    function usertype(val){
+        
+        if(val == 'u') {
+            $('.text-reg_num').hide();
+            $('#specialization').hide();
+            $('#hcspecialization').hide();
+        } else if(val == 'hc') {
+            $('.text-reg_num').hide();
+            $('#specialization').hide();
+            $('#hcspecialization').show();
+        } else if(val == 'dr') {
+            $('.text-reg_num').hide();
+            $('#specialization').show();
+            $('#hcspecialization').hide();
+        } else if(val == 'ms') {
+            $('.text-reg_num').hide();
+            $('#specialization').show();
+            $('#hcspecialization').hide();
+        }
+    }
+
+    function checkmail() {
+        mail = document.getElementById('emailid').value;
+        
+        newval = mail.replace(/[.]/gi, "-");
+        string =  newval.replace("@", "_");
+        var length = 30;
+        var trimmedString = string.length > length ? 
+                      string.substring(0, length - 3): 
+                      string;
+        var newstring = trimmedString.split("_");
+        document.getElementById('username').value = newstring[0];
+        $('#username').show();
+    }
+    
+
+    setTimeout(setfunc, 2000);
+
+    function getlocation(zipcode) {
+      var zip;
+      zip = zipcode;
+      if (zip.length >1) {
+        $.ajax({
+          type: 'POST',
+          url: "https://maps.googleapis.com/maps/api/geocode/json?address=" + zip + "&key=AIzaSyDQUh3L4Gfjc-QOrpQAIUm7MG6hR1RX6Bo",
+          success: (function(_this) {
+            return function(data) {
+              if (data["status"] === "OK") {
+                
+                $( "input#register-rcountry" ).prev().removeClass( "focus-out" );
+                $( "input#register-rcountry" ).prev().addClass( "focus-in" );
+                $( "input#register-rstate" ).prev().removeClass( "focus-out" );
+                $( "input#register-rstate" ).prev().addClass( "focus-in" );
+                $( "input#register-rcity" ).prev().removeClass( "focus-out" );
+                $( "input#register-rcity" ).prev().addClass( "focus-in" );
+                var count = Object.keys(data["results"][0]["address_components"]).length;
+                if (count == 6 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][5]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][4]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][2]["long_name"]);
+                } else if (count == 5 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][4]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][3]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][1]["long_name"]);
+                } else if (count == 4 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][3]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][2]["long_name"]);
+                    $('input#register-rcity').val(data["results"][0]["address_components"][1]["long_name"]);
+                } else if (count == 3 ) {
+                    $('input#register-rcountry').val(data["results"][0]["address_components"][2]["long_name"]);
+                    $('input#register-rstate').val(data["results"][0]["address_components"][1]["long_name"]);
+                    $('input#register-rcity').val("Not Found Please enter you city name");
+                    document.getElementById("register-rcity").style.color = "#80709d";
+                }
+                $('input#register-address').val(data["results"][0]["formatted_address"]);
+              } if (data["status"] === "ZERO_RESULTS") {
+                $("input#register-rcountry").attr("placeholder","Please enter your country");
+                $("input#register-rstate").attr("placeholder","Please enter your state");
+                $("input#register-rcity").attr("placeholder","Please enter your city");
+              }
+            };
+          })(this)
+        });
+      }
+    };
+
+</script>

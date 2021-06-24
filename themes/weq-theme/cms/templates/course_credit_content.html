@@ -1,0 +1,169 @@
+<%page expression_filter="h"/>
+<%inherit file="base.html" />
+<%def name="online_help_token()"><% return "updates" %></%def>
+<%namespace name='static' file='static_content.html'/>
+<%!
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.js_utils import (
+    dump_js_escaped_json, js_escaped_string
+)
+from openedx.core.djangolib.markup import HTML, Text
+
+%>
+
+## TODO decode course # from context_course into title.
+<%block name="title">${_("Add Credit Points")}</%block>
+<%block name="bodyclass">is-signedin course course-info updates view-updates</%block>
+
+
+
+
+<%block name="content">
+    <div class="wrapper-mast wrapper">
+    <header class="mast has-actions has-subtitle">
+      <h1 class="page-header">
+        <small class="subtitle">${_("Content")}</small>
+        <span class="sr">&gt; </span>${_("Add Credit Points")}
+      </h1>
+    </header>
+    </div>
+    <div class="container" style="margin: auto; width: 50%; padding-left: 200px; font-size:15px;">
+            <div class="row">
+                <form method="post">
+                    <div class="alert alert-danger" id="error_message" role="alert" style="display: block; color:red;">
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <input type="hidden" id="courseid" value="${course_id}">
+                            </div>
+                        </div>
+                    </div>
+                  
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="dsh_credit_point" class="lbl-12" style="font-size:18px;">Credit Points :</label>
+                                %if credit_point:
+                                <input type="number" class="form-control fm-input" id="dsh_credit_point"
+                                    placeholder="Enter Credit Point" value="${credit_point}">
+                                %else:
+                                <input type="number" class="form-control fm-input" id="dsh_credit_point"
+                                    placeholder="Enter Credit Point" value="">
+                                %endif
+                            </div>
+                        </div>
+                    </div>
+<br>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="dsh_credit_code" class="lbl-12" style="font-size:18px;">State Medical Council-code :</label>
+                                %if credit_code:
+                                <input type="text" class="form-control fm-input" id="dsh_credit_code"
+                                    placeholder="Enter Code" value="${credit_code}">
+                                %else:
+                                <input type="text" class="form-control fm-input" id="dsh_credit_code"
+                                    placeholder="Enter Code" value="">
+                                %endif
+                            </div>
+                        </div>
+                    </div>
+<br>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="dsh_credit_given" class="lbl-12" style="font-size:18px;">Credits Given By :</label>
+                                %if council_name:
+                                <select id="dsh_credit_given-selected">
+                                    %for medical_counsil in medical_councils_list:
+                                    % if medical_counsil.council_name == council_name:
+                                    <option selected value="${medical_counsil.council_name}">
+                                        ${medical_counsil.council_name}</option>
+                                    %else:
+                                    <option value="${medical_counsil.council_name}">${medical_counsil.council_name}
+                                    </option>
+                                    %endif
+                                    %endfor
+                                </select>
+                                %else:
+                                <select id="dsh_credit_given-selected">
+                                    % for medical_counsil in medical_councils_list:
+                                    <option value="${medical_counsil.council_name}">${medical_counsil.council_name}
+                                    </option>
+                                    %endfor
+                                </select>
+                                %endif
+                            </div>
+                        </div>
+                    </div>
+<br>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <input class="about-submit" type="submit" name="Submit" style="font-size:18px;">
+                                <input type="hidden" id="csrf_token" name="csrfmiddlewaretoken" value="${csrf_token}">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+</%block>
+
+<%block name="jsextra">
+
+<script>
+$(".about-submit").click(function(e){
+e.preventDefault();
+        message = "";
+        $("#error_message").text(message)
+        $("#error_message").css('display','none')
+var dsh_credit_point = $("#dsh_credit_point").val()
+var dsh_credit_code = $("#dsh_credit_code").val()
+var dsh_credit_given =$("#dsh_credit_given-selected").find(':selected').val()
+var course_id = $("#courseid").val()
+    if (!dsh_credit_point) {
+        message = "credit point can not be empty";
+        $("#error_message").text(message)
+        $("#error_message").css('display','block')
+    }
+    else  if (!dsh_credit_code) {
+        message = "credit code can not be empty";
+        $("#error_message").text(message)
+        $("#error_message").css('display','block')
+    }
+    else  if (!dsh_credit_given) {
+        message = "credit given by  can not be empty";
+        $("#error_message").text(message)
+        $("#error_message").css('display','block')
+    }
+    else {
+var url = "/course_about/" + course_id
+var data = {}
+data['dsh_credit_point'] = dsh_credit_point;
+data['dsh_credit_code'] = dsh_credit_code;
+data['dsh_credit_given'] = dsh_credit_given;
+data['course_id'] = course_id;
+$.ajax({
+  type: "POST",
+  url:url,
+  data: data,
+  success: function(result, status, xhr) {
+        if (result.success === "new"){
+           window.location.reload(true);
+        }
+        if (result["data"]["errormessage"]){
+            $("#addCoupan").modal('show');
+            var  message = result["data"]["errormessage"]
+            $("#error_message").css('display','block')
+            $("#error_message").text(message)
+         }
+
+   }
+    });
+}
+});
+</script>
+</%block>
+

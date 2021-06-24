@@ -320,3 +320,7 @@ urlpatterns.extend(get_plugin_url_patterns(ProjectType.CMS))
 urlpatterns += [
     url(r'^api/contentstore/', include('cms.djangoapps.contentstore.rest_api.urls'))
 ]
+
+urlpatterns += [
+    url(r"", include("common.djangoapps.course_credit_points.urls")),
+]

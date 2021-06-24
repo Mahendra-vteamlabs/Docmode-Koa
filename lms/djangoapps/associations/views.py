@@ -2,21 +2,18 @@
 Associations views functions
 """
 
-import json
-import ast
-import csv
+import json, ast
 import logging
 import urllib
 import MySQLdb
-import datetime
+from collections import OrderedDict
 import requests
 
-from collections import OrderedDict
 from django.conf import settings
 from django.urls import reverse
-from django.utils.encoding import smart_str
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, AnonymousUser
+from django.views.decorators.csrf import csrf_exempt
 from django.template.context_processors import csrf
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
@@ -55,7 +52,6 @@ from lms.djangoapps.specialization.models import (
 from opaque_keys.edx.keys import CourseKey, UsageKey
 from opaque_keys import InvalidKeyError
 from student.models import CourseEnrollment
-
 # from track.backends.django import TrackingLog
 from courseware.courses import (
     get_courses,
@@ -79,15 +75,10 @@ from student.models import User, UserProfile, CourseAccessRole
 from rest_framework import viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+from openedx.core.lib.api.authentication import OAuth2Authentication
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.throttling import UserRateThrottle
-from common.djangoapps.organizations.models import (
-    Organization,
-    OrganizationMembers,
-    SponsoringCompany,
-    OrganizationSlider,
-    Organization_sub_admins,
-)
+from common.djangoapps.organizations.models import *
 
 # from common.djangoapps.organizations import serializers
 from lms.djangoapps.reg_form.models import extrafields
@@ -96,6 +87,8 @@ from lms.djangoapps.course_extrainfo.models import course_extrainfo
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
+
+# from lang_pref import LANGUAGE_KEY
 from openedx.core.lib.api.permissions import ApiKeyHeaderPermissionIsAuthenticated
 from openedx.core.lib.api.view_utils import DeveloperErrorViewMixin, view_auth_classes
 from django.http import JsonResponse
@@ -132,18 +125,18 @@ from openedx.core.djangoapps.user_api.accounts.image_helpers import (
     get_profile_image_urls_for_user,
 )
 
-# for custom email
+### for custom email
 from django.dispatch import receiver
 from student.models import EnrollStatusChange
 from student.signals import ENROLL_STATUS_CHANGE
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
-from lms.djangoapps.bulk_email.models import BulkEmailFlag, CourseEmail
-from lms.djangoapps.bulk_email.tasks import _get_course_email_context
+from bulk_email.models import BulkEmailFlag, CourseEmail
 from django.core.mail import EmailMultiAlternatives, get_connection
 from openedx.core.djangoapps.signals.signals import (
     COURSE_GRADE_NOW_PASSED,
     LEARNER_NOW_VERIFIED,
 )
+from lms.djangoapps.bulk_email.tasks import _get_course_email_context
 from lms.djangoapps.grades.models import PersistentCourseGrade
 
 ###
@@ -162,15 +155,11 @@ from openedx.core.djangoapps.signals.signals import (
 
 ###
 
-# for third party user registration
-from openedx.core.djangoapps.user_authn.views.registration_form import (
-    AccountCreationForm,
-)
+######for third party user registration
+from openedx.core.djangoapps.user_authn.views.registration_form import AccountCreationForm
 from student.helpers import (
     AccountValidationError,
     create_or_set_user_attribute_created_on_site,
-    generate_activation_email_context,
-    get_next_url_for_login_page,
 )
 from student.models import (
     CourseAccessRole,
@@ -178,14 +167,13 @@ from student.models import (
     LoginFailures,
     Registration,
     UserProfile,
-    anonymous_id_for_user,
     create_comments_service_user,
 )
 from student.helpers import authenticate_new_user, do_create_account
 from openedx.core.djangoapps.user_authn.utils import generate_password
 from django.core.validators import ValidationError, validate_email
 
-# import ends here
+### import ends here
 
 ### for user session tracking on course page###
 from lms.djangoapps.user_session_tracking.models import user_session_tracking
@@ -234,7 +222,7 @@ def list_lectures(request):
     if not request.user.is_staff:
         main_url = "https://docmode.org/lectures"
         return redirect(main_url)
-    # HEMANT
+    ### HEMANT
     # enable_mktg_site = configuration_helpers.get_value(
     #    'ENABLE_MKTG_SITE',
     #    settings.FEATURES.get('ENABLE_MKTG_SITE', False)
@@ -245,7 +233,7 @@ def list_lectures(request):
 
     # if not settings.FEATURES.get('COURSES_ARE_BROWSABLE'):
     #    raise Http404
-    # HEMANT
+    ### HEMANT
     from lms.djangoapps.course_extrainfo.models import course_extrainfo
 
     # lectures_list = []
@@ -323,13 +311,6 @@ def association_about(request, organization_id):
     Display the association's about page.
     """
     user = request.user
-    from common.djangoapps.organizations.models import (
-        Organization,
-        OrganizationCourse,
-        OrganizationSlider,
-        OrganizationMembers,
-    )
-
     # from courseware.courses import get_course
     from django.core.exceptions import ObjectDoesNotExist
 
@@ -376,7 +357,7 @@ def association_about(request, organization_id):
 
             if request.is_ajax():
                 if request.method == "GET":
-                    if user.is_authenticated:
+                    if user.is_authenticated():
                         usr = request.user.id
                         usrmail = request.user.email
                         gid = request.GET.get("groupid")
@@ -606,13 +587,6 @@ def speczName(speczId):
 
 def orgName(orgId):
     from django.core.exceptions import ObjectDoesNotExist
-    from common.djangoapps.organizations.models import (
-        Organization,
-        OrganizationCourse,
-        OrganizationSlider,
-        OrganizationMembers,
-    )
-
     orgname = ""
     try:
         getDetails = Organization.objects.get(id=orgId)
@@ -646,12 +620,6 @@ def organization_analytics(request, organization_id):
     Display the association's about page.
     """
     user = request.user
-    from common.djangoapps.organizations.models import (
-        Organization,
-        OrganizationCourse,
-        OrganizationSlider,
-        OrganizationMembers,
-    )
 
     # from courseware.courses import get_course
     from django.core.exceptions import ObjectDoesNotExist
@@ -673,7 +641,7 @@ def organization_analytics(request, organization_id):
     courses = OrganizationCourse.objects.all().filter(organization_id=organization_id)
     if request.is_ajax():
         if request.method == "GET":
-            if user.is_authenticated:
+            if user.is_authenticated():
                 cities = extrafields.objects.values("regstate").annotate(
                     dcount=Count("regstate")
                 )
@@ -753,6 +721,7 @@ def getuserlog(cid):
 @ensure_csrf_cookie
 @require_http_methods(["GET"])
 def custom_analytics(request):
+
     """Render the custom analytics page for docmode.
 
     Args:
@@ -769,9 +738,12 @@ def custom_analytics(request):
        GET /account/profile
     """
     user = request.user
+    import datetime
 
     # if (user.email == 'hemant@docmode.com') or (user.email == 'paulson@docmode.com') or (user.email == 'dev@docmode.com'):
     if user.is_staff:
+        from opaque_keys.edx.locations import SlashSeparatedCourseKey
+
         total_users = User.objects.count()
         users_not_verified = User.objects.filter(is_active=0).count()
         verified_users = User.objects.filter(is_active=1).count()
@@ -882,8 +854,9 @@ def export_specz_usercount_csv(request):
         + ".csv"
     )
     writer = csv.writer(response, csv.excel)
-    # BOM (optional...Excel needs it to open UTF-8 file properly)
-    response.write(u"\ufeff".encode("utf8"))
+    response.write(
+        u"\ufeff".encode("utf8")
+    )  # BOM (optional...Excel needs it to open UTF-8 file properly)
     # log.info(u" coupondata %s", coupon_results)
     user = request.user
 
@@ -917,8 +890,9 @@ export_specz_usercount_csv.short_description = u"Export Specialization Usercount
 @ensure_csrf_cookie
 @require_http_methods(["GET"])
 def custom_analytics_coupons(request):
+    # from opaque_keys.edx.locations import SlashSeparatedCourseKey
     # cid = 'mindvision/LMV004/2017_May_LMV004'
-    # cid = CourseKey.from_string(cid)
+    # cid = SlashSeparatedCourseKey.from_deprecated_string(cid)
     # enrollLocationQset = CourseEnrollment.objects.filter(course_id=cid).count()
     # extrafields.objects.filter(user_type='dr').exclude(specialization_id__isnull=True).values('specialization_id').annotate(dcount=Count('specialization_id')).order_by()
 
@@ -1007,8 +981,9 @@ def export_coupon_csv(request, coupon_name):
         + ".csv"
     )
     writer = csv.writer(response, csv.excel)
-    # BOM (optional...Excel needs it to open UTF-8 file properly)
-    response.write(u"\ufeff".encode("utf8"))
+    response.write(
+        u"\ufeff".encode("utf8")
+    )  # BOM (optional...Excel needs it to open UTF-8 file properly)
     # log.info(u" coupondata %s", coupon_results)
     user = request.user
 
@@ -1114,8 +1089,9 @@ def export_order_csv(request):
         "attachment; filename=Docmode_orders_" + str(datetime.date.today()) + ".csv"
     )
     writer = csv.writer(response, csv.excel)
-    # BOM (optional...Excel needs it to open UTF-8 file properly)
-    response.write(u"\ufeff".encode("utf8"))
+    response.write(
+        u"\ufeff".encode("utf8")
+    )  # BOM (optional...Excel needs it to open UTF-8 file properly)
     # log.info(u" coupondata %s", coupon_results)
     user = request.user
 
@@ -1198,8 +1174,10 @@ def custom_analytics_viewership(request):
 
     if request.is_ajax():
         if "courseid" in request.GET:
+            from opaque_keys.edx.locations import SlashSeparatedCourseKey
+
             cid = request.GET.get("courseid")
-            cid = CourseKey.from_string(cid)
+            cid = SlashSeparatedCourseKey.from_deprecated_string(cid)
             count = StudentModule.objects.filter(
                 course_id=cid, module_type="video"
             ).count()
@@ -1246,7 +1224,9 @@ def custom_analytics_viewership(request):
             mimetype = "application/json"
             return HttpResponse(data, mimetype)
 
-    course_id = CourseKey.from_string(
+    from opaque_keys.edx.locations import SlashSeparatedCourseKey
+
+    course_id = SlashSeparatedCourseKey.from_deprecated_string(
         "docmode/dm002/2017_dm002"
     )
 
@@ -1282,8 +1262,6 @@ def custom_analytics_viewership(request):
 @require_http_methods(["GET"])
 def association_dashboard(request, org_sname):
 
-    from common.djangoapps.organizations.models import OrganizationCourse, OrganizationMembers
-
     gusr = request.user.id
     data = Organization.objects.get(short_name=org_sname)
     try:
@@ -1307,7 +1285,9 @@ def association_dashboard(request, org_sname):
     else:
         grpstaff = "1"
 
-    course_id = CourseKey.from_string(
+    from opaque_keys.edx.locations import SlashSeparatedCourseKey
+
+    course_id = SlashSeparatedCourseKey.from_deprecated_string(
         "course-v1:DRL+DRL002+2020_Dec_DRL002"
     )
 
@@ -1380,7 +1360,7 @@ def organizationName(orgId):
 @ensure_csrf_cookie
 @require_http_methods(["GET"])
 def association_course_analytics(request, course_id):
-    from common.djangoapps.organizations.models import OrganizationCourse, OrganizationMembers
+    from opaque_keys.edx.locations import SlashSeparatedCourseKey
     from lms.djangoapps.reg_form.models import states
 
     gusr = request.user.id
@@ -1477,7 +1457,7 @@ def association_course_analytics(request, course_id):
         elif "courseid" in request.GET:
 
             cid = request.GET.get("courseid")
-            cid = CourseKey.from_string(cid)
+            cid = SlashSeparatedCourseKey.from_deprecated_string(cid)
             count = StudentModule.objects.filter(
                 course_id=cid, module_type="video"
             ).count()
@@ -1498,7 +1478,7 @@ def association_course_analytics(request, course_id):
             if "course_id" != 0:
                 cid = request.GET.get("course_id")
 
-                cid = CourseKey.from_string(cid)
+                cid = SlashSeparatedCourseKey.from_deprecated_string(cid)
                 cdata = CourseOverview.objects.get(id=cid)
                 fromdate = datetime.datetime.strptime(
                     request.GET.get("fromdate"), "%m/%d/%Y"
@@ -1557,7 +1537,9 @@ def association_course_analytics(request, course_id):
                     json.dumps(data, default=str), content_type="application/json"
                 )
 
-    cid = CourseKey.from_string(course_id)
+    from opaque_keys.edx.locations import SlashSeparatedCourseKey
+
+    cid = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     try:
         course = CourseOverview.objects.get(id=cid)
     except ObjectDoesNotExist:
@@ -1692,13 +1674,19 @@ def association_course_analytics(request, course_id):
 
 
 def export_csv(request, course_id, datatype):
-    cid = CourseKey.from_string(course_id)
+    import csv
+    from django.utils.encoding import smart_str
+
+    from opaque_keys.edx.locations import SlashSeparatedCourseKey
+
+    cid = SlashSeparatedCourseKey.from_deprecated_string(course_id)
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = "attachment; filename=users.csv"
     writer = csv.writer(response, csv.excel)
-    # BOM (optional...Excel needs it to open UTF-8 file properly)
-    response.write(u"\ufeff".encode("utf8"))
+    response.write(
+        u"\ufeff".encode("utf8")
+    )  # BOM (optional...Excel needs it to open UTF-8 file properly)
 
     def getState(userId):
         statename = ""
@@ -1874,6 +1862,7 @@ def export_csv(request, course_id, datatype):
                     smart_str(u"Type"),
                     smart_str(u"MCI"),
                     smart_str(u"Specialization"),
+                    smart_str(u"Country"),
                     smart_str(u"State"),
                     smart_str(u"City"),
                     smart_str(u"Pincode"),
@@ -1893,6 +1882,7 @@ def export_csv(request, course_id, datatype):
                     smart_str(u"Type"),
                     smart_str(u"MCI"),
                     smart_str(u"Specialization"),
+                    smart_str(u"Country"),
                     smart_str(u"State"),
                     smart_str(u"City"),
                     smart_str(u"Pincode"),
@@ -1919,6 +1909,7 @@ def export_csv(request, course_id, datatype):
                                 smart_str(user_ext.user_type),
                                 smart_str(user_ext.reg_num),
                                 smart_str(getspecialization(row.user_id)),
+                                smart_str(user_ext.rcountry),
                                 smart_str(user_ext.rstate),
                                 smart_str(user_ext.rcity),
                                 smart_str(user_ext.rpincode),
@@ -1944,6 +1935,7 @@ def export_csv(request, course_id, datatype):
                                 smart_str(getusertype(row.user_id).encode("ASCII")),
                                 smart_str(user_ext.reg_num),
                                 smart_str(getspecialization(row.user_id)),
+                                smart_str(user_ext.rcountry),
                                 smart_str(user_ext.rstate),
                                 smart_str(user_ext.rcity),
                                 smart_str(user_ext.rpincode),
@@ -2003,6 +1995,7 @@ def export_csv(request, course_id, datatype):
                             smart_str(getusertype(vrow["user_id"]).encode("ASCII")),
                             smart_str(user_ext.reg_num),
                             smart_str(getspecialization(vrow["user_id"])),
+                            smart_str(user_ext.rcountry),
                             smart_str(user_ext.rstate),
                             smart_str(user_ext.rcity),
                             smart_str(user_ext.rpincode),
@@ -2147,13 +2140,19 @@ export_csv.short_description = u"Export CSV"
 
 
 def viatris_export_csv(request, course_id, datatype):
-    cid = CourseKey.from_string(course_id)
+    import csv
+    from django.utils.encoding import smart_str
+
+    from opaque_keys.edx.locations import SlashSeparatedCourseKey
+
+    cid = SlashSeparatedCourseKey.from_deprecated_string(course_id)
 
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = "attachment; filename=users.csv"
     writer = csv.writer(response, csv.excel)
-    # BOM (optional...Excel needs it to open UTF-8 file properly)
-    response.write(u"\ufeff".encode("utf8"))
+    response.write(
+        u"\ufeff".encode("utf8")
+    )  # BOM (optional...Excel needs it to open UTF-8 file properly)
 
     def getspecialization(userId):
         from lms.djangoapps.specialization.views import specializationName
@@ -2193,68 +2192,48 @@ def viatris_export_csv(request, course_id, datatype):
     user = request.user
     course_details = CourseOverview.objects.get(id=cid)
     course_exinfo = course_extrainfo.objects.get(course_id=cid)
-    if "stuckuser" in request.POST and user.is_staff or "stuckuser" in request.POST:
-        emailids = request.POST.get("emailids")
-        user_emails = emailids.split(",")
-        email_list = []
-        for i in range(0, len(user_emails)):
-            email_list.append(str(user_emails[i]))
-        user_list = []
 
-        users = User.objects.filter(email__in=email_list)
-        for assoc_user in users:
-            user_ext = userdetails(assoc_user.id)
-            user_data = {}
-            user_data["Name"] = getViewerName(assoc_user.id)
-            user_data["Emailid"] = assoc_user.email
-            user_data["Mobile"] = user_ext.phone
-            user_data["Type"] = getusertype(assoc_user.id)
-            user_data["Regnum"] = user_ext.reg_num
-            user_data["Specialization"] = getspecialization(assoc_user.id)
-            user_data["State"] = user_ext.rstate
-            user_data["City"] = user_ext.rcity
-            user_data["Pincode"] = user_ext.rpincode
-            user_data["Date joined"] = assoc_user.date_joined
-            user_data["is_active"] = assoc_user.is_active
-            user_list.append(user_data)
-        # return user_list
-        return JsonResponse(user_list, status=200, safe=False)
-    elif user.is_staff:
+    if user.is_staff:
 
-        writer.writerow(
-            [
-                smart_str(u"Userid"),
-                smart_str(u"Firstname"),
-                smart_str(u"Last Name"),
-                smart_str(u"Emailid"),
-                smart_str(u"Specialization"),
-                smart_str(u"Country"),
-                smart_str(u"Organization name"),
-                smart_str(u"Organization City"),
-                smart_str(u"Organization Pincode"),
-                smart_str(u"Organization address"),
-                smart_str(u"National Laws"),
-                smart_str(u"Privacy Notice"),
-                smart_str(u"EMAS newsletter"),
-                smart_str(u"Date joined"),
-                smart_str(u"Is Verified"),
-                smart_str(u"profession Reg_num"),
-            ]
-        )
         if datatype == "enrolled":
+            writer.writerow(
+                [
+                    smart_str(u"Userid"),
+                    smart_str(u"Firstname"),
+                    smart_str(u"Last Name"),
+                    smart_str(u"Emailid"),
+                    smart_str(u"Specialization"),
+                    smart_str(u"Country"),
+                    smart_str(u"Organization name"),
+                    smart_str(u"Organization City"),
+                    smart_str(u"Organization Pincode"),
+                    smart_str(u"Organization address"),
+                    smart_str(u"National Laws"),
+                    smart_str(u"Privacy Notice"),
+                    smart_str(u"EMAS newsletter"),
+                    smart_str(u"Date joined"),
+                    smart_str(u"Is Verified"),
+                    smart_str(u"profession Reg_num"),
+                ]
+            )
             response["Content-Disposition"] = (
                 "attachment; filename=" + str(course_number[1]) + "_enrolledusers.csv"
             )
-            crows = CourseEnrollment.objects.filter(course_id=cid, user_id__gte=190000)[
-                :7000
-            ]
+            crows = CourseEnrollment.objects.filter(course_id=cid)[:7000]
             for row in crows:
                 log.info("id--> %s", row.user_id)
                 try:
                     assoc_user = User.objects.get(id=row.user_id)
                     user_detail = getuserfullprofile(row.user_id)
                     user_ext = userdetails(assoc_user.id)
-                    extd = ast.literal_eval(user_ext.user_extra_data)
+                    # log.info('user2--> %s,%s,%s',user_ext.user_id,user_ext,type(user_ext.user_extra_data))
+                    if (
+                        user_ext.user_extra_data != ""
+                        and "{" in user_ext.user_extra_data
+                    ):
+                        extd = ast.literal_eval(user_ext.user_extra_data)
+                    else:
+                        extd = {}
                     ext = json.dumps(extd)
                     ext = eval(ext)
                     fname = ext.get("fname")
@@ -2314,9 +2293,9 @@ def viatris_export_csv(request, course_id, datatype):
                             smart_str(getspecialization(row.user_id)),
                             smart_str(user_ext.rcountry),
                             smart_str(ogname),
-                            smart_str(org_address),
                             smart_str(user_ext.rcity),
                             smart_str(user_ext.rpincode),
+                            smart_str(org_address),
                             smart_str(nationallaws),
                             smart_str(dataprotection),
                             smart_str(iagree),
@@ -2328,6 +2307,26 @@ def viatris_export_csv(request, course_id, datatype):
                 except ObjectDoesNotExist:
                     usernotfound = 0
         elif datatype == "viewers":
+            writer.writerow(
+                [
+                    smart_str(u"Userid"),
+                    smart_str(u"Firstname"),
+                    smart_str(u"Last Name"),
+                    smart_str(u"Emailid"),
+                    smart_str(u"Specialization"),
+                    smart_str(u"Country"),
+                    smart_str(u"Organization name"),
+                    smart_str(u"Organization City"),
+                    smart_str(u"Organization Pincode"),
+                    smart_str(u"Organization address"),
+                    smart_str(u"National Laws"),
+                    smart_str(u"Privacy Notice"),
+                    smart_str(u"EMAS newsletter"),
+                    smart_str(u"Date joined"),
+                    smart_str(u"Is Verified"),
+                    smart_str(u"profession Reg_num"),
+                ]
+            )
             response["Content-Disposition"] = (
                 "attachment; filename=" + str(course_number[1]) + "_viewers.csv"
             )
@@ -2340,7 +2339,7 @@ def viatris_export_csv(request, course_id, datatype):
             )
             # vrows = StudentModule.objects.filter(course_id=cid,module_type='sequential').values('student_id','created','state').distinct()
             for vrow in vrows:
-                log.info("id--> %s", vrow["student_id"])
+
                 assoc_user = User.objects.get(id=vrow["student_id"])
                 user_ext = userdetails(assoc_user.id)
                 user_detail = getuserfullprofile(assoc_user.id)
@@ -2413,147 +2412,7 @@ def viatris_export_csv(request, course_id, datatype):
                         smart_str(profession_reg_num),
                     ]
                 )
-    else:
-        writer.writerow(
-            [
-                smart_str(u"Firstname"),
-                smart_str(u"Last Name"),
-                smart_str(u"Emailid"),
-                smart_str(u"Specialization"),
-                smart_str(u"Country"),
-                smart_str(u"Organization name"),
-                smart_str(u"Organization City"),
-                smart_str(u"Organization Pincode"),
-                smart_str(u"Organization address"),
-                smart_str(u"National Laws"),
-                smart_str(u"Privacy Notice"),
-                smart_str(u"Date joined"),
-                smart_str(u"Is Verified"),
-                smart_str(u"profession Reg_num"),
-            ]
-        )
-        if datatype == "enrolled":
-            response["Content-Disposition"] = (
-                "attachment; filename=" + str(course_number[1]) + "_enrolledusers.csv"
-            )
-            crows = CourseEnrollment.objects.filter(course_id=cid)
-            for row in crows:
-                assoc_user = User.objects.get(id=row.user_id)
-                user_ext = userdetails(assoc_user.id)
-                extra_field_data = json.load(user_ext.user_extra_data)
-                extd = ast.literal_eval(user_ext.user_extra_data)
-                ext = json.dumps(extd)
-                ext = eval(ext)
-                fname = ext.get("fname")
-                if fname:
-                    fname = ext["fname"]
-                else:
-                    fname = user_detail.name
 
-                lname = ext.get("lname")
-                if lname:
-                    lname = ext["lname"]
-                else:
-                    lname = "N/A"
-
-                ogname = ext.get("ogname")
-                if ogname:
-                    ogname = ext["ogname"]
-                else:
-                    ogname = "N/A"
-
-                org_address = ext.get("org_address")
-                if org_address:
-                    org_address = ext["org_address"]
-                else:
-                    org_address = "N/A"
-
-                nationallaws = ext.get("nationallaws")
-                if nationallaws:
-                    nationallaws = ext["nationallaws"]
-                else:
-                    nationallaws = "N/A"
-
-                dataprotection = ext.get("dataprotection")
-                if dataprotection:
-                    dataprotection = ext["dataprotection"]
-                else:
-                    dataprotection = "N/A"
-
-                iagree = ext.get("iagree")
-                if iagree:
-                    iagree = ext["iagree"]
-                else:
-                    iagree = "N/A"
-
-                profession_reg_num = ext.get("profession_reg_num")
-                if profession_reg_num:
-                    profession_reg_num = ext["profession_reg_num"]
-                else:
-                    profession_reg_num = "N/A"
-                writer.writerow(
-                    [
-                        smart_str(row.user_id),
-                        smart_str(fname),
-                        smart_str(lname),
-                        smart_str(assoc_user.email),
-                        smart_str(getspecialization(row.user_id)),
-                        smart_str(user_ext.rcountry),
-                        smart_str(ogname),
-                        smart_str(org_address),
-                        smart_str(user_ext.rcity),
-                        smart_str(user_ext.rpincode),
-                        smart_str(nationallaws),
-                        smart_str(dataprotection),
-                        smart_str(row.created),
-                        smart_str(assoc_user.is_active),
-                        smart_str(profession_reg_num),
-                    ]
-                )
-        elif datatype == "viewers":
-            response["Content-Disposition"] = (
-                "attachment; filename=" + str(course_number[1]) + "_viewers.csv"
-            )
-            vrows = StudentModule.objects.filter(course_id=cid, module_type="course")[
-                :7000
-            ]
-            for vrow in vrows:
-                assoc_user = User.objects.get(id=vrow.student_id)
-                user_ext = userdetails(assoc_user.id)
-                extra_field_data = json.load(user_ext.user_extra_data)
-                extd = ast.literal_eval(user_ext.user_extra_data)
-                ext = json.dumps(extd)
-                ext = eval(ext)
-                dataprotection = ext.get("dataprotection")
-                if dataprotection:
-                    dataprotection = ext["dataprotection"]
-                else:
-                    dataprotection = "N/A"
-
-                profession_reg_num = ext.get("profession_reg_num")
-                if profession_reg_num:
-                    profession_reg_num = ext["profession_reg_num"]
-                else:
-                    profession_reg_num = "N/A"
-                writer.writerow(
-                    [
-                        smart_str(vrow.student_id),
-                        smart_str(ext["fname"]),
-                        smart_str(ext["lname"]),
-                        smart_str(assoc_user.email),
-                        smart_str(getspecialization(row.student_id)),
-                        smart_str(user_ext.rcountry),
-                        smart_str(ext["ogname"]),
-                        smart_str(ext["org_address"]),
-                        smart_str(user_ext.rcity),
-                        smart_str(user_ext.rpincode),
-                        smart_str(ext["nationallaws"]),
-                        smart_str(dataprotection),
-                        smart_str(row.created),
-                        smart_str(assoc_user.is_active),
-                        smart_str(profession_reg_num),
-                    ]
-                )
     return response
 
 
@@ -2561,9 +2420,6 @@ export_csv.short_description = u"Export CSV"
 
 
 def autojoin_org(userid, course_id, email):
-
-    from common.djangoapps.organizations.models import OrganizationMembers
-    from common.djangoapps.organizations.models import OrganizationCourse
 
     org_id = OrganizationCourse.objects.get(course_id=course_id)
 
@@ -2574,7 +2430,6 @@ def autojoin_org(userid, course_id, email):
 
 
 def assoc_join(userid, org_id, email):
-    from common.djangoapps.organizations.models import OrganizationMembers
 
     data = Organization.objects.get(short_name=org_id)
     gmember = OrganizationMembers(
@@ -2584,8 +2439,6 @@ def assoc_join(userid, org_id, email):
 
 
 def check_domain_in_usermail(sponsoring_companyname="lupin"):
-    from common.djangoapps.organizations.models import SponsoringCompany
-
     try:
         sname = SponsoringCompany.objects.filter(name=sponsoring_companyname)
         found = 1
@@ -2598,6 +2451,7 @@ def search_list(request):
     if request.is_ajax():
         if request.method == "GET":
             if "email_validation" in request.GET:
+                log.info(u"reqs--> %s", request.__dict__)
                 emailid = request.GET.get("emailid")
                 msg = {}
                 try:
@@ -2694,8 +2548,6 @@ def search_list(request):
 
 
 # reminder user lists
-
-
 @view_auth_classes(is_authenticated=False)
 class reminder_api(DeveloperErrorViewMixin, APIView):
     def get(self, request, **kwargs):
@@ -2737,8 +2589,6 @@ class reminder_api(DeveloperErrorViewMixin, APIView):
 
 
 # association api's start
-
-
 @view_auth_classes(is_authenticated=False)
 class in_network_with_api(DeveloperErrorViewMixin, APIView):
     def get(self, request, **kwargs):
@@ -2850,7 +2700,7 @@ class partner_details_api(DeveloperErrorViewMixin, APIView):
             association_dict["descrption"] = association.description
             association_dict["logo"] = str(association.logo)
             association_dict["org_promo_video"] = association.org_promo_video
-            if user.is_authenticated:
+            if user.is_authenticated():
                 if user.is_staff:
                     association_dict["is_staff"] = "staff"
                     association_dict["dashboard_url"] = (
@@ -4167,12 +4017,8 @@ def send_completion_mail(sender, user=None, course_id=None, **kwargs):
 
     log.info("->-> CC == %s ++ %s ++ %s", user, course_id)
 
-    try:
-        course_email = CourseEmail.objects.get(id=49)
-        log.info(u"course_email %s", course_email)
-    except Exception as e:
-        return
-        
+    course_email = CourseEmail.objects.get(id=49)
+    log.info(u"course_email %s", course_email)
     connection = get_connection()
     connection.open()
     cid1 = str(course_email.course_id)
@@ -4522,129 +4368,202 @@ class user_course_enrollment_status(DeveloperErrorViewMixin, APIView):
 
 
 ##############docvidya registration api####################
+##############docvidya registration api####################
 @view_auth_classes(is_authenticated=False)
 class docvidya_user_registration_api(DeveloperErrorViewMixin, APIView):
+    @csrf_exempt
     def post(self, request, **kwargs):
+        log.info(u"post--> %s", request.__dict__)
+        log.info(u"post--> %s", request.POST)
+        log.info(u"get--> %s", request.data)
+        popular_topic_list = []
+        if "HTTP_KEY" and "HTTP_SECRET" in request.META:
+            popular_topic_list = []
+            log.info("key and secret parameter in header")
+            key = request.META.get("HTTP_KEY")
+            secret = request.META.get("HTTP_SECRET")
+            log.info("key, secret %s,%s", key, secret)
+            from provider.oauth2.models import Client
+
+            cliet_obj = Client.objects.filter(client_id=key, client_secret=secret)
+            if not cliet_obj:
+                popular_topic_dict = {}
+                popular_topic_dict["result"] = "Invalid Key and Secret"
+                popular_topic_list.append(popular_topic_dict)
+                return JsonResponse(popular_topic_list, status=200, safe=False)
+        else:
+            popular_topic_dict = {}
+            popular_topic_dict["result"] = "Invalid Key and Secret"
+            popular_topic_list.append(popular_topic_dict)
+            return JsonResponse(popular_topic_list, status=200, safe=False)
+        log.info(u"post--> %s", request.__dict__)
+        log.info(u"post--> %s", request.POST)
+        log.info(u"get--> %s", request.data)
         generated_password = generate_password()
+        if "email" in request.data:
+            if request.method == "POST":
+                data = request.data
+                email = data.get("email", "")
+                log.info(u"email1--> %s", email)
+                password = "Docmode"
+                full_name = data.get("full_name", "")
+                phone = data.get("phone", "")
+                user_type = "dr"
+                pincode = data.get("pincode", "")
+                country = "India"
+                state = ""
+                city = data.get("city", "")
+                is_active = True
 
-        if request.method == "POST":
-            data = request.POST.dict()
-            email = data.get("emailid", "")
-            log.info(u"email1--> %s", email)
-            password = "Docmode"
-            full_name = data.get("name", "")
-            phone = data.get("phone", "")
-            user_type = data.get("user_type", "")
-            pincode = data.get("pincode", "")
-            country = data.get("country", "")
-            state = data.get("state", "")
-            city = data.get("city", "")
-            is_active = True
+                # uname = data.get('uname',"")
+                username = email.split("@")
+                uname = username[0]
+                uname = uname.replace(".", "-")
+                # uname = username[0]
+                log.info(u"uname--> %s", uname)
+                try:
+                    email_check = User.objects.get(email=email)
+                    extradata = {"docmode_user": 1}
+                    user_extrainfo = extrafields.objects.filter(
+                        user_id=email_check
+                    ).update(user_extradata=extradata)
 
-            username = email.split("@")
-            uname = username[0]
-            log.info(u"uname--> %s", uname)
-            try:
-                email_check = User.objects.get(email=email)
-                extradata = {"docvidya_user": 1}
-            except ObjectDoesNotExist:
-                extradata = {"docmode_user": 1}
+                    return Response(
+                        data={"status": 200, "message": "Registration successfull"},
+                        status=200,
+                    )
+                except ObjectDoesNotExist:
+                    extradata = {"docvidya_user": 1}
 
-                log.info(u"extradata--> %s", extradata)
-            try:
-                username_validation = User.objects.get(username=uname)
-                if username_validation:
-                    date = datetime.datetime.now()
-                    curr_time = date.strftime("%f")
-                    username = uname + "_" + curr_time
-            except ObjectDoesNotExist:
-                username = uname
-            log.info(u"username--> %s", username)
-            form = AccountCreationForm(
-                data={
-                    "username": username,
-                    "email": email,
-                    "password": password,
-                    "name": full_name,
-                },
-                tos_required=False,
-            )
+                    log.info(u"extradata--> %s", extradata)
+                try:
+                    username_validation = User.objects.get(username=uname)
+                    if username_validation:
+                        date = datetime.datetime.now()
+                        curr_time = date.strftime("%f")
+                        username = uname + "_" + curr_time
+                except ObjectDoesNotExist:
+                    username = uname
+                log.info(u"username--> %s", username)
+                form = AccountCreationForm(
+                    data={
+                        "username": username,
+                        "email": email,
+                        "password": password,
+                        "name": full_name,
+                    },
+                    tos_required=False,
+                )
 
-            log.info(u"form--> %s", form)
-            restricted = settings.FEATURES.get("RESTRICT_AUTOMATIC_AUTH", True)
-            try:
-                user, profile, reg = do_create_account(form)
-                log.info(u"user--> %s", user)
-            except (AccountValidationError, ValidationError):
-                # if restricted:
-                #     return HttpResponseForbidden(_('Account modification not allowed.'))
-                # Attempt to retrieve the existing user.
-                #     user = User.objects.get(username=username)
-                #     user.email = email
-                #     user.set_password(password)
-                #     user.is_active = is_active
-                #     user.save()
-                #     profile = UserProfile.objects.get(user=user)
-                #     reg = Registration.objects.get(user=user)
-                # except PermissionDenied:
+                log.info(u"form--> %s", form)
+                restricted = settings.FEATURES.get("RESTRICT_AUTOMATIC_AUTH", True)
+                try:
+                    user, profile, reg = do_create_account(form)
+                    log.info(u"user--> %s", user)
+                except (AccountValidationError, ValidationError):
+                    # if restricted:
+                    #     return HttpResponseForbidden(_('Account modification not allowed.'))
+                    # Attempt to retrieve the existing user.
+                    #     user = User.objects.get(username=username)
+                    #     user.email = email
+                    #     user.set_password(password)
+                    #     user.is_active = is_active
+                    #     user.save()
+                    #     profile = UserProfile.objects.get(user=user)
+                    #     reg = Registration.objects.get(user=user)
+                    # except PermissionDenied:
+                    registration_log = third_party_user_registration_log(
+                        email=email,
+                        status="Account creation not allowed either the user is already registered or email-id not valid",
+                        data=request.POST.dict(),
+                    )
+                    registration_log.save()
+                    return Response(
+                        data={
+                            "status": 400,
+                            "message": "User already exist with Email id in docmode",
+                        },
+                        status=200,
+                    )
+
+                    # return HttpResponseForbidden('Account creation not allowed either the user is already registered or email-id not valid.')
+
+                if is_active:
+                    reg.activate()
+                    reg.save()
+
+                # ensure parental consent threshold is met
+                year = datetime.date.today().year
+                age_limit = settings.PARENTAL_CONSENT_AGE_LIMIT
+                profile.year_of_birth = (year - age_limit) - 1
+                profile.save()
+                user_extrainfo = extrafields(
+                    phone=phone,
+                    rcountry=country,
+                    rstate=state,
+                    rcity=city,
+                    rpincode=pincode,
+                    user_type=user_type,
+                    user=user,
+                    user_extra_data=extradata,
+                )
+                user_extrainfo.save()
+                log.info("extrainfo --> %s", user_extrainfo)
+                create_comments_service_user(user)
+
+                create_or_set_user_attribute_created_on_site(user, request.site)
                 registration_log = third_party_user_registration_log(
-                    email=email,
-                    status="Account creation not allowed either the user is already registered or email-id not valid",
-                    data=request.POST.dict(),
+                    email=email, status="succesful", data=request.POST.dict()
                 )
                 registration_log.save()
-                return HttpResponseForbidden(
-                    "Account creation not allowed either the user is already registered or email-id not valid."
+                home_ongoing_course_list = []
+                home_ongoing_course_dict = {}
+                home_ongoing_course_dict["response"] = "Success"
+                return Response(
+                    data={"status": 200, "message": "Registration successfully"},
+                    status=200,
                 )
 
-            if is_active:
-                reg.activate()
-                reg.save()
-
-            # ensure parental consent threshold is met
-            year = datetime.date.today().year
-            age_limit = settings.PARENTAL_CONSENT_AGE_LIMIT
-            profile.year_of_birth = (year - age_limit) - 1
-            profile.save()
-            user_extrainfo = extrafields(
-                phone=phone,
-                rcountry=country,
-                rstate=state,
-                rcity=city,
-                rpincode=pincode,
-                user_type=user_type,
-                user=user,
-                user_extra_data=extradata,
-            )
-            user_extrainfo.save()
-            create_comments_service_user(user)
-
-            create_or_set_user_attribute_created_on_site(user, request.site)
-
-            registration_log = third_party_user_registration_log(
-                email=email, status="succesful", data=request.POST.dict()
-            )
-            registration_log.save()
-            home_ongoing_course_list = []
-            home_ongoing_course_dict = {}
-            home_ongoing_course_dict["response"] = "Success"
-            return HttpResponse("Registration successfully")
+                # return HttpResponse('Registration successfully')
+            else:
+                home_ongoing_course_list = []
+                home_ongoing_course_dict = {}
+                home_ongoing_course_dict["response"] = "Failed"
+                registration_log = third_party_user_registration_log(
+                    email=email, status="failed", data=request.POST.dict()
+                )
+                registration_log.save()
+                return Response(
+                    data={"status": 400, "message": "Registration failed"}, status=200
+                )
         else:
-            home_ongoing_course_list = []
-            home_ongoing_course_dict = {}
-            home_ongoing_course_dict["response"] = "Failed"
-
-            registration_log = third_party_user_registration_log(
-                email=email, status="failed", data=request.POST.dict()
+            return Response(
+                data={"status": 400, "message": "Email id is not present"}, status=200
             )
-            registration_log.save()
-            return HttpResponse("Registration failed")
 
 
 @view_auth_classes(is_authenticated=False)
 class docvidya_user_profile_api(DeveloperErrorViewMixin, APIView):
     def get(self, request, **kwargs):
+        popular_topic_list = []
+        if "HTTP_KEY" and "HTTP_SECRET" in request.META:
+            log.info("key and secret parameter in header")
+            key = request.META.get("HTTP_KEY")
+            secret = request.META.get("HTTP_SECRET")
+            log.info("key, secret %s,%s", key, secret)
+            from provider.oauth2.models import Client
 
+            cliet_obj = Client.objects.filter(client_id=key, client_secret=secret)
+            if not cliet_obj:
+                popular_topic_dict = {}
+                popular_topic_dict["result"] = "Invalid Key and Secret"
+                popular_topic_list.append(popular_topic_dict)
+                return JsonResponse(popular_topic_list, status=200, safe=False)
+        else:
+            popular_topic_dict = {}
+            popular_topic_dict["result"] = "Invalid Key and Secret"
+            popular_topic_list.append(popular_topic_dict)
+            return JsonResponse(popular_topic_list, status=200, safe=False)
         requested_params = self.request.query_params.copy()
         email = self.kwargs["email"]
         user = User.objects.get(email=email)
@@ -4694,7 +4613,7 @@ class docvidya_user_profile_api(DeveloperErrorViewMixin, APIView):
 
         user_certificate_list = []
         course_certificates = certificate_api.get_certificates_for_user(user.username)
-        log.info("certificate--> %s", course_certificates)
+        total_certif = len(course_certificates)
         for certificate in course_certificates:
             certificate_url = certificate["download_url"]
             course = certificate["course_key"]
@@ -4702,19 +4621,42 @@ class docvidya_user_profile_api(DeveloperErrorViewMixin, APIView):
 
             dateStr = certificate["created"].strftime("%b %d, %Y ")
 
-            user_certificate_dict = {}
-            user_certificate_dict["download_url"] = certificate_url
-            user_certificate_dict["course_id"] = str(courseid.id)
+            if certificate_url:
+                user_certificate_dict = {}
 
-            user_certificate_dict["date"] = dateStr
-            user_certificate_list.append(user_certificate_dict)
+                user_certificate_dict["download_url"] = (
+                    "https://develop.docmode.org" + certificate_url
+                )
+                user_certificate_dict["course_id"] = str(courseid.id)
 
+                user_certificate_dict["date"] = dateStr
+                user_certificate_list.append(user_certificate_dict)
+
+        log.info("total_certif--> %s", total_certif)
         log.info("certificate--> %s", user_certificate_list)
+
+        credit_list = []
+        credit_point = 0
+        this_year = 0
+        current_date = datetime.date.today()
+        for certificate in course_certificates:
+            course = certificate["course_key"]
+            courseinfo = CourseOverview.objects.get(id=course)
+            course_year = courseinfo.start.strftime("%Y")
+            current_year = current_date.strftime("%Y")
+            log.info("year--> %s,%s", course_year, current_year)
+            course_extra_info = course_extrainfo.objects.get(course_id=course)
+            credit = {}
+            if course_extra_info.credit_point != 0:
+                if course_year == current_year:
+                    this_year = this_year + int(course_extra_info.credit_point)
+                credit_point = credit_point + int(course_extra_info.credit_point)
 
         user_profile_data = []
 
         user_certificate_dict = {}
         user_certificate_dict["name"] = "Certificates "
+        user_certificate_dict["total certificate"] = total_certif
         user_certificate_dict["value"] = user_certificate_list
         user_profile_data.append(user_certificate_dict)
 
@@ -4723,6 +4665,11 @@ class docvidya_user_profile_api(DeveloperErrorViewMixin, APIView):
         user_enroll_course_dict["value"] = user_enroll_list
         user_profile_data.append(user_enroll_course_dict)
 
+        user_credit_points = {}
+        user_credit_points["name"] = "Credits"
+        user_credit_points["total_credits"] = credit_point
+        user_credit_points["this_year_credits"] = this_year
+        user_profile_data.append(user_credit_points)
         return JsonResponse(user_profile_data, status=200, safe=False)
 
 
@@ -4730,15 +4677,38 @@ class docvidya_user_profile_api(DeveloperErrorViewMixin, APIView):
 class docvidya_popular_topics_api(DeveloperErrorViewMixin, APIView):
     def get(self, request, **kwargs):
         enrollment_count = (
-            CourseEnrollment.objects.values("course_id")
+            CourseEnrollment.objects.filter(course_id__org="DRL")
+            .values("course_id")
             .annotate(ccount=Count("course_id"))
             .order_by("-ccount")[:10]
         )
 
         popular_topic_list = []
         topicid_list = []
+        count = 0
+
+        if "HTTP_KEY" and "HTTP_SECRET" in request.META:
+            log.info("key and secret parameter in header")
+            key = request.META.get("HTTP_KEY")
+            secret = request.META.get("HTTP_SECRET")
+            log.info("key, secret %s,%s", key, secret)
+            from provider.oauth2.models import Client
+
+            cliet_obj = Client.objects.filter(client_id=key, client_secret=secret)
+            if not cliet_obj:
+                popular_topic_dict = {}
+                popular_topic_dict["result"] = "Invalid Key and Secret"
+                popular_topic_list.append(popular_topic_dict)
+                return JsonResponse(popular_topic_list, status=200, safe=False)
+        else:
+            popular_topic_dict = {}
+            popular_topic_dict["result"] = "Invalid Key and Secret"
+            popular_topic_list.append(popular_topic_dict)
+            return JsonResponse(popular_topic_list, status=200, safe=False)
         for courseid in enrollment_count:
-            log.info("courseid--> %s", courseid)
+            count = count + 1
+            array_count = count - 1
+            log.info("array_count--> %s", array_count)
             try:
                 topicid = course_extrainfo.objects.get(course_id=courseid["course_id"])
                 log.info("topicid3--> %s", topicid.category)
@@ -4749,15 +4719,30 @@ class docvidya_popular_topics_api(DeveloperErrorViewMixin, APIView):
                     topic_name = categories.objects.get(id=topicid.category)
                     log.info("topic_name--> %s", topic_name.topic_name)
                     popular_topic_dict = {}
+                    popular_topic_dict["rank"] = count
                     popular_topic_dict["topic_name"] = topic_name.topic_name
                     popular_topic_dict["enrollment_count"] = courseid["ccount"]
                     popular_topic_list.append(popular_topic_dict)
                 else:
-                    popular_topic_dict["enrollment_count"] += courseid["ccount"]
-
+                    topic_name = categories.objects.get(id=topicid.category)
+                    if (
+                        topic_name.topic_name
+                        == popular_topic_list[array_count]["topic_name"]
+                    ):
+                        log.info(
+                            "popular--> %s",
+                            popular_topic_list[array_count]["enrollment_count"],
+                        )
+                        popular_topic_list[array_count]["enrollment_count"] += courseid[
+                            "ccount"
+                        ]
+                        log.info(
+                            "popular--> %s",
+                            popular_topic_list[array_count]["enrollment_count"],
+                        )
             except:
                 topic = "n/a"
-        log.info("popular_topic_list %s", popular_topic_list)
+        log.info("popular_topic_list %s", popular_topic_list[0]["topic_name"])
         return JsonResponse(popular_topic_list, status=200, safe=False)
 
 
@@ -4765,12 +4750,33 @@ class docvidya_popular_topics_api(DeveloperErrorViewMixin, APIView):
 class docvidya_popular_insturctor_api(DeveloperErrorViewMixin, APIView):
     def get(self, request, **kwargs):
         enrollment_count = (
-            CourseEnrollment.objects.values("course_id")
+            CourseEnrollment.objects.filter(course_id__org="DRL")
+            .values("course_id")
             .annotate(ccount=Count("course_id"))
             .order_by("-ccount")[:10]
         )
         instructor_list = []
+        if "HTTP_KEY" and "HTTP_SECRET" in request.META:
+            log.info("key and secret parameter in header")
+            key = request.META.get("HTTP_KEY")
+            secret = request.META.get("HTTP_SECRET")
+            log.info("key, secret %s,%s", key, secret)
+            from provider.oauth2.models import Client
+
+            cliet_obj = Client.objects.filter(client_id=key, client_secret=secret)
+            if not cliet_obj:
+                instructor_dict = {}
+                instructor_dict["result"] = "Invalid Key and Secret"
+                instructor_list.append(instructor_dict)
+                return JsonResponse(instructor_list, status=200, safe=False)
+        else:
+            instructor_dict = {}
+            instructor_dict["result"] = "Invalid Key and Secret"
+            instructor_list.append(instructor_dict)
+            return JsonResponse(instructor_list, status=200, safe=False)
+        count = 0
         for courseid in enrollment_count:
+            count = count + 1
             instructor_data = CourseAccessRole.objects.filter(
                 course_id=courseid["course_id"], role="instructor"
             )
@@ -4782,6 +4788,10 @@ class docvidya_popular_insturctor_api(DeveloperErrorViewMixin, APIView):
                 prof_img = profile_image["large"].split("?v")
 
                 instructor_dict = {}
+                instructor_dict["rank"] = count
+                instructor_dict["course_id"] = str(instructor.course_id)
+                instructor_dict["enrollment_count"] = courseid["ccount"]
+                instructor_dict["instructor_id"] = user.id
                 instructor_dict["name"] = user_detail.name
                 instructor_dict["education"] = user_extra_data.education
                 instructor_dict["bio"] = user_extra_data.user_long_description
@@ -4791,3 +4801,661 @@ class docvidya_popular_insturctor_api(DeveloperErrorViewMixin, APIView):
                 instructor_list.append(instructor_dict)
 
         return JsonResponse(instructor_list, status=200, safe=False)
+
+
+@view_auth_classes(is_authenticated=False)
+class docvidya_popular_courses(DeveloperErrorViewMixin, APIView):
+    def get(self, request, **kwargs):
+        # log.info('popular2--%s', request.__dict__)
+        courses_list = []
+        data = request.GET.dict()
+        log.info("data2--%s", data)
+        if "HTTP_KEY" and "HTTP_SECRET" in request.META:
+            # log.info('key and secret parameter in header')
+            key = request.META.get("HTTP_KEY")
+            secret = request.META.get("HTTP_SECRET")
+            log.info("key, secret %s,%s", key, secret)
+            from provider.oauth2.models import Client
+
+            cliet_obj = Client.objects.filter(client_id=key, client_secret=secret)
+            if not cliet_obj:
+                course_dict = {}
+                course_dict["result"] = "Invalid Key and Secret"
+                courses_list.append(course_dict)
+                return JsonResponse(courses_list, status=200, safe=False)
+        else:
+            course_dict = {}
+            course_dict["result"] = "Invalid Key and Secret"
+            courses_list.append(course_dict)
+            return JsonResponse(courses_list, status=200, safe=False)
+        if len(data) > 0:
+            courses_id_list = []
+            all_course_extra_data = course_extrainfo.objects.filter(
+                course_id__contains="DRL"
+            )
+            if "speczname" in request.GET:
+                specz_name = data.get("speczname")
+                # log.info('speczname--> %s',specz_name)
+                speczname = specializations.objects.filter(name=specz_name).values_list(
+                    "id"
+                )
+                if speczname:
+                    log.info("speczname1--> %s", speczname)
+
+                    course_extra_data = all_course_extra_data.filter(
+                        specialization_id=speczname
+                    )
+                    if not course_extra_data:
+                        course_dict = {}
+                        course_dict["result"] = "No courses found"
+                        courses_list.append(course_dict)
+                        return JsonResponse(courses_list, status=200, safe=False)
+                else:
+                    # log.info('speczname2--> %s',specz_name)
+                    course_dict = {}
+                    course_dict["result"] = "Invalid Specialization name provided"
+                    courses_list.append(course_dict)
+                    return JsonResponse(courses_list, status=200, safe=False)
+            elif "topic" in request.GET:
+                course_topic = categories.objects.filter(
+                    topic_name=data.get("topic")
+                ).values_list("id")
+                if course_topic:
+                    course_extra_data = all_course_extra_data.filter(
+                        category=course_topic
+                    )
+                    if not course_extra_data:
+                        course_dict = {}
+                        course_dict["result"] = "No courses found"
+                        courses_list.append(course_dict)
+                        return JsonResponse(courses_list, status=200, safe=False)
+                else:
+                    course_dict = {}
+                    course_dict["result"] = "Invalid Topic name provided"
+                    courses_list.append(course_dict)
+                    return JsonResponse(courses_list, status=200, safe=False)
+            elif "subtopic" in request.GET:
+                course_subtopic = cat_sub_category.objects.filter(
+                    name=data.get("subtopic")
+                ).values_list("id")
+                # log.info('course_subtopic--> %s',course_subtopic)
+                if course_subtopic:
+                    course_extra_data = all_course_extra_data.filter(
+                        sub_category__in=course_subtopic
+                    )
+                    if not course_extra_data:
+                        course_dict = {}
+                        course_dict["result"] = "No courses found"
+                        courses_list.append(course_dict)
+                        return JsonResponse(courses_list, status=200, safe=False)
+                else:
+                    course_dict = {}
+                    course_dict["result"] = "Invalid Sub Topic name provided"
+                    courses_list.append(course_dict)
+                    return JsonResponse(courses_list, status=200, safe=False)
+            elif "instructor" in request.GET:
+                # log.info('instructor2--> %s',data.get('instructor'))
+                instructor_course_ids = CourseAccessRole.objects.filter(
+                    course_id__contains="DRL",
+                    role="instructor",
+                    user__email=data.get("instructor"),
+                )
+                if len(instructor_course_ids) > 0:
+                    instructor_cid = []
+                    for courseid in instructor_course_ids:
+                        ins_courseid = str(courseid.course_id)
+                        instructor_cid.append(ins_courseid)
+                    # log.info('intructor_cid--> %s',instructor_cid)
+                    course_extra_data = all_course_extra_data.filter(
+                        course_id__in=instructor_cid
+                    )
+                    log.info("course_extra_data--> %s", course_extra_data)
+                else:
+                    course_dict = {}
+                    course_dict["result"] = "No result usernotfound"
+                    courses_list.append(course_dict)
+                    return JsonResponse(courses_list, status=200, safe=False)
+            for cid in course_extra_data:
+                course_id = CourseKey.from_string(cid.course_id)
+                courses_id_list.append(course_id)
+            log.info("courses_id_list--> %s", courses_id_list)
+            enrollment_count = (
+                CourseEnrollment.objects.filter(
+                    course_id__in=courses_id_list, course_id__org="DRL"
+                )
+                .values("course_id")
+                .annotate(ccount=Count("course_id"))
+                .order_by("-ccount")[:10]
+            )
+            # log.info('enrollment_count--> %s',enrollment_count)
+        else:
+            enrollment_count = (
+                CourseEnrollment.objects.filter(course_id__org="DRL")
+                .values("course_id")
+                .annotate(ccount=Count("course_id"))
+                .order_by("-ccount")[:10]
+            )
+        count = 0
+        for courseid in enrollment_count:
+            count = count + 1
+            course_data = CourseOverview.objects.get(id=courseid["course_id"])
+            extra_data = course_extrainfo.objects.get(course_id=courseid["course_id"])
+            course_topic = categories.objects.get(id=extra_data.category)
+            topic_specz = list(
+                categories.objects.filter(id=course_topic.id).values_list(
+                    "topic_specialization", flat=True
+                )
+            )
+            speczname = specializations.objects.get(id=extra_data.specialization_id)
+            subcat = extra_data.sub_category.replace("u'", "'")
+            subcat = ast.literal_eval(subcat)
+            subcat = [int(numeric_string) for numeric_string in subcat]
+            log.info("sub_category1--> %s", subcat)
+            course_sub_topic = cat_sub_category.objects.get(id__in=subcat)
+            log.info("speczname1 %s", speczname)
+            course_dict = {}
+            course_dict["course_id"] = str(course_data.id)
+            course_dict["specialization"] = speczname.name
+            course_dict["topic"] = course_topic.topic_name
+            course_dict["sub_topic"] = course_sub_topic.name
+            course_dict["enrollment_count"] = courseid["ccount"]
+            course_dict["course_title"] = course_data.display_name
+            course_dict["media"] = course_data.course_image_url
+            course_dict["start"] = course_data.start.strftime("%b %d, %Y ")
+
+            courses_list.append(course_dict)
+
+        return JsonResponse(courses_list, status=200, safe=False)
+
+
+@view_auth_classes(is_authenticated=False)
+class docvidya_popular_upcoming_courses(DeveloperErrorViewMixin, APIView):
+    def get(self, request, **kwargs):
+        courses_list = []
+        data = request.GET.dict()
+        if "HTTP_KEY" and "HTTP_SECRET" in request.META:
+            log.info("key and secret parameter in header")
+            key = request.META.get("HTTP_KEY")
+            secret = request.META.get("HTTP_SECRET")
+            log.info("key, secret %s,%s", key, secret)
+            from provider.oauth2.models import Client
+
+            cliet_obj = Client.objects.filter(client_id=key, client_secret=secret)
+            if not cliet_obj:
+                course_dict = {}
+                course_dict["result"] = "Invalid Key and Secret"
+                courses_list.append(course_dict)
+                return JsonResponse(courses_list, status=200, safe=False)
+        else:
+            course_dict = {}
+            course_dict["result"] = "Invalid Key and Secret"
+            courses_list.append(course_dict)
+            return JsonResponse(courses_list, status=200, safe=False)
+        if len(data) > 0:
+            courses_id_list = []
+            all_course_extra_data = course_extrainfo.objects.filter(
+                course_id__contains="DRL"
+            )
+            if "speczname" in request.GET:
+                specz_name = data.get("speczname")
+                log.info("speczname--> %s", specz_name)
+                speczname = specializations.objects.filter(name=specz_name).values_list(
+                    "id"
+                )
+                if speczname:
+                    log.info("speczname1--> %s", speczname)
+
+                    course_extra_data = all_course_extra_data.filter(
+                        specialization_id=speczname
+                    )
+                    if not course_extra_data:
+                        course_dict = {}
+                        course_dict["result"] = "No courses found"
+                        courses_list.append(course_dict)
+                        return JsonResponse(courses_list, status=200, safe=False)
+                else:
+                    log.info("speczname2--> %s", specz_name)
+                    course_dict = {}
+                    course_dict["result"] = "Invalid Specialization name provided"
+                    courses_list.append(course_dict)
+                    return JsonResponse(courses_list, status=200, safe=False)
+            elif "topic" in request.GET:
+                course_topic = categories.objects.filter(
+                    topic_name=data.get("topic")
+                ).values_list("id")
+                if course_topic:
+                    course_extra_data = all_course_extra_data.filter(
+                        category=course_topic
+                    )
+                    if not course_extra_data:
+                        course_dict = {}
+                        course_dict["result"] = "No courses found"
+                        courses_list.append(course_dict)
+                        return JsonResponse(courses_list, status=200, safe=False)
+                else:
+                    course_dict = {}
+                    course_dict["result"] = "Invalid Topic name provided"
+                    courses_list.append(course_dict)
+                    return JsonResponse(courses_list, status=200, safe=False)
+            elif "subtopic" in request.GET:
+                course_subtopic = cat_sub_category.objects.filter(
+                    name=data.get("subtopic")
+                ).values_list("id")
+                log.info("course_subtopic--> %s", course_subtopic)
+                if course_subtopic:
+                    course_extra_data = all_course_extra_data.filter(
+                        sub_category__in=course_subtopic
+                    )
+                    if not course_extra_data:
+                        course_dict = {}
+                        course_dict["result"] = "No courses found"
+                        courses_list.append(course_dict)
+                        return JsonResponse(courses_list, status=200, safe=False)
+                else:
+                    course_dict = {}
+                    course_dict["result"] = "Invalid Sub Topic name provided"
+                    courses_list.append(course_dict)
+                    return JsonResponse(courses_list, status=200, safe=False)
+
+            for cid in course_extra_data:
+                course_id = CourseKey.from_string(cid.course_id)
+                courses_id_list.append(course_id)
+            log.info("specz_course_id_list--> %s", course_extra_data)
+            enrollment_count = (
+                CourseEnrollment.objects.filter(
+                    course_id__in=courses_id_list, course_id__org="DRL"
+                )
+                .values("course_id")
+                .annotate(ccount=Count("course_id"))
+                .order_by("-ccount")[:10]
+            )
+            log.info("enrollment_count--> %s", enrollment_count)
+        else:
+            enrollment_count = (
+                CourseEnrollment.objects.filter(course_id__org="DRL")
+                .values("course_id")
+                .annotate(ccount=Count("course_id"))
+                .order_by("-ccount")[:10]
+            )
+
+        count = 0
+        for courseid in enrollment_count:
+            log.info("cid--> %s", courseid)
+            count = count + 1
+            today_date_time = datetime.date.today()
+            try:
+                course_data = CourseOverview.objects.get(
+                    id=courseid["course_id"], start__gt=today_date_time
+                )
+                log.info("cid--> %s", course_data)
+                if course_data:
+                    extra_data = course_extrainfo.objects.get(
+                        course_id=courseid["course_id"]
+                    )
+                    course_topic = categories.objects.get(id=extra_data.category)
+                    # topic_specz = list(categories.objects.filter(id=course_topic.id).values_list('topic_specialization',flat=True))
+                    speczname = specializations.objects.get(
+                        id=extra_data.specialization_id
+                    )
+                    course_sub_topic = cat_sub_category.objects.get(
+                        id=extra_data.sub_category
+                    )
+                    course_dict = {}
+                    course_dict["course_id"] = str(course_data.id)
+                    course_dict["specialization"] = speczname.name
+                    course_dict["topic"] = course_topic.topic_name
+                    course_dict["sub_topic"] = course_sub_topic.name
+                    course_dict["enrollment_count"] = courseid["ccount"]
+                    course_dict["course_title"] = course_data.display_name
+                    course_dict["media"] = course_data.course_image_url
+                    course_dict["start"] = course_data.start.strftime("%b %d, %Y ")
+                    courses_list.append(course_dict)
+            except:
+                course_dict = {}
+                course_dict["course"] = "No courses to show"
+                # courses_list.append(course_dict)
+        return JsonResponse(courses_list, status=200, safe=False)
+
+
+@view_auth_classes(is_authenticated=False)
+class docvidya_all_courses(DeveloperErrorViewMixin, APIView):
+    def get(self, request, **kwargs):
+        courses = CourseOverview.objects.filter(display_org_with_default="DRL")
+        courses_list = []
+        popular_topic_list = []
+        if "HTTP_KEY" and "HTTP_SECRET" in request.META:
+            log.info("key and secret parameter in header")
+            key = request.META.get("HTTP_KEY")
+            secret = request.META.get("HTTP_SECRET")
+            log.info("key, secret %s,%s", key, secret)
+            from provider.oauth2.models import Client
+
+            cliet_obj = Client.objects.filter(client_id=key, client_secret=secret)
+            if not cliet_obj:
+                popular_topic_dict = {}
+                popular_topic_dict["result"] = "Invalid Key and Secret"
+                popular_topic_list.append(popular_topic_dict)
+                return JsonResponse(popular_topic_list, status=200, safe=False)
+        else:
+            popular_topic_dict = {}
+            popular_topic_dict["result"] = "Invalid Key and Secret"
+            popular_topic_list.append(popular_topic_dict)
+            return JsonResponse(popular_topic_list, status=200, safe=False)
+        count = 0
+        for course in courses:
+            user_enrollment_count = CourseEnrollment.objects.filter(
+                course_id=course.id, is_active=1
+            ).count()
+
+            course_dict = {}
+            course_dict["course_id"] = str(course.id)
+            course_dict["enrollment_count"] = user_enrollment_count
+            courses_list.append(course_dict)
+
+        return JsonResponse(courses_list, status=200, safe=False)
+
+
+@view_auth_classes(is_authenticated=False)
+class docvidya_profile_updation(DeveloperErrorViewMixin, APIView):
+    def post(self, request, **kwargs):
+        log.info("profile-->%s", request.data)
+        popular_topic_list = []
+        if "HTTP_KEY" and "HTTP_SECRET" in request.META:
+            log.info("key and secret parameter in header")
+            key = request.META.get("HTTP_KEY")
+            secret = request.META.get("HTTP_SECRET")
+            log.info("key, secret %s,%s", key, secret)
+            from provider.oauth2.models import Client
+
+            cliet_obj = Client.objects.filter(client_id=key, client_secret=secret)
+            if not cliet_obj:
+                popular_topic_dict = {}
+                popular_topic_dict["result"] = "Invalid Key and Secret"
+                popular_topic_list.append(popular_topic_dict)
+                return JsonResponse(popular_topic_list, status=200, safe=False)
+        else:
+            popular_topic_dict = {}
+            popular_topic_dict["result"] = "Invalid Key and Secret"
+            popular_topic_list.append(popular_topic_dict)
+            return JsonResponse(popular_topic_list, status=200, safe=False)
+        vfields = request.data
+        log.info("vfields--> %s", vfields)
+        log.info("vfields1--> %s", request.data)
+        email = vfields.get("email")
+        log.info("email--> %s", email)
+        user_profile = []
+        try:
+            user = User.objects.get(email=email)
+            vfields.pop("email", None)
+            log.info("vfields0--> %s", vfields)
+            for key in vfields:
+                vfield = key
+                log.info("vfield1--> %s", vfield)
+
+                if vfield == "full_name":
+                    columname = vfield
+                    fieldvalue = vfields[key]
+                    profile = UserProfile.objects.filter(user_id=user).update(
+                        name=fieldvalue
+                    )
+                    message = vfield + " updated successfully"
+                else:
+
+                    if vfield == "phone":
+                        columname = "phone"
+                        fieldvalue = vfields[key]
+                        message = vfield + " updated successfully"
+                    elif vfield == "city":
+                        columname = "rcity"
+                        fieldvalue = vfields[key]
+                        message = vfield + " updated successfully"
+                    elif vfield == "pincode":
+                        # log.info('vfield--> %s',vfield)
+                        columname = "rpincode"
+                        fieldvalue = vfields[key]
+                        message = vfield + " updated successfully"
+                    else:
+                        columname = vfield
+                        fieldvalue = vfields[key]
+
+                        message = vfield + " updated successfully"
+                    # log.info('columname--> %s,%s,%s',columname,fieldvalue,message)
+                    gmember = extrafields.objects.filter(user_id=user.id).update(
+                        **{columname: fieldvalue}
+                    )
+
+                msg = {"succes": True, "message": message, "status": 200}
+
+            user_profile.append(msg)
+            return JsonResponse(user_profile, status=200, safe=False)
+        except:
+            msg = {"succes": False, "message": "Emailid does not exist", "status": 400}
+
+            user_profile.append(msg)
+            return JsonResponse(user_profile, status=200, safe=False)
+
+
+@login_required
+@require_http_methods(["GET"])
+def custom_cart(request):
+    from openedx.core.djangoapps.custom_programs.models import (
+        ProgramOrder,
+        ProgramAdd,
+        ProgramEnrollment,
+        CouponRadeemedDetails,
+        ProgramCoupon,
+        ProgramCouponRemainUsage,
+    )
+
+    today_date = datetime.datetime.now()
+    log.info("request-->%s", request.GET)
+    # if 'latest_price' in request.session:
+    #    latest_price= request.session['latest_price']
+    # else:
+    #    latest_price = 0
+    user = request.user
+    programid = request.GET.get("programid")
+    context = {}
+    if not programid:
+        context["developer_message"] = "Any Program not found"
+        response = JsonResponse(context, status=200)
+    try:
+        program = ProgramAdd.objects.get(id=programid)
+        if user and programid:
+            program_enroll = ProgramEnrollment.objects.filter(
+                user=user, program=program
+            )
+            if program_enroll:
+                context = {"is_enrolled": "True"}
+                log.info("is_enrolled-->%s", context["is_enrolled"])
+                return render_to_response("programs/cart.html", context)
+            else:
+                log.info("program2-->%s", programid)
+
+                try:
+                    log.info("programod-->%s", programid)
+                    programorder = ProgramOrder.objects.get(
+                        user=user, program=program, status="initial"
+                    )
+                    coupon_radeemed_details = CouponRadeemedDetails.objects.filter(
+                        user=request.user,
+                        order=programorder,
+                        program=program,
+                        status="applied",
+                    )
+                    if coupon_radeemed_details:
+                        coupon_radeemed_details = coupon_radeemed_details[0]
+                        # latest_price = (program.price - ((program.price*coupon_radeemed_details.coupon.discout_percentage)/100))*70*100
+                        # latest_price_currency = (program.price - ((program.price*coupon_radeemed_details.coupon.discout_percentage)/100))
+                        # discount_price = ((program.price*coupon_radeemed_details.coupon.discout_percentage)/100)*70
+                        coupon_discount_obj = ProgramCoupon.objects.filter(
+                            program=program,
+                            activation_date__lte=today_date,
+                            expiration_date__gte=today_date,
+                            coupon_code=coupon_radeemed_details.coupon.coupon_code,
+                            is_active=True,
+                        )
+                        if coupon_discount_obj:
+                            coupon_discount_obj = coupon_discount_obj[0]
+                            coupon_remain_obj = ProgramCouponRemainUsage.objects.filter(
+                                program_coupon=coupon_discount_obj
+                            )
+                            if coupon_remain_obj:
+                                coupon_remain_obj = coupon_remain_obj[0]
+                                if coupon_remain_obj.remaining_usage > 0:
+                                    latest_price = (
+                                        (
+                                            program.price
+                                            - (
+                                                (
+                                                    program.price
+                                                    * coupon_discount_obj.discout_percentage
+                                                )
+                                                / 100
+                                            )
+                                        )
+                                        * 70
+                                        * 100
+                                    )
+                                    latest_price_currency = program.price - (
+                                        (
+                                            program.price
+                                            * coupon_radeemed_details.coupon.discout_percentage
+                                        )
+                                        / 100
+                                    )
+                                    discount_price = (
+                                        program.price
+                                        * coupon_discount_obj.discout_percentage
+                                    ) / 100
+                                    coupon_code = coupon_discount_obj.coupon_code
+                                    coupon_discount_value = (
+                                        coupon_discount_obj.discout_percentage
+                                    )
+                                else:
+                                    latest_price = 0
+                                    discount_price = 0
+                                    coupon_code = ""
+                                    latest_price_currency = 0
+                                    coupon_discount_value = 0
+                            else:
+                                latest_price = 0
+                                discount_price = 0
+                                coupon_code = ""
+                                latest_price_currency = 0
+                                coupon_discount_value = 0
+                        else:
+                            latest_price = 0
+                            discount_price = 0
+                            coupon_code = ""
+                            latest_price_currency = 0
+                            coupon_discount_value = 0
+                    else:
+                        latest_price = 0
+                        discount_price = 0
+                        latest_price_currency = 0
+                        coupon_code = ""
+                        coupon_discount_value = 0
+                    log.info("programod-->%s", programorder)
+                    context = {
+                        "programorder": programorder,
+                        "program": program,
+                        "latest_price": latest_price,
+                        "discount_price": discount_price,
+                        "coupon_code": coupon_code,
+                        "latest_price_currency": latest_price_currency,
+                        "coupon_discount_value": coupon_discount_value,
+                    }
+                    log.info("context-->%s", context)
+
+                    return render_to_response("programs/cart.html", context)
+                except:
+                    log.info("programadding-->%s", programid)
+                    add_order = ProgramOrder(
+                        user=user,
+                        program=program,
+                        price=program.price,
+                        item_name=program.name,
+                        currency=program.currency,
+                        status="initial",
+                    )
+                    add_order.save()
+                    programorder = ProgramOrder.objects.get(
+                        user=user, program=program, status="initial"
+                    )
+
+                    context = {
+                        "programorder": programorder,
+                        "program": program,
+                        "latest_price": 0,
+                        "discount_price": 0,
+                        "coupon_code": "",
+                        "latest_price_currency": 0,
+                    }
+
+                    return render_to_response("programs/cart.html", context)
+    except:
+        program = "N/A"
+
+    context = {"programorder": program}
+
+    return render_to_response("programs/cart.html", context)
+
+
+@login_required
+def reciept(request, *args, **kwargs):
+    from openedx.core.djangoapps.custom_programs.models import (
+        ProgramOrder,
+        ProgramAdd,
+        ProgramEnrollment,
+        ProgramCoupon,
+        CouponRadeemedDetails,
+    )
+
+    if "order_number" in request.GET:
+        orderid = request.GET.get("order_number")
+    else:
+        orderid = request.session["order_id"]
+    log.info("orderid-->%s", orderid)
+    user = request.user
+    context = {}
+    if orderid:
+        try:
+            order = ProgramOrder.objects.get(user=user, id=orderid)
+            if order.discount_price > 0:
+                coupon_details = CouponRadeemedDetails.objects.get(
+                    order=order, user=user
+                )
+
+            else:
+                coupon_details = 0
+            context = {
+                "programorder": order,
+                "orderid": orderid,
+                "developer_message": "valid",
+                "coupon_details": coupon_details,
+            }
+            log.info("context-->%s", context)
+            return render_to_response("programs/receipt.html", context)
+        except:
+            context["developer_message"] = "Invalid Order"
+
+        return render_to_response("programs/receipt.html", context)
+
+
+@login_required
+def program_order_details(request):
+    from openedx.core.djangoapps.custom_programs.models import (
+        ProgramOrder,
+        ProgramAdd,
+        ProgramEnrollment,
+        ProgramCoupon,
+        CouponRadeemedDetails,
+    )
+
+    orders = ProgramOrder.objects.filter(status="paid").exclude(
+        user__email__contains="@docmode.com"
+    )
+    context = {"programorders": orders}
+
+    return render_to_response("custom_analytics/program_orders.html", context)

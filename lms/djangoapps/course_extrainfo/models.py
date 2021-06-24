@@ -6,9 +6,7 @@ from lms.djangoapps.specialization.models import specializations, categories
 
 
 class course_extrainfo(models.Model):
-
     course_id = models.CharField(max_length=255, db_index=True)
-
     course_type = models.CharField(
         verbose_name="Course_type",
         max_length=2,
@@ -24,6 +22,9 @@ class course_extrainfo(models.Model):
     course_extradata = models.CharField(max_length=950, blank=True)
     total_webinar_hours = models.CharField(max_length=10, blank=True, default=1)
     microsite_visibile_only = models.CharField(max_length=10, blank=True, default=0)
+    credit_point = models.IntegerField(default=0)
+    credit_code = models.CharField(max_length=950, blank=True)
+    credit_given_by = models.CharField(max_length=950, blank=True)
 
     def __str__(self):
         return self.course_id

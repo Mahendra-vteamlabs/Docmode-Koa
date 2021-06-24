@@ -76,7 +76,7 @@ from common.djangoapps.organizations.models import (
     OrganizationSlider,
 )
 
-# from organizations import serializers
+# from common.djangoapps.organizations import serializers
 from lms.djangoapps.reg_form.models import extrafields
 from lms.djangoapps.specialization.views import specializationName
 from lms.djangoapps.course_extrainfo.models import course_extrainfo
@@ -158,7 +158,6 @@ def list_categories(request):
 @receiver(ENROLL_STATUS_CHANGE)
 def send_welcome_email(sender, event=None, user=None, course_id=None, **kwargs):
     log.info("welcome email %s,%s", user, course_id)
-
     if event == EnrollStatusChange.enroll:
         log.info(u"event->")
         try:
@@ -234,13 +233,11 @@ def send_welcome_email(sender, event=None, user=None, course_id=None, **kwargs):
                 mail_to_users.save()
                 log.info(u"email_msg2->%s", email_msg)
         except ObjectDoesNotExist:
-
             log.info("universal welcome email %s,%s", user, course_id)
             try:
                 course_email = Custom_email.objects.get(id=3)
             except Exception as e:
                 return
-
             course_extra_data = course_extrainfo.objects.get(course_id=course_id)
 
             cid1 = str(course_email.course_id)
@@ -266,60 +263,31 @@ def send_welcome_email(sender, event=None, user=None, course_id=None, **kwargs):
             email_context["course_id"] = course_id
             email_context["start_date"] = course.start.strftime("%b %d, %Y")
 
-            if "Viatris" in str(course_id):
-                str_cid = str(course_id)
-                cid = str_cid.split("+")
-                new_cid = cid[0].split(":")
-                email_context["new_course_url"] = (
-                    "https://"
-                    + new_cid[1]
-                    + ".learn.docmode.org/courses/"
-                    + str(course_id)
-                    + "/course"
-                )
-                email_context["legalnotice"] = "block"
-                email_context["emessage"] = "none"
-                subject = (
-                    "Thank you for Registering to " + email_context["course_title"]
-                )
-                now_asia = course.start.astimezone(timezone("Europe/Berlin"))
-                email_context["timezone_shortcode"] = "CET"
-            else:
-                email_context["new_course_url"] = (
-                    "https://learn.docmode.org/courses/" + str(course_id) + "/course"
-                )
-                email_context["legalnotice"] = "none"
-                email_context["emessage"] = "block"
-                subject = (
-                    "Congratulations you are enrolled in "
-                    + email_context["course_title"]
-                )
-                now_asia = course.start.astimezone(timezone("Asia/Kolkata"))
-                email_context["timezone_shortcode"] = "IST"
-
+            now_asia = course.start.astimezone(timezone("Asia/Kolkata"))
             ctime = now_asia + timedelta(minutes=30)
 
             email_context["start_time"] = ctime.strftime("%X")
 
             diffdate = course.start - datetime.datetime.now(UTC)
             total_mins = diffdate.days * 1440 + diffdate.seconds / 60
+            log.info(u"total_mins--> %s", total_mins)
             minutes = divmod(diffdate.seconds, 60)
-            total_mins = abs(total_mins)
-
-            if course_extra_data.google_calendar_url and total_mins > 59:
+            log.info(u"minutes--> %s", minutes[0])
+            if course_extra_data.google_calendar_url and total_mins > 240:
 
                 email_context[
                     "google_calendar_url"
                 ] = course_extra_data.google_calendar_url
-                email_context["google_calendar_title"] = "Add to my Google calendar"
+                email_context["google_calendar_title"] = "Add to calendar"
                 email_context["background_color"] = "4E9CAF"
-                email_context["show_calendar"] = "block"
             else:
                 email_context["google_calendar_url"] = ""
                 email_context["google_calendar_title"] = ""
                 email_context["background_color"] = ""
-                email_context["show_calendar"] = "None"
 
+            subject = (
+                "Congratulations you are enrolled in " + email_context["course_title"]
+            )
             email_template = course_email.get_template()
             plaintext_msg = email_template.render_plaintext(
                 course_email.text_message, email_context

@@ -1,0 +1,356 @@
+<%!
+import json
+from django.utils.translation import ugettext as _
+from django.urls import reverse
+from django.conf import settings
+from edxmako.shortcuts import marketing_link
+from openedx.core.lib.courses import course_image_url
+from django.template.context_processors import csrf
+from lms.djangoapps.associations.views import speczName, userType, orgName, course_det
+%>
+
+<%inherit file="../main.html" />
+<%namespace name='static' file='../static_content.html'/>
+
+<%block name="headextra">
+    <style type="text/css">
+                    .razorpay-payment-button {
+                        border-color: #1E8142 !important;
+                        padding: 1.25rem 1.875rem !important;
+                        background: #30529a !important;
+                        color: #fcfcfc !important;
+                        font-size: 18px !important;
+                    }
+                    .apply-coupon-button {
+                        border-color: #1E8142;
+                        padding: 1rem 1.875rem;
+                        background: #30529a;
+                        color: #fcfcfc;
+                        font-size: 18px;
+                    }
+
+                    .basket .container .basket-items .certificate_type {
+                        font-weight: bold;
+                    }
+
+                    .basket .container .total, .basket .container #summary {
+                        padding-top: 20px;
+                        margin-bottom: 1.25rem;
+                    }
+
+                    .basket .container .basket-items {
+                        border-bottom: 1px solid #ddd;
+                    }
+
+                    .basket .container .basket-items .row .price {
+                        margin: 0;
+                        font-size: 20px;
+                        font-weight: bold;
+                    }
+
+                    .basket .container .basket-items .row .product-prices {
+                        text-align: right;
+                    }
+
+                    .basket .container .total #basket_totals, .basket .container #summary #basket_totals {
+                        text-align: right;
+                        color: #337ab7;
+                        font-size: 18px;
+                        font-weight: bold;
+                    }
+                    .basket .container #basket_totals, .basket .container .price {
+                        float: right;
+                    }
+                </style>
+
+</%block>
+%if not is_enrolled:
+    <%block name="pagetitle">Cart - ${program.name}</%block>
+%endif
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
+<main id="main-content" aria-label="Checkout" tabindex="-1">
+    
+        <div class="basket ">
+            <div class="container">
+            %if not is_enrolled:
+                <div id="messages">
+
+                </div>
+                <%
+                    if latest_price > 0:
+                        inr = latest_price
+                    else:
+                        inr = programorder.price*70*100
+                %>
+                
+                <div id="content-inner" style="padding-top: 4%;">
+    
+                    <form action="." method="post">
+                        <div class="basket-items">
+                                <p class="certificate_type">
+                                    Earn a valuable certificate to showcase the skills you learn in
+                                </p>
+                            
+                            <div class="row">
+                                <div class="col-md-3 col-sm-12 product-image">
+                                    <input type="hidden" name="form-0-id" value="15969" id="id_form-0-id">
+                                    <img class="thumbnail" src="https://learn.docmode.org/media/${program.program_image}" alt="${program.name}" width="100%" height="30%">
+                                </div>
+                                <div class="col-md-6 col-sm-12">
+                                    <p class="product-title">${program.name}</p>
+                                    <p class="product-description">${program.short_description}</p>
+                                </div>
+                                
+                                <div class="col-md-3 col-xs-12 product-prices pull-right">
+                                    
+
+                                    
+                                    <div class="price ">
+                                        
+                                        %if latest_price_currency > 0:
+                                            ${coupon_discount_value}% off  
+                                            <strike>$${programorder.price} </strike>   
+                                            &nbsp;&nbsp;$${latest_price_currency}
+                                        %else:
+                                            $${programorder.price}
+                                        %endif
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    </form>
+                    <div class="total">
+                        <div class="row">
+                            <div class="use-voucher col-sm-7 col-xs-8">
+                                <p id="voucher_form_link">
+                                    Apply a coupon code
+                                </p>
+                                <div id="voucher_form_container" class="voucher_form">
+                                <form id="voucher_form" action="" method="post">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="uYclafRg8HXtLIhADl0UdqwXEyI8zcaXH0hL2SLny49kWVaoCYEO1w6EPrFpWw5L">
+                                <div class="code">
+                                    <input id="couponprogram_id" name="code" type="hidden" value="${program.id}">
+                                  <input id="couponorder_id"  type= "hidden" value="${programorder.id}">
+                                    %if latest_price > 0:
+                                    <input id="id_code" name="code" value="${coupon_code}" type="text" readonly>
+                                    <button type="button" id="remove-voucher-button" class="btn btn-default">
+                                        Remove Coupon
+                                    </button>
+                                   %else:
+                                    <input id="id_code" name="code"  type="text">
+                                    <button type="button" id="apply-voucher-button" class="btn btn-default">
+                                        Apply
+                                    </button>
+                                  %endif
+                                </div>
+                                   %if latest_price > 0:
+                                      <div id="error_message" style="display:block;color:green"> Coupon Code applied successfully</div>
+                                   %else:
+                                      <div id="error_message" style="display:none;"></div>
+                                   %endif
+                                </form>
+                                </div>
+                            </div>
+                            <div id="basket_totals" class="col-xs-4">
+                                    Total:
+                                    
+                                        %if latest_price_currency > 0:
+                                            $${latest_price_currency}
+                                        %else:
+                                            $${programorder.price}
+                                        %endif
+                            </div>
+                        </div>
+                    </div> 
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="pull-right payment-buttons" data-basket-id="9933">
+
+                                            <form action="/api/v1/wp_course/custom_program_payment/" method="GET">
+                                                <!-- Note that the amount is in paise = 50 INR -->
+                                                %if not request.user.is_staff:
+                                                    <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_live_qcXjzYsxJf9BxR" data-amount="${inr}" data-buttontext="Pay with Razorpay" data-name="Docmode Health Technologies" data-description="(${programorder.item_name})" data-image="https://learn.docmode.org/media/${program.program_image}" data-prefill.name="" data-prefill.email="${request.user.email}" data-theme.color="#F37254"></script>
+                                                %else:
+                                                    <script src="https://checkout.razorpay.com/v1/checkout.js" id="razorpaydatas" data-key="rzp_test_lRBsk3kmGyJKKx" data-amount="${inr}" data-buttontext="Pay with Razorpay" data-name="Docmode Health Technologies" data-description="(${programorder.item_name})" data-image="https://learn.docmode.org/media/${program.program_image}" data-prefill.name="" data-prefill.email="${request.user.email}" data-theme.color="#F37254"></script>
+                                                %endif
+                                                
+                                                <input type="hidden" value="${programorder.id}" name="order_id">
+                                                <input type="hidden" value="${program.id}" name="program_id">
+                                                %if latest_price > 0:
+                                                    <input type="hidden" value="${coupon_code}" name="coupon_name">
+                                                    <input type="hidden" value="${latest_price_currency}" name="order_price">
+                                                    <input type="hidden" value="${discount_price}" name="coupon_value">
+                                                %endif
+                                            </form>  
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row verification-note">
+                        <div class="col-sm-12">
+                            <span><i class="fa fa-exclamation-circle"></i></span>
+                            
+                            
+                                <strong>Note:</strong> To complete your enrollment, select Checkout.
+                            
+                        </div>
+                    </div>
+                    <div class="row help">
+                        <div class="col-sm-12">
+                            <p><strong>Have questions?</strong></p>
+                            <a href="https://docmode.org/terms-of-services/">Please read our FAQs to view common questions about our certificates.</a>
+                        </div>
+                    </div>
+                </div>
+
+
+            %else:
+                <div id="content-inner" style="padding-top: 4%;">
+                <h2>You have already purchased this program!</h2>
+                <div id="cta-nav-links" class="row">
+                    <div class="col-xs-12" style="text-align: center;">
+                      
+                      <a class="dashboard-link nav-link" href="https://develop.docmode.org/dashboard">
+                        Go to dashboard
+                      </a>
+                      
+                      <a class="find-more-courses-link nav-link" href="https://wp.develop.docmode.org/courses">
+                        Find more courses
+                      </a>
+                    </div>
+                </div>
+                </div>
+            %endif
+            </div>
+        </div>
+    </main>
+    <script>
+ $("#apply-voucher-button").click(function (){
+                   $("#error_message").css('display','none')
+                   $("#error_message").text("")
+var coupon_code = $("#id_code").val()
+var program_id = $("#couponprogram_id").val()
+var order_id = $("#couponorder_id").val()
+      event.preventDefault();
+    if (!coupon_code) {
+        message = "coupon code can not be empty";
+        $("#error_message").css('color','red')
+        $("#error_message").text(message)
+        $("#error_message").css('display','block')
+    }
+    else if (!program_id) {
+        message = "something wrong in cart";
+        $("#error_message").css('color','red')
+        $("#error_message").css('display','block')
+        $("#error_message").text(message)
+    }
+    else if (!order_id) {
+        message = "something wrong in cart";
+        $("#error_message").css('color','red')
+        $("#error_message").css('display','block')
+        $("#error_message").text(message)
+    }
+
+    else{
+        data = {}
+        data['coupon_code'] = coupon_code
+        data['program_id'] = program_id
+        data['order_id'] = order_id
+        data['csrfmiddlewaretoken'] = '${ csrf_token }'
+        $.ajax({
+             type: "POST",
+             url:"/api/v1/wp_course/program_coupon/",
+             data: data,
+             success: function(result, status, xhr) {
+                if (result["status"] === "success"){
+                   //  var latest_price = result["data"]["latest_price"]
+                   //   var discount_price = result["data"]["discount_price"]
+                   //   debugger;
+                     
+                   //   $("#razorpaydatas").attr("data-amount",latest_price)
+                   //  var message = result["data"]["successmessage"]
+                   // $("#error_message").css('color','green')
+                   // $("#error_message").css('display','block')
+                   // $("#error_message").text(message)
+                   window.location.reload();
+                }
+               if (result["data"]["errormessage"]){
+                   var message = result["data"]["errormessage"]
+                   $("#error_message").css('color','red')
+                   $("#error_message").css('display','block')
+                   $("#error_message").text(message)
+               }
+           }
+        });
+
+}
+
+});
+
+
+$("#remove-voucher-button").click(function (){
+                   $("#error_message").css('display','none')
+                   $("#error_message").text("")
+var coupon_code = $("#id_code").val()
+var program_id = $("#couponprogram_id").val()
+var order_id = $("#couponorder_id").val()
+
+      event.preventDefault();
+    if (!coupon_code) {
+        message = "coupon code can not be empty";
+        $("#error_message").css('color','red')
+        $("#error_message").text(message)
+        $("#error_message").css('display','block')
+    }
+    else if (!program_id) {
+        message = "something wrong in cart";
+        $("#error_message").css('color','red')
+        $("#error_message").css('display','block')
+        $("#error_message").text(message)
+    }
+    else if (!order_id) {
+        message = "something wrong in cart";
+        $("#error_message").css('color','red')
+        $("#error_message").css('display','block')
+        $("#error_message").text(message)
+    }
+
+else{
+        data = {}
+        data['coupon_code'] = coupon_code
+        data['program_id'] = program_id
+        data['order_id'] = order_id
+        data['csrfmiddlewaretoken'] = '${ csrf_token }'
+        $.ajax({
+             type: "POST",
+             url:"/api/v1/wp_course/program_coupon_remove/",
+             data: data,
+             success: function(result, status, xhr) {
+                if (result["status"] === "success"){
+                   //  var latest_price = result["data"]["latest_price"]
+                   //   var discount_price = result["data"]["discount_price"]
+                   //   debugger;
+
+                   //   $("#razorpaydatas").attr("data-amount",latest_price)
+                   //  var message = result["data"]["successmessage"]
+                   // $("#error_message").css('color','green')
+                   // $("#error_message").css('display','block')
+                   // $("#error_message").text(message)
+                   window.location.reload();
+                }
+               if (result["data"]["errormessage"]){
+                   var message = result["data"]["errormessage"]
+                   $("#error_message").css('color','red')
+                   $("#error_message").css('display','block')
+                   $("#error_message").text(message)
+               }
+           }
+        });
+
+}
+
+});
+</script>

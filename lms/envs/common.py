@@ -2764,7 +2764,9 @@ INSTALLED_APPS = [
     'lms.djangoapps.user_session_tracking',
     'openedx.core.djangoapps.push_notification',
     'openedx.core.djangoapps.course_discovery_api',
-    'openedx.core.djangoapps.wp_course_discovery_api'
+    'openedx.core.djangoapps.wp_course_discovery_api',
+    'common.djangoapps.course_credit_points',
+    'openedx.core.djangoapps.custom_programs.apps.CustomProgramsManagementConfig',
 ]
 
 ######################### CSRF #########################################

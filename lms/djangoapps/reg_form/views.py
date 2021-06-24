@@ -5,6 +5,7 @@ import warnings
 from six.moves.urllib.parse import parse_qs, urlsplit, urlunsplit
 
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import login as django_login
@@ -18,16 +19,14 @@ from django.shortcuts import redirect, render
 from .models import extrafields, medical_councils
 from django.core.exceptions import ObjectDoesNotExist
 from student.models import UserProfile
-from openedx.core.djangoapps.user_authn.cookies import set_logged_in_cookies
+from openedx.core.djangoapps.user_authn.cookies import delete_logged_in_cookies, set_logged_in_cookies
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.validators import ValidationError, validate_email
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import ensure_csrf_cookie
 from edxmako.shortcuts import render_to_response
 from django.db import transaction
-from openedx.core.djangoapps.user_authn.views.registration_form import (
-    AccountCreationForm,
-)
+from openedx.core.djangoapps.user_authn.views.registration_form import AccountCreationForm
 from student.tasks import send_activation_email
 from student.helpers import (
     AccountValidationError,
@@ -104,11 +103,122 @@ def str2bool(s):
     return s.lower() in ("yes", "true", "t", "1")
 
 
-@login_required
-@ensure_csrf_cookie
+# @login_required
+# @ensure_csrf_cookie
+@csrf_exempt
 def kol_registration(request):
+    data = request.POST.dict()
+    log.info("docvidlogin3--> %s", request.__dict__)
+    log.info("docvidlogin3--> %s", data)
+    http_referer = request.META.get("HTTP_REFERER")
     generated_password = generate_password()
     user = request.user
+    if "drlocedev" not in http_referer:
+        if user.is_staff:
+            if request.method == "POST":
+                username = request.POST.get("username", "")
+                email = request.POST.get("emailid", "")
+                password = request.POST.get("password", generated_password)
+                full_name = request.POST.get("name", "")
+                phone = request.POST.get("phone", "")
+                user_type = request.POST.get("user_type", "")
+                specialization = request.POST.get("specialization", "")
+                hcspecialization = request.POST.get("hcspecialization", "")
+                pincode = request.POST.get("pincode", "")
+                country = request.POST.get("country", "")
+                state = request.POST.get("state", "")
+                city = request.POST.get("city", "")
+                is_active = str2bool(request.POST.get("is_active", True))
+
+                form = AccountCreationForm(
+                    data={
+                        "username": username,
+                        "email": email,
+                        "password": password,
+                        "name": full_name,
+                    },
+                    tos_required=False,
+                )
+                restricted = settings.FEATURES.get("RESTRICT_AUTOMATIC_AUTH", True)
+                try:
+                    user, profile, reg = custom_do_create_account(form)
+                except (AccountValidationError, ValidationError):
+                    # if restricted:
+                    #     return HttpResponseForbidden(_('Account modification not allowed.'))
+                    # Attempt to retrieve the existing user.
+                    #     user = User.objects.get(username=username)
+                    #     user.email = email
+                    #     user.set_password(password)
+                    #     user.is_active = is_active
+                    #     user.save()
+                    #     profile = UserProfile.objects.get(user=user)
+                    #     reg = Registration.objects.get(user=user)
+                    # except PermissionDenied:
+                    return HttpResponseForbidden(
+                        "Account creation not allowed either the user is already registered or email-id not valid."
+                    )
+
+                if is_active:
+                    reg.activate()
+                    reg.save()
+
+                # ensure parental consent threshold is met
+                year = datetime.date.today().year
+                age_limit = settings.PARENTAL_CONSENT_AGE_LIMIT
+                profile.year_of_birth = (year - age_limit) - 1
+                profile.save()
+                user_extrainfo = extrafields(
+                    phone=phone,
+                    rcountry=country,
+                    rstate=state,
+                    rcity=city,
+                    rpincode=pincode,
+                    user_type=user_type,
+                    specialization_id=specialization,
+                    hcspecialization_id=hcspecialization,
+                    user=user,
+                )
+                user_extrainfo.save()
+                create_comments_service_user(user)
+
+                create_or_set_user_attribute_created_on_site(user, request.site)
+                messages.success(request, "Kol registration successful.")
+                context = {"errors": "welcome", "csrf": csrf(request)["csrf_token"]}
+                return render_to_response("associations/kol_registration.html", context)
+            else:
+                messages.success(request, "Welcome to KOL registration page.")
+
+                context = {"errors": "welcome", "csrf": csrf(request)["csrf_token"]}
+                return render_to_response("associations/kol_registration.html", context)
+    else:
+        if user.is_authenticated:
+            log.info("docvidlogin2--> %s", request.__dict__)
+            return redirect(
+                "https://docvidya.learn.docmode.org/courses/"
+                + data.get("course_id")
+                + "/courseware"
+            )
+        # messages.success(request, 'You are not authorized to view this.')
+        else:
+            log.info("else-->")
+            context = {
+                "email": data.get("email"),
+                "is_web": data.get("web"),
+                "course_id": data.get("course_id"),
+                "reg_num": data.get("reg_num"),
+                "http_referer": data.get("client_redirect_url"),
+            }
+            return render_to_response("associations/kol_registration.html", context)
+
+
+@login_required
+@ensure_csrf_cookie
+@csrf_exempt
+def new_kol_registration(request):
+
+    generated_password = generate_password()
+    user = request.user
+
     if user.is_staff:
         if request.method == "POST":
             username = request.POST.get("username", "")
@@ -179,17 +289,12 @@ def kol_registration(request):
             create_or_set_user_attribute_created_on_site(user, request.site)
             messages.success(request, "Kol registration successful.")
             context = {"errors": "welcome", "csrf": csrf(request)["csrf_token"]}
-            return render_to_response("associations/kol_registration.html", context)
+            return render_to_response("associations/new_kol_registration.html", context)
         else:
             messages.success(request, "Welcome to KOL registration page.")
 
             context = {"errors": "welcome", "csrf": csrf(request)["csrf_token"]}
-            return render_to_response("associations/kol_registration.html", context)
-    else:
-        messages.success(request, "You are not authorized to view this.")
-
-        context = {"errors": "welcome", "csrf": csrf(request)["csrf_token"]}
-        return render_to_response("associations/kol_registration.html", context)
+            return render_to_response("associations/new_kol_registration.html", context)
 
 
 def compose_and_send_activation_email(user, profile, user_registration=None):
@@ -347,7 +452,9 @@ def custom_registration_form(request):
             )
             restricted = settings.FEATURES.get("RESTRICT_AUTOMATIC_AUTH", True)
             try:
+                log.info("form--> %s", form)
                 user, profile, reg = do_create_account(form)
+                log.info("username--> %s,%s,%s", user, profile, reg)
             except (AccountValidationError, ValidationError):
                 # if restricted:
                 #     return HttpResponseForbidden(_('Account modification not allowed.'))
@@ -482,6 +589,152 @@ def viatris_emas_registration(request):
             restricted = settings.FEATURES.get("RESTRICT_AUTOMATIC_AUTH", True)
             try:
                 user, profile, reg = do_create_account(form)
+            except (AccountValidationError, ValidationError):
+                # if restricted:
+                #     return HttpResponseForbidden(_('Account modification not allowed.'))
+                # Attempt to retrieve the existing user.
+                #     user = User.objects.get(username=username)
+                #     user.email = email
+                #     user.set_password(password)
+                #     user.is_active = is_active
+                #     user.save()
+                #     profile = UserProfile.objects.get(user=user)
+                #     reg = Registration.objects.get(user=user)
+                # except PermissionDenied:
+                return JsonResponse(
+                    {
+                        "status": "403",
+                        "msg": "Account creation not allowed either the username is already taken.",
+                    }
+                )
+
+            # ensure parental consent threshold is met
+            year = datetime.date.today().year
+            age_limit = settings.PARENTAL_CONSENT_AGE_LIMIT
+            profile.year_of_birth = (year - age_limit) - 1
+            profile.save()
+            user_extrainfo = extrafields(
+                phone=phone,
+                rcountry=country,
+                rstate=state,
+                rcity=city,
+                rpincode=pincode,
+                user_type=user_type,
+                specialization_id=specialization,
+                hcspecialization_id=hcspecialization,
+                user_extra_data=extradata,
+                user=user,
+            )
+            user_extrainfo.save()
+
+            new_user = authenticate_new_user(request, user.username, password)
+            django_login(request, new_user)
+            request.session.set_expiry(0)
+            # log.info(u'details--> %s,%s,%s', user, profile,reg)
+
+            create_comments_service_user(user)
+
+            create_or_set_user_attribute_created_on_site(user, request.site)
+            if "viatris" in str(request.site):
+                log.info("newmail12%s", request.site)
+                viatris_send_activation_email(user, profile, reg, request.site)
+            else:
+                log.info("oldmail %s", request.site)
+                compose_and_send_activation_email(user, profile, reg)
+            messages.success(request, "Kol registration successful.")
+
+            response = JsonResponse(
+                {
+                    "success": True,
+                    "userid": user.id,
+                    "mobile": phone,
+                    "email": email,
+                    "name": full_name,
+                    "signupdate": datetime.date.today(),
+                    "usertype": "dr",
+                    "pincode": pincode,
+                    "country": country,
+                    "redirect_url": "https://mylan.learn.docmode.org/register?next=/oauth2/authorize/confirm",
+                }
+            )
+            return set_logged_in_cookies(request, response, new_user)
+    else:
+        messages.success(request, "Welcome to KOL registration page.")
+
+        context = {"errors": "welcome", "csrf": csrf(request)["csrf_token"]}
+        return render_to_response("associations/custom_registration.html", context)
+
+
+@ensure_csrf_cookie
+def custom_registration_without_zerobounce(request):
+    generated_password = generate_password()
+
+    mandatory_fields = [
+        "username",
+        "emailid",
+        "password",
+        "name",
+        "phone",
+        "user_type",
+        "specialization",
+        "hcspecialization",
+        "pincode",
+        "country",
+        "state",
+        "city",
+        "csrfmiddlewaretoken",
+    ]
+    extradata = {}
+    if request.is_ajax():
+        if request.method == "POST":
+            vfields = request.POST
+            for key in vfields:
+                if key not in mandatory_fields:
+                    extradata[key] = vfields[key]
+
+            uname = request.POST.get("username", "")
+            email = request.POST.get("emailid", "")
+            password = request.POST.get("password", generated_password)
+            if "fname" and "lname" in request.POST:
+                fname = request.POST.get("fname", "")
+                lname = request.POST.get("lname", "")
+                full_name = fname + " " + lname
+            else:
+                full_name = request.POST.get("name", "")
+            phone = request.POST.get("phone", "")
+            user_type = "dr"
+            specialization = request.POST.get("specialization", "")
+            hcspecialization = request.POST.get("hcspecialization", "")
+            pincode = request.POST.get("pincode", "")
+            country = request.POST.get("country", "")
+            state = request.POST.get("state", "")
+            city = request.POST.get("city", "")
+            is_active = str2bool(request.POST.get("is_active", True))
+
+            try:
+                username_validation = User.objects.get(username=uname)
+                if username_validation:
+                    date = datetime.datetime.now()
+                    curr_time = date.strftime("%f")
+                    username = uname + "_" + curr_time
+
+            except ObjectDoesNotExist:
+                username = uname
+
+            log.info("username--> %s", username)
+
+            form = AccountCreationForm(
+                data={
+                    "username": username,
+                    "email": email,
+                    "password": password,
+                    "name": full_name,
+                },
+                tos_required=False,
+            )
+            restricted = settings.FEATURES.get("RESTRICT_AUTOMATIC_AUTH", True)
+            try:
+                user, profile, reg = custom_do_create_account(form)
             except (AccountValidationError, ValidationError):
                 # if restricted:
                 #     return HttpResponseForbidden(_('Account modification not allowed.'))
