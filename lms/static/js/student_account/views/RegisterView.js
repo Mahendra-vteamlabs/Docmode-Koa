@@ -277,6 +277,15 @@
                     $('#register-confirm_email').bind('cut copy paste', function(e) {
                         e.preventDefault();
                     });
+                    $('.checkbox-optional_fields_toggle').hide();
+                    $('.text-username').hide();
+                    $('.text-reg_num').hide();
+                    $('.select-specialization').hide();
+                    $('.select-hcspecialization').hide();        
+                    $('.text-rcountry').hide();
+                    $('.text-rstate').hide();
+                    $('.text-rcity').hide();
+                    $('.text-address').hide();
                     setTimeout(handleAutocomplete, 1000);
                 },
 

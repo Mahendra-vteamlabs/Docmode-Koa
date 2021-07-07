@@ -107,25 +107,20 @@
     </main>
 </div>
 <script type="text/javascript">
-   
-    $( window ).on( "load", function() {
-        $('.checkbox-optional_fields_toggle').hide();
-    });
     function setfunc() {
-    $("#register-email").on("change", function(event){
+        $(document).on('change', '#register-email', function(event) {
             checkEmailValidity();
         });
-
-        $("input#register-rcountry").on("change", function(event) { 
+        $(document).on('change', 'input#register-rcountry', function(event) {
             checkstates();
         } );
 
-        $("#register-user_type").on("change", function(event) { 
+        $(document).on('change', '#register-user_type', function(event) {
             usertype(this.value);
 
         } );
         usertype('dr');
-        $("#register-rpincode").on("change", function(event) { 
+        $(document).on('change', '#register-rpincode', function(event) {
             getlocation(this.value);
         });
         
@@ -141,8 +136,7 @@
         $('.text-username').hide();
         $('.text-reg_num').hide();
         $('.select-specialization').hide();
-        $('.select-hcspecialization').hide();
-        
+        $('.select-hcspecialization').hide();        
         $('.text-rcountry').hide();
         $('.text-rstate').hide();
         $('.text-rcity').hide();
