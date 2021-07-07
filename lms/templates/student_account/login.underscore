@@ -4,7 +4,7 @@
 <% if ( context.createAccountOption !== false && !context.syncLearnerProfileData && !(context.enterpriseName && context.currentProvider) ) { %>
 <div class="toggle-form">
     <span class="text"><%- gettext("First time here?") %></span>
-    <a href="/register?next=/oauth2/authorize/confirm"  data-type="register"><%- gettext("Create an Account.") %></a>
+    <a href="#login" class="form-toggle" data-type="register"><%- gettext("Create an Account.") %></a>
 </div>
 <% } %>
 

@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 import logging
-
+import six
 import markupsafe
 from config_models.models import ConfigurationModel
 from django.contrib.auth.models import User
@@ -162,8 +162,8 @@ class CustomEmailTemplate(models.Model):
         stored HTML template and the provided `context` dict.
         """
         # HTML-escape string values in the context (used for keyword substitution).
-        for key, value in context.items():
-            if isinstance(value, basestring):
+        for key, value in six.iteritems(context):
+            if isinstance(value, six.string_types):
                 context[key] = markupsafe.escape(value)
         return CustomEmailTemplate._render(self.html_template, htmltext, context)
 

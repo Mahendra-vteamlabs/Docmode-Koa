@@ -109,7 +109,7 @@
                     <a href="${advanced_settings_url}">${_("Advanced Settings")}</a>
                   </li>
                   <li class="nav-item get_credit_points">
-                    <a href="${reverse('get_credit_points', kwargs={'course_key_string': unicode(course_key)})}">${_("Add Credit Points")}</a>
+                    <a href="${reverse('get_credit_points', kwargs={'course_key_string': six.text_type(course_key)})}">${_("Add Credit Points")}</a>
                   </li>
                   % if certificates_url:
                   <li class="nav-item nav-course-settings-certificates">

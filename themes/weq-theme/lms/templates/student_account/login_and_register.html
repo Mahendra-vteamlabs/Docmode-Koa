@@ -107,15 +107,18 @@
     </main>
 </div>
 <script type="text/javascript">
-    
+   
+    $( window ).on( "load", function() {
+        $('.checkbox-optional_fields_toggle').hide();
+    });
     function setfunc() {
     $("#register-email").on("change", function(event){
             checkEmailValidity();
         });
 
-        // $("#register-cemail").on("change", function(event) { 
-        //     checkmail();
-        // } );
+        $("input#register-rcountry").on("change", function(event) { 
+            checkstates();
+        } );
 
         $("#register-user_type").on("change", function(event) { 
             usertype(this.value);
@@ -162,18 +165,18 @@
             $('.select-specialization').hide();
             $('.select-hcspecialization').hide();
         } else if(val == 'hc') {
-          $("div").removeClass("hidden");
+            $("div").removeClass("hidden");
             $('.text-reg_num').hide();
             $('.select-specialization').hide();
             $('.select-hcspecialization').show();
         } else if(val == 'dr') {
-          $("div").removeClass("hidden");
+            $("div").removeClass("hidden");
             $('.text-reg_num').hide();
             $('.select-specialization').show();
             $('.select-hcspecialization').hide();
 
         } else if(val == 'ms') {
-          $("div").removeClass("hidden");
+            $("div").removeClass("hidden");
             $('.text-reg_num').hide();
             $('.select-specialization').show();
             $('.select-hcspecialization').hide();
@@ -293,6 +296,15 @@ function checkEmailValidity() {
     //         document.getElementById('register-username').value = newval.replace("@", "_");
     //     }
     // }
+
+    function checkstates() {
+        country = document.getElementById('register-rcountry').value;
+        if(country != 'India') {
+            
+            $("input#register-rstate").show();
+            $("#state_list").remove();
+        }
+    }
 
     setTimeout(setfunc, 2000);
 
@@ -428,4 +440,5 @@ function checkEmailValidity() {
      $('input#register-rstate').val(value);
     }
 
+    
 </script>

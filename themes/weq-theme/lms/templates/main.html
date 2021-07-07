@@ -157,7 +157,7 @@ from lms.djangoapps.reg_form.views import userdetails
   <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/cccd3ae050b407462dbcf1acf/398c976ca7df6743159a9cb86.js");</script>
   <!-- Mailchimp Integration -->
 
-+  <%
+  <%
     if user.is_authenticated:
       userDet = userdetails(user.id)
       if userDet.user_type == 'u':
